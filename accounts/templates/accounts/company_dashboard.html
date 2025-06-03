@@ -548,6 +548,125 @@
             opacity: 0;
         }
     }
+
+     /* Мобильные стили */
+    @media (max-width: 767px) {
+        .hero-slider {
+            height: 50vh !important;
+        }
+
+        .hero-slide h1 {
+            font-size: 2rem !important;
+            line-height: 1.2;
+        }
+
+        .hero-slide p {
+            font-size: 1rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-glow, .btn-transparent {
+            padding: 0.75rem 1rem !important;
+            font-size: 0.9rem !important;
+            width: 100%;
+            text-align: center;
+        }
+
+        .news-ticker {
+            padding: 1rem 0;
+        }
+
+        .news-items {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.5rem;
+        }
+
+        .news-scroll {
+            animation: none !important;
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem;
+        }
+
+        .news-item {
+            min-width: 280px;
+        }
+
+        .welcome-pack-card, .product-card {
+            margin-bottom: 1rem;
+        }
+
+        .icon-display {
+            font-size: 3rem !important;
+        }
+
+        .category-icon {
+            font-size: 2rem !important;
+        }
+
+        .portfolio-icon {
+            font-size: 3rem !important;
+            width: 70px;
+            height: 70px;
+        }
+
+        .contact-form .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .social-links-card .grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* Планшетные стили */
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .hero-slider {
+            height: 40vh !important;
+        }
+
+        .hero-slide h1 {
+            font-size: 2.5rem !important;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .portfolio-item {
+            min-height: 300px;
+        }
+    }
+
+    /* Общие медиа-запросы */
+    @media (max-width: 1023px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem !important;
+        }
+
+        .ai-assistant {
+            padding: 1.5rem !important;
+        }
+
+        .product-3d-container {
+            height: 200px !important;
+        }
+    }
 </style>
 
 <div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
@@ -1142,6 +1261,7 @@
         </div>
     </div>
 </div>
+
                 <div class="section-content" id="team-content">
                     <!-- Сотрудники -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
