@@ -22,7 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
-    'encrypted_model_fields',
     'rest_framework',
     'django.contrib.humanize',
 ]
