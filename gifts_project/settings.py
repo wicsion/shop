@@ -103,10 +103,23 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    str(BASE_DIR / 'static'),
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = []
+
+# Добавляем возможные пути
+possible_paths = [
+    os.path.join(BASE_DIR, 'static'),
+    '/app/static',
+    '/var/www/static',
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+for path in possible_paths:
+    if os.path.exists(path):
+        STATICFILES_DIRS.append(path)
+
+if not STATICFILES_DIRS:
+    os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -141,7 +154,4 @@ REST_FRAMEWORK = {
     ],
 
 }
-# Проверка статики
-print(f"\nStatic files configuration:")
-print(f"STATICFILES_DIRS: {STATICFILES_DIRS}")
-print(f"First path exists: {os.path.exists(STATICFILES_DIRS[0])}\n")
+
