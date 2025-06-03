@@ -104,7 +104,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    str(BASE_DIR / 'static'),
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -139,4 +139,9 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser'
     ],
+
 }
+# Проверка статики
+print(f"\nStatic files configuration:")
+print(f"STATICFILES_DIRS: {STATICFILES_DIRS}")
+print(f"First path exists: {os.path.exists(STATICFILES_DIRS[0])}\n")
