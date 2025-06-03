@@ -23,7 +23,7 @@
     border-radius: 50%;
     &.new { background: #3b82f6; }
     &.processing { background: #f59e0b; }
-    &.completed { background: #10b981; }
+    &.completed { background: #3b82f6; }
 }
 
 /* Сохраняем оригинальные медиа-запросы */

@@ -1,7 +1,7 @@
 # views.py
 from django.views.generic import CreateView, UpdateView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Company, Document, Order, AuditLog, CustomUser
+from .models import Company, Document, Order, AuditLog, CustomUser, SupportTicket
 from .forms import CompanyRegistrationForm, DocumentUploadForm, OrderCreateForm
 import random
 import string
@@ -185,10 +185,30 @@ class CompanyProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Company
     fields = ['legal_address', 'bank_account', 'bank_bik']
     template_name = 'accounts/company_dashboard.html'
+    success_url = reverse_lazy('accounts:company_dashboard')
 
     def get_object(self):
         return self.request.user.company
 
+    def form_valid(self, form):
+        form.save()
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'legal_address': form.instance.legal_address or '',
+                'bank_account': form.instance.bank_account or '',
+                'bank_bik': form.instance.bank_bik or ''
+            })
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': 'Неверные данные формы',
+                'errors': form.errors
+            }, status=400)
+        return super().form_invalid(form)
 
 def resend_verification(request, company_id):
     try:
@@ -321,3 +341,14 @@ class TeamDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['company'] = self.request.user.company
         return context
+
+class SupportTicketCreateView(LoginRequiredMixin, CreateView):
+    model = SupportTicket
+    fields = ['ticket_type', 'message']
+    template_name = 'accounts/support_ticket.html'
+    success_url = reverse_lazy('accounts:company_dashboard')
+
+    def form_valid(self, form):
+        form.instance.company = self.request.user.company
+        messages.success(self.request, 'Ваше обращение успешно отправлено!')
+        return super().form_valid(form)

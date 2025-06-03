@@ -1,41 +1,165 @@
 {% extends 'main/base.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <h2 class="mb-4 text-center">
-                        <i class="fas fa-sign-in-alt"></i> Вход в систему
-                    </h2>
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
 
-                    <form method="post">
-                        {% csrf_token %}
+    .form-label {
+        font-size: 0.9rem;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
 
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email"
-                                   name="username"  <!-- Обратите внимание - name остается username -->
-                                   class="form-control"
-                                   required>
-                        </div>
+    .custom-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: border-color 0.2s;
+    }
 
-                        <div class="mb-4">
-                            <label class="form-label">Пароль</label>
-                            <input type="password"
-                                   name="password"
-                                   class="form-control"
-                                   required>
-                        </div>
+    .custom-input:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
 
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-sign-in-alt me-2"></i>Войти
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+    .password-container {
+        position: relative;
+    }
+
+    .password-container input {
+        padding-right: 45px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 10;
+        color: #6b7280;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+</style>
+
+<div class="login-container">
+    <h2 class="text-center mb-5 fw-bold">
+        <i class="fas fa-sign-in-alt me-2 text-primary"></i>
+        Вход в систему
+    </h2>
+
+    {% if form.errors %}
+    <div class="alert alert-danger mb-4">
+        Неправильный email или пароль. Пожалуйста, попробуйте снова.
     </div>
+    {% endif %}
+
+    <form method="post" id="loginForm">
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email"
+                   name="username"
+                   class="custom-input"
+                   placeholder="example@company.com"
+                   required>
+            <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
+        </div>
+
+        <div class="mb-4 password-container">
+            <label class="form-label">Пароль <span class="text-danger">*</span></label>
+            <input type="password"
+                   name="password"
+                   id="passwordField"
+                   class="custom-input"
+                   placeholder="Введите ваш пароль"
+                   required>
+            <span class="password-toggle" id="passwordToggle">
+
+            </span>
+            <div class="error-message" id="password_error">Пожалуйста, введите пароль</div>
+        </div>
+
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+                <i class="fas fa-sign-in-alt me-2"></i>Войти
+            </button>
+        </div>
+
+       <div class="text-center small">
+    <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">Забыли пароль?</a>
 </div>
+    </form>
+</div>
+
+<script>
+    // Переключение видимости пароля
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordField = document.getElementById('passwordField');
+
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+
+        if (type === 'text') {
+            this.innerHTML = '<i class="far fa-eye-slash"></i>';
+        } else {
+            this.innerHTML = '<i class="far fa-eye"></i>';
+        }
+    });
+
+    // Валидация формы
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const form = this;
+
+        // Проверка email
+        const email = form.querySelector('[name="username"]');
+        if (!email.value.trim() || !email.value.includes('@')) {
+            document.getElementById('email_error').style.display = 'block';
+            email.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('email_error').style.display = 'none';
+            email.classList.remove('is-invalid');
+        }
+
+        // Проверка пароля
+        const password = form.querySelector('[name="password"]');
+        if (!password.value.trim()) {
+            document.getElementById('password_error').style.display = 'block';
+            password.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('password_error').style.display = 'none';
+            password.classList.remove('is-invalid');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

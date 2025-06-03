@@ -24,8 +24,8 @@ class Company(models.Model):
     # Остальные поля сделаны необязательными
     kpp = models.CharField('КПП', max_length=9, blank=True, null=True)
     legal_address = models.TextField('Юридический адрес', blank=True, null=True)
-    bank_account = models.FileField('Расчетный счет', max_length=20, blank=True, null=True)
-    bank_bik = models.FileField('БИК', max_length=9, blank=True, null=True)
+    bank_account = models.CharField('Расчетный счет', max_length=20, blank=True, null=True)
+    bank_bik = models.CharField('БИК', max_length=9, blank=True, null=True)
     ogrn_scan = models.FileField('Скан ОГРН', upload_to='company_docs/', blank=True, null=True)
     authorization_doc = models.FileField('Доверенность', upload_to='company_docs/', blank=True, null=True)
     contract_scan = models.FileField('Договор оферты', upload_to='company_docs/', blank=True, null=True)
