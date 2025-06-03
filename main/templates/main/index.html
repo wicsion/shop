@@ -7,14 +7,14 @@
     <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="{% static 'images/slide1.jpg' %}" class="d-block w-65" alt="Промо-акция" loading="lazy">
+                <img src="{% static 'images/slide1.jpg' %}" class="d-block w-100" alt="Промо-акция" loading="lazy">
                 <div class="carousel-caption d-none d-md-block">
                     <h1 class="display-4 fw-bold mb-4">{% trans "Инновационные решения" %}</h1>
                     <a href="#catalog" class="btn btn-primary btn-lg px-4 py-2">{% trans "Подробнее" %}</a>
                 </div>
             </div>
             <div class="carousel-item">
-                <img src="{% static 'images/slide2.jpg' %}" class="d-block w-65" alt="Наши работы" loading="lazy">
+                <img src="{% static 'images/slide2.jpg' %}" class="d-block w-100" alt="Наши работы" loading="lazy">
                 <div class="carousel-caption d-none d-md-block">
                     <h1 class="display-4 fw-bold mb-4">{% trans "Профессиональный подход" %}</h1>
                     <a href="#portfolio" class="btn btn-primary btn-lg px-4 py-2">{% trans "Наши работы" %}</a>
@@ -51,7 +51,7 @@
         <h2 class="text-center mb-5">{% trans "Готовые решения" %}</h2>
         <div class="row row-cols-1 row-cols-md-3 g-4">
             <div class="col">
-                <div class="card h-100 shadow">
+                <div class="card h-100 shadow product-card">
                     <img src="{% static 'images/pack1.jpg' %}" class="card-img-top" alt="Бизнес-набор">
                     <div class="card-body">
                         <h3 class="card-title">Бизнес-набор "Премиум"</h3>
@@ -65,7 +65,7 @@
                 </div>
             </div>
             <div class="col">
-                <div class="card h-100 shadow">
+                <div class="card h-100 shadow product-card">
                     <img src="{% static 'images/pack2.jpg' %}" class="card-img-top" alt="Промо-комплект">
                     <div class="card-body">
                         <h3 class="card-title">Промо-комплект "Стандарт"</h3>
@@ -79,7 +79,7 @@
                 </div>
             </div>
             <div class="col">
-                <div class="card h-100 shadow">
+                <div class="card h-100 shadow product-card">
                     <img src="{% static 'images/pack3.jpg' %}" class="card-img-top" alt="Офисный набор">
                     <div class="card-body">
                         <h3 class="card-title">Офисный набор "Делюкс"</h3>
@@ -167,7 +167,7 @@
         <h2 class="text-center mb-5">{% trans "Наши работы" %}</h2>
         <div class="row g-3" data-masonry='{"percentPosition": true}'>
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="card">
+                <div class="card product-card">
                     <img src="{% static 'images/work1.jpg' %}" class="card-img-top" alt="Рекламная кампания">
                     <div class="card-body">
                         <h3 class="h5">Рекламная кампания для "ГлобалТех"</h3>
@@ -176,7 +176,7 @@
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="card">
+                <div class="card product-card">
                     <img src="{% static 'images/work2.jpg' %}" class="card-img-top" alt="Брендирование офиса">
                     <div class="card-body">
                         <h3 class="h5">Брендирование офиса "ФинСервис"</h3>
@@ -185,7 +185,7 @@
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="card">
+                <div class="card product-card">
                     <img src="{% static 'images/work3.jpg' %}" class="card-img-top" alt="Промо-акция">
                     <div class="card-body">
                         <h3 class="h5">Промо-акция для "БиоФарм"</h3>
@@ -203,7 +203,7 @@
         <h2 class="text-center mb-5">{% trans "Последние новости" %}</h2>
         <div class="row g-4">
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100">
+                <div class="card h-100 product-card">
                     <div class="card-body">
                         <small class="text-muted">15.05.2025</small>
                         <h3 class="h5 mt-2">Новые материалы для печати</h3>
@@ -215,7 +215,7 @@
                 </div>
             </div>
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100">
+                <div class="card h-100 product-card">
                     <div class="card-body">
                         <small class="text-muted">10.05.2025</small>
                         <h3 class="h5 mt-2">Специальные условия для малого бизнеса</h3>
@@ -227,7 +227,7 @@
                 </div>
             </div>
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100">
+                <div class="card h-100 product-card">
                     <div class="card-body">
                         <small class="text-muted">05.05.2025</small>
                         <h3 class="h5 mt-2">Новые технологии нанесения</h3>
@@ -277,12 +277,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Инициализация Masonry для портфолио -->
 <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 <script>
-    // Активация доступности
-    const accessibilityToggle = document.getElementById('accessibility-toggle');
-
     // Инициализация Masonry
     window.onload = () => {
         const grid = document.querySelector('[data-masonry]');

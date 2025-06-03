@@ -8,10 +8,8 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- AOS анимации -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <style>
@@ -159,6 +157,26 @@
             animation: fadeIn 0.6s ease-out;
         }
 
+        /* Custom buttons */
+        .btn-custom {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Accessibility */
+        [data-theme="accessibility"] .btn {
+            border: 2px solid #000;
+        }
+
         /* Responsive breakpoints */
         @media (max-width: 767px) {
             .navbar-nav {
@@ -218,25 +236,41 @@
             }
         }
 
-        /* Custom buttons */
-        .btn-custom {
-            background: white;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 10px 20px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-custom:hover {
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             background: var(--primary);
             color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        /* Accessibility */
-        [data-theme="accessibility"] .btn {
-            border: 2px solid #000;
+        /* Registration form */
+        .registration-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        /* Order status indicators */
+        .order-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .order-status-indicator.new { background: #3b82f6; }
+        .order-status-indicator.processing { background: #f59e0b; }
+        .order-status-indicator.completed { background: #10b981; }
     </style>
 </head>
 
@@ -297,45 +331,45 @@
                 <div class="d-flex gap-3 align-items-center">
                     {% include 'includes/language_switcher.html' %}
 
-                   {% if user.is_authenticated %}
-    <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger" title="Выход">
-            <i class="fas fa-sign-out-alt"></i>
-        </button>
-    </form>
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger" title="Выход">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
 
-    <div class="dropdown d-inline">
-        <a class="btn btn-primary dropdown-toggle"
-           href="{% url 'accounts:company_dashboard' %}"
-           role="button"
-           id="userMenu"
-           data-bs-toggle="dropdown">
-            <i class="fas fa-user-tie"></i>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
-                <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt me-2"></i>Выход
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </div>
-{% else %}
-    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
-        <i class="fas fa-sign-in-alt me-2"></i>Войти
-    </a>
-    <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
-        <i class="fas fa-user-plus me-2"></i>Регистрация
-    </a>
-{% endif %}
+                        <div class="dropdown d-inline">
+                            <a class="btn btn-primary dropdown-toggle"
+                               href="{% url 'accounts:company_dashboard' %}"
+                               role="button"
+                               id="userMenu"
+                               data-bs-toggle="dropdown">
+                                <i class="fas fa-user-tie"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Выход
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                        <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Регистрация
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </nav>
@@ -403,10 +437,42 @@
             document.documentElement.style.fontSize = '20px';
         });
 
+        document.getElementById('font-decrease').addEventListener('click', () => {
+            document.documentElement.style.fontSize = '16px';
+        });
+
         document.getElementById('toggle-contrast').addEventListener('click', () => {
             document.documentElement.setAttribute('data-theme',
                 document.documentElement.getAttribute('data-theme') === 'accessibility' ? 'light' : 'accessibility');
         });
+
+        // Toast notification function
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Cart functionality
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', async () => {
+                const productId = button.dataset.productId;
+                try {
+                    const response = await fetch(`/cart/add/${productId}/`);
+                    if (response.ok) {
+                        showToast('Товар добавлен в корзину');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
