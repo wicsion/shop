@@ -1,0 +1,38 @@
+/* Сохраняем оригинальные стили с добавлением новых элементов */
+.registration-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.document-card {
+    @apply bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-all;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.order-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    &.new { background: #3b82f6; }
+    &.processing { background: #f59e0b; }
+    &.completed { background: #10b981; }
+}
+
+/* Сохраняем оригинальные медиа-запросы */
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+
+    .document-card {
+        grid-template-columns: 1fr;
+    }
+}
