@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'modeltranslation',  # Добавьте эту строку
+
     'rosetta',
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
