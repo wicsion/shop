@@ -1,0 +1,91 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="dashboard-section p-6 mb-6">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/2">
+                    <img src="{{ pack.image.url }}" alt="{{ pack.title }}"
+                         class="w-full h-auto rounded-xl shadow-md object-cover">
+                </div>
+                <div class="lg:w-1/2">
+                    <h1 class="text-2xl lg:text-3xl font-bold mb-4">{{ pack.title }}</h1>
+
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="rating-stars">
+                            {% for i in "12345" %}
+                            <i class="fas fa-star"></i>
+                            {% endfor %}
+                            <span class="text-gray-600 text-sm ml-2">(12)</span>
+                        </div>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                            <i class="fas fa-check-circle mr-1"></i> {% trans "В наличии" %}
+                        </span>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-xl mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-gray-700">{% trans "Цена:" %}</span>
+                            <span class="text-2xl font-bold text-blue-600">4 990 ₽</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">{% trans "Экономия:" %} 1 500 ₽</span>
+                            <span class="text-sm text-gray-500 line-through">6 490 ₽</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <button class="btn-gradient py-3">
+                            <i class="fas fa-shopping-cart mr-2"></i> {% trans "В корзину" %}
+                        </button>
+                        <button class="btn-custom border border-blue-500 py-3">
+                            <i class="far fa-heart mr-2"></i> {% trans "В избранное" %}
+                        </button>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i class="fas fa-truck text-blue-500"></i>
+                            <span class="text-gray-700">{% trans "Доставка по России" %}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-shield-alt text-blue-500"></i>
+                            <span class="text-gray-700">{% trans "Гарантия качества" %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section p-6 mb-6">
+            <h2 class="text-xl lg:text-2xl font-bold mb-6">{% trans "Описание набора" %}</h2>
+
+            <div class="prose max-w-none">
+                {{ pack.description|linebreaks }}
+            </div>
+        </div>
+
+        <div class="dashboard-section p-6">
+            <h2 class="text-xl lg:text-2xl font-bold mb-6">{% trans "Состав набора" %}</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for i in "123456" %}
+                <div class="document-card">
+                    <img src="{% static 'images/product-placeholder.jpg' %}" alt="Product {{ i }}"
+                         class="w-full h-40 object-cover rounded-t-xl">
+                    <div class="p-4">
+                        <h3 class="text-lg font-medium text-gray-900">{% trans "Товар" %} {{ i }}</h3>
+                        <p class="text-gray-600 text-sm mt-1">{% trans "Краткое описание товара в наборе" %}</p>
+                        <div class="mt-3">
+                            <span class="text-sm text-gray-500">{% trans "Количество:" %} {{ i }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

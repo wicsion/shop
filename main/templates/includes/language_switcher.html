@@ -1,0 +1,14 @@
+{% load i18n %}
+<form action="{% url 'set_language' %}" method="post" class="d-inline">
+    {% csrf_token %}
+    <input name="next" type="hidden" value="{{ request.path }}">
+    <div class="input-group">
+        <select name="language" class="form-select form-select-sm"
+                onchange="this.form.submit()" aria-label="{% trans 'Выбор языка' %}">
+            {% get_current_language as LANGUAGE_CODE %}
+            <option value="ru" {% if LANGUAGE_CODE == 'ru' %}selected{% endif %}>Русский</option>
+            <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>English</option>
+            <option value="zh-hans" {% if LANGUAGE_CODE == 'zh-hans' %}selected{% endif %}>中文</option>
+        </select>
+    </div>
+</form>

@@ -1,0 +1,1270 @@
+{% extends 'main/base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+{% block content %}
+<style>
+    .dashboard-section {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 1.25rem;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        backdrop-filter: blur(12px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        @apply mx-2 sm:mx-0;
+    }
+
+    .section-title {
+        @apply text-xl lg:text-2xl font-bold mb-4 lg:mb-6 pb-2 lg:pb-3 relative;
+        background: linear-gradient(45deg, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .section-title::after {
+        content: '';
+        @apply absolute bottom-0 left-0 w-16 lg:w-20 h-1 rounded-full;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+    }
+
+    .profile-card {
+        @apply bg-white rounded-xl p-3 lg:p-5 shadow-md hover:shadow-lg transition-all;
+        border: 1px solid rgba(59, 130, 246, 0.05);
+    }
+
+    .btn-gradient {
+        @apply px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%) !important;
+        color: white !important;
+        border: none !important;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .broker-form {
+        @apply flex flex-col sm:flex-row gap-2 items-start sm:items-center;
+    }
+
+    .broker-form select {
+        @apply border rounded-lg px-3 py-2 text-sm w-full;
+        background: url("data:image/svg+xml,%3csvg...") no-repeat right 0.75rem center/12px;
+    }
+
+    .rating-stars {
+        @apply inline-flex items-center gap-1;
+    }
+    .rating-stars i {
+        @apply text-amber-400 text-sm;
+    }
+
+    .dashboard-avatar-container {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dashboard-avatar-container:hover {
+         transform: scale(1.05);
+         box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+    }
+
+    .dashboard-avatar-image {
+        @apply w-full h-full object-cover;
+        min-width: 100%;
+        min-height: 100%;
+    }
+
+    .dashboard-avatar-fallback {
+        @apply w-full h-full bg-blue-50 flex items-center justify-center rounded-full;
+    }
+
+    .badge-status {
+        @apply px-3 lg:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium inline-flex items-center gap-2;
+        background: rgba(59, 130, 246, 0.08);
+        color: #1e40af;
+    }
+
+    .btn-custom {
+        @apply px-4 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm lg:text-base;
+        background: none !important;
+        color: #3b82f6 !important;
+        box-shadow: none !important;
+        border: none !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-custom:hover::after {
+        width: 100%;
+    }
+
+    .btn-custom.bg-red-100 {
+        color: #dc2626 !important;
+    }
+
+    .btn-custom.bg-red-100::after {
+        background: linear-gradient(90deg, #dc2626 30%, #ef4444 70%);
+    }
+
+    .text-btn {
+        color: #3b82f6 !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: none !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .text-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .text-btn:hover::after {
+        width: 100%;
+    }
+
+    .role-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.5rem 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+        text-align: center;
+        font-size: 0.75rem;
+    }
+
+    .role-card:hover, .role-card.active {
+        border-color: #3b82f6;
+        background-color: #f0f9ff;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    .stat-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card h4 {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card p {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1f2937;
+    }
+
+    .side-btn {
+        @apply w-full text-center py-2 px-3 rounded-lg text-sm font-medium transition-colors;
+        background: rgba(59, 130, 246, 0.08);
+        color: #1e40af;
+        border: none;
+    }
+
+    .side-btn:hover {
+        background: rgba(59, 130, 246, 0.15);
+    }
+
+    .section-content {
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th, .table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    .table tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-new {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-completed {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .document-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .document-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .progress-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-top: 4px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+    }
+
+    .stat-icon {
+        @apply p-3 rounded-full flex items-center justify-center text-xl;
+        background: none;
+        color: #3b82f6;
+        border: none !important;
+    }
+
+    .role-section {
+        background: rgba(59, 130, 246, 0.05);
+        border-radius: 0.75rem;
+        border: 1px dashed rgba(59, 130, 246, 0.2);
+    }
+
+    .company-header {
+        border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .save-btn {
+        color: #3b82f6 !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: none !important;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .save-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .save-btn:hover::after {
+        width: 100%;
+    }
+
+    .save-btn-underline {
+        @apply relative inline-flex items-center justify-center w-full mt-4 px-4 py-2 text-blue-600 font-semibold hover:text-blue-800;
+    }
+
+    .save-btn-underline .underline {
+        @apply absolute bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300 ease-in-out;
+    }
+
+    .save-btn-underline:hover .underline {
+        @apply w-[calc(100%-2rem)];
+    }
+
+    /* Мобильные стили */
+    @media (max-width: 640px) {
+        /* Панель разделов для мобильных */
+        .mobile-role-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 100;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .role-card-mobile {
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            margin: 0 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            background: white;
+        }
+
+        .role-card-mobile.active {
+            border-color: #3b82f6;
+            background-color: #f0f9ff;
+        }
+
+        /* Основной контент - добавляем отступ снизу для панели разделов */
+        .main-content-mobile {
+            padding-bottom: 70px;
+        }
+
+        /* Стили для кнопок в заказах */
+        .order-actions-mobile {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .order-actions-mobile .btn-custom {
+            width: 100%;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        /* Стили для карточек статистики */
+        .stat-card-mobile {
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card-mobile h4 {
+            font-size: 12px;
+        }
+
+        .stat-card-mobile p {
+            font-size: 16px;
+        }
+
+        .stat-icon-container {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Скрываем десктопную панель разделов на мобильных */
+        .desktop-role-section {
+            display: none;
+        }
+
+        /* Улучшаем отображение таблиц на мобильных */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Улучшаем отображение карточек документов */
+        .document-card {
+            padding: 12px;
+        }
+
+        /* Улучшаем отображение кнопок */
+        .btn-custom, .btn-gradient {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        /* Улучшаем отображение заголовков */
+        .section-title {
+            font-size: 18px;
+        }
+
+        /* Улучшаем отображение форм */
+        .broker-form {
+            flex-direction: column;
+        }
+
+        .broker-form select {
+            width: 100%;
+        }
+    }
+
+    /* Десктопные стили */
+    @media (min-width: 641px) {
+        .mobile-role-section {
+            display: none;
+        }
+
+        .desktop-role-section {
+            display: block;
+        }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .favorite-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .favorite-btn:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .favorite-btn:active:after {
+        animation: ripple 0.4s ease-out;
+    }
+
+    @keyframes ripple {
+        0% {
+            width: 5px;
+            height: 5px;
+            opacity: 1;
+        }
+        100% {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        }
+    }
+</style>
+
+<div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
+        <!-- Боковая панель (1 колонка) -->
+        <div class="lg:col-span-1 space-y-4 lg:space-y-8">
+            <!-- 1. Блок компании (самый верхний) -->
+            <div class="dashboard-section p-4 lg:p-6 text-center bg-gradient-to-r from-blue-50 to-indigo-50">
+                <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-1">
+                    <i class="fas fa-building mr-2 text-blue-600"></i>
+                    {{ company.legal_name }}
+                </h1>
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-id-card-alt mr-1"></i>
+                    ИНН: {{ company.inn }}
+                </p>
+            </div>
+
+            <!-- 2. Отдельный блок роли (новый, между компанией и пользователем) -->
+            <div class="dashboard-section p-3 text-center bg-blue-50 rounded-xl">
+                <p class="text-xs uppercase tracking-wider text-blue-600 mb-1">Ваша роль в системе</p>
+                <div class="text-lg font-semibold text-blue-800">
+                    {% if user.role == 'admin' %}
+                        <i class="fas fa-user-cog mr-2"></i>Администратор
+                    {% elif user.role == 'accountant' %}
+                        <i class="fas fa-calculator mr-2"></i>Бухгалтер
+                    {% elif user.role == 'manager' %}
+                        <i class="fas fa-shopping-cart mr-2"></i>Менеджер закупок
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 3. Блок пользователя (теперь только ФИО и контакты) -->
+            <div class="dashboard-section p-4 lg:p-6">
+                <div class="text-center">
+
+                    <h2 class="text-xl lg:text-2xl font-semibold text-gray-800 mb-4">{{ user.get_full_name }}</h2>
+
+                    <div class="space-y-3 text-center text-gray-600">
+    <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
+        <i class="fas fa-envelope text-blue-600 text-lg"></i>
+        <span class="text-gray-800">{{ user.email }}</span>
+    </div>
+    {% if user.phone %}
+    <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
+        <i class="fas fa-phone text-blue-600 text-lg"></i>
+        <span class="text-gray-800">{{ user.phone }}</span>
+    </div>
+    {% endif %}
+</div>
+                </div>
+            </div>
+        <!-- 4. Секция "Связаться с нами" -->
+            <div class="dashboard-section p-4 lg:p-6">
+                <div class="text-center">
+                    <p class="text-gray-600 mb-4 font-medium">Есть проблема или вопрос?</p>
+                    <a href="#" class="text-btn w-full justify-center">
+                        <i class="fas fa-headset mr-2"></i>Связаться с нами
+                    </a>
+                </div>
+            </div>
+        <div class="dashboard-section p-4 lg:p-6">
+    <h3 class="font-bold mb-4 text-center">Реквизиты компании</h3>
+    <form method="post" action="{% url 'accounts:company_profile' %}">
+        {% csrf_token %}
+        <div class="space-y-3">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Юридический адрес</label>
+                <input type="text" name="legal_address" value="{{ company.legal_address|default:'' }}"
+                    class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Расчетный счет</label>
+                <input type="text" name="bank_account" value="{{ company.bank_account|default:'' }}"
+                    class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">БИК</label>
+                <input type="text" name="bank_bik" value="{{ company.bank_bik|default:'' }}"
+                    class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+         <button type="submit" class="save-btn">
+    <i class="fas fa-save mr-2"></i> Сохранить
+</button>
+        </div>
+    </form>
+</div>
+
+
+        </div>
+
+        <!-- Основной контент -->
+        <div class="lg:col-span-3 space-y-4 lg:space-y-8 main-content-mobile">
+    <!-- Статистика компании -->
+    <div class="dashboard-section p-4 lg:p-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 lg:mb-8">
+            <h3 class="section-title">
+                <i class="fas fa-chart-line text-green-500/80"></i>
+                Основные разделы
+            </h3>
+        </div>
+
+         <!-- Панель разделов -->
+                <div class="grid grid-cols-6 gap-2 mb-6">
+                    <button class="role-card active" data-section="stats">Статистика</button>
+                    <button class="role-card" data-section="orders">Заказы</button>
+                    <button class="role-card" data-section="documents">Документы</button>
+                    <button class="role-card" data-section="activity">Активность</button>
+                    <button class="role-card" data-section="finance">Финансы</button>
+                    <button class="role-card" data-section="team">Сотрудники</button>
+                </div>
+
+        <!-- Мобильная панель разделов (появится только на мобильных) -->
+        <div class="mobile-role-section role-section-mobile">
+            <button class="role-card-mobile active" data-section="stats">Статистика</button>
+            <button class="role-card-mobile" data-section="orders">Заказы</button>
+            <button class="role-card-mobile" data-section="documents">Документы</button>
+            <button class="role-card-mobile" data-section="activity">Активность</button>
+            <button class="role-card-mobile" data-section="finance">Финансы</button>
+            <button class="role-card-mobile" data-section="team">Сотрудники</button>
+        </div>
+
+                <div class="section-content active" id="stats-content">
+              <!-- Статистика -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Карточка общей статистики -->
+        <div class="dashboard-section p-5">
+            <h2 class="text-xl font-bold mb-4">Общая статистика</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Демо-данные -->
+                <div class="stat-card stat-card-mobile">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500 text-sm">Всего заказов</p>
+                            <p class="text-2xl font-bold">47</p>
+                            <p class="text-xs text-green-500 mt-1">↑ 12% за месяц</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart stat-icon-mobile"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-mobile">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500 text-sm">Средний чек</p>
+                            <p class="text-2xl font-bold">24 500 ₽</p>
+                            <p class="text-xs text-red-500 mt-1">↓ 5% за месяц</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-receipt stat-icon-mobile"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-mobile">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500 text-sm">Конверсия</p>
+                            <p class="text-2xl font-bold">38%</p>
+                            <p class="text-xs text-green-500 mt-1">↑ 8% за месяц</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage stat-icon-mobile"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-mobile">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500 text-sm">Новых клиентов</p>
+                            <p class="text-2xl font-bold">14</p>
+                            <p class="text-xs text-green-500 mt-1">↑ 22% за месяц</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-plus stat-icon-mobile"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- График активности -->
+       <div class="dashboard-section p-5">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Динамика заказов</h2>
+        <select class="border rounded-lg px-3 py-2 text-sm bg-white">
+            <option>Последние 30 дней</option>
+            <option>3 месяца</option>
+            <option>Год</option>
+        </select>
+    </div>
+
+    <!-- График с обводкой дней -->
+    <div class="relative h-64">
+        <div class="absolute bottom-10 left-0 right-0 flex items-end justify-between px-4 h-3/4">
+            <!-- Столбцы графика -->
+            <div class="w-8 bg-blue-400 rounded-t" style="height: 30%"></div>
+            <div class="w-8 bg-blue-500 rounded-t" style="height: 45%"></div>
+            <div class="w-8 bg-blue-600 rounded-t" style="height: 70%"></div>
+            <div class="w-8 bg-blue-500 rounded-t" style="height: 60%"></div>
+            <div class="w-8 bg-blue-400 rounded-t" style="height: 40%"></div>
+            <div class="w-8 bg-blue-300 rounded-t" style="height: 25%"></div>
+            <div class="w-8 bg-blue-500 rounded-t" style="height: 55%"></div>
+        </div>
+
+        <!-- Подписи дней с черной обводкой -->
+        <div class="absolute bottom-0 left-0 right-0 flex justify-between px-4">
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пн</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вт</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Ср</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Чт</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пт</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Сб</span>
+            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вс</span>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <!-- Дополнительные отчеты -->
+    <div class="dashboard-section p-5">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Топ товаров</h2>
+            <button class="btn-custom">
+                <i class="fas fa-download mr-2"></i> Экспорт
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-4 py-2 text-left text-xs text-gray-500">Товар</th>
+                        <th class="px-4 py-2 text-left text-xs text-gray-500">Кол-во</th>
+                        <th class="px-4 py-2 text-left text-xs text-gray-500">Выручка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Демо-данные -->
+                    <tr class="border-b">
+                        <td class="px-4 py-3">Подарочный набор "Премиум"</td>
+                        <td class="px-4 py-3">28</td>
+                        <td class="px-4 py-3">686 000 ₽</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="px-4 py-3">Корпоративный календарь</td>
+                        <td class="px-4 py-3">45</td>
+                        <td class="px-4 py-3">427 500 ₽</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="px-4 py-3">Фирменная ручка</td>
+                        <td class="px-4 py-3">120</td>
+                        <td class="px-4 py-3">360 000 ₽</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+                <div class="section-content" id="orders-content">
+                    <!-- Заказы -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 class="text-xl font-bold">Активные заказы</h2>
+        <div class="flex gap-2">
+            <div class="relative">
+                <input type="text" id="order-search" placeholder="Поиск..."
+                       class="border rounded-lg px-3 py-2 text-sm">
+            </div>
+            <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
+                <option value="">Все статусы</option>
+                <option value="new">Новый</option>
+                <option value="processing">В обработке</option>
+                <option value="completed">Завершен</option>
+            </select>
+            <button id="export-orders" class="btn-custom">
+                <i class="fas fa-file-export mr-2"></i> Экспорт
+            </button>
+            <button class="btn-custom">
+                <i class="fas fa-plus mr-2"></i> Создать заказ
+            </button>
+        </div>
+    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Номер</th>
+                                    <th>Дата</th>
+                                    <th>Сумма</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#ORD-1234</td>
+                                    <td>27.05.2025</td>
+                                    <td>25 000 ₽</td>
+                                    <td><span class="status-badge status-completed">Завершено</span></td>
+                                    <td>
+                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
+                                            <i class="fas fa-eye"></i> Просмотреть
+                                        </a>
+                                        <a href="#" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i> Удалить
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-1233</td>
+                                    <td>26.05.2025</td>
+                                    <td>18 500 ₽</td>
+                                    <td><span class="status-badge status-pending">В обработке</span></td>
+                                    <td>
+                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
+                                            <i class="fas fa-eye"></i> Просмотреть
+                                        </a>
+                                        <a href="#" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i> Удалить
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-1232</td>
+                                    <td>25.05.2025</td>
+                                    <td>32 000 ₽</td>
+                                    <td><span class="status-badge status-new">Новый</span></td>
+                                    <td>
+                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
+                                            <i class="fas fa-eye"></i> Просмотреть
+                                        </a>
+                                        <a href="#" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i> Удалить
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section-content" id="documents-content">
+                    <!-- Документы -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Документы</h2>
+                        <button class="btn-custom">
+                            <i class="fas fa-upload mr-2"></i> Загрузить документ
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-red-100 p-3 rounded-lg">
+                                    <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Договор купли-продажи</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        28.05.2025
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-completed">Подписан</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-download"></i> Скачать
+                                </a>
+                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                                    <i class="fas fa-file-word text-blue-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Акт приема-передачи</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        27.05.2025
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-pending">На подписании</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-download"></i> Скачать
+                                </a>
+                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-yellow-100 p-3 rounded-lg">
+                                    <i class="fas fa-file-excel text-yellow-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Финансовый отчет</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        26.05.2025
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-new">Новый</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-download"></i> Скачать
+                                </a>
+                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-content" id="activity-content">
+                    <!-- Активность -->
+                    <div class="divide-y divide-gray-200">
+                        <div class="px-6 py-4 hover:bg-gray-50">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">Создан новый заказ #ORD-1234</p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-user mr-1"></i>
+                                        {{ user.get_full_name }}
+                                        <i class="fas fa-clock ml-3 mr-1"></i>
+                                        28.05.2025 14:30
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-4 hover:bg-gray-50">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                                    <i class="fas fa-file-signature"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">Подписан договор купли-продажи</p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-user mr-1"></i>
+                                        {{ user.get_full_name }}
+                                        <i class="fas fa-clock ml-3 mr-1"></i>
+                                        28.05.2025 11:15
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-4 hover:bg-gray-50">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">Загружен новый документ</p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-user mr-1"></i>
+                                        {{ user.get_full_name }}
+                                        <i class="fas fa-clock ml-3 mr-1"></i>
+                                        27.05.2025 09:45
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-4 hover:bg-gray-50">
+    <div class="flex items-start">
+        <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-green-300">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="ml-4">
+            <p class="text-sm font-medium text-gray-900">Получен платеж 25 000 ₽</p>
+            <p class="text-sm text-gray-500 mt-1">
+                <i class="fas fa-user mr-1"></i>
+                {{ user.get_full_name }}
+                <i class="fas fa-clock ml-3 mr-1"></i>
+                26.05.2025 16:20
+            </p>
+        </div>
+    </div>
+</div>
+                    </div>
+                </div>
+
+                <div class="section-content" id="finance-content">
+                    <!-- Финансы -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="stat-card">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Общая сумма заказов</p>
+                                    <p class="text-lg font-bold">25 000 ₽</p>
+                                    <div class="progress-bar mt-1">
+                                        <div class="progress-fill" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Средний чек</p>
+                                    <p class="text-lg font-bold">12 500 ₽</p>
+                                    <div class="progress-bar mt-1">
+                                        <div class="progress-fill" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Неоплаченные счета</p>
+                                    <p class="text-lg font-bold">5 000 ₽</p>
+                                    <div class="progress-bar mt-1">
+                                        <div class="progress-fill" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+ <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Заглушка истории платежей -->
+        <div class="dashboard-section p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">История платежей</h2>
+                <button class="btn-custom">
+                    <i class="fas  mr-2"></i> Период
+                </button>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-8 text-center">
+                <i class="fas fa-chart-line text-gray-300 text-4xl mb-3"></i>
+                <p class="text-gray-400 font-medium">График платежей будет доступен после первых операций</p>
+                <p class="text-gray-400 text-sm mt-2">Здесь будет отображаться динамика платежей по месяцам</p>
+            </div>
+        </div>
+
+        <!-- Заглушка финансовых отчетов -->
+        <div class="dashboard-section p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Финансовые отчеты</h2>
+                <button class="btn-custom">
+                    <i class="fas fa-file-export mr-2"></i> Экспорт
+                </button>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-8 text-center">
+                <i class="fas fa-file-invoice-dollar text-gray-300 text-4xl mb-3"></i>
+                <p class="text-gray-400 font-medium">Отчеты будут генерироваться автоматически</p>
+                <p class="text-gray-400 text-sm mt-2">Доступны будут: ежемесячные отчеты, налоговые ведомости</p>
+                <button class="btn-gradient mt-4 px-4 py-2 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i> Создать отчет вручную
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="section-content" id="team-content">
+                    <!-- Сотрудники -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-user-tie text-blue-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Иванов Иван</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-briefcase mr-1"></i>
+                                        Администратор
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-completed">Активен</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-envelope"></i> Написать
+                                </a>
+
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-user-shield text-green-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Петрова Анна</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-briefcase mr-1"></i>
+                                        Менеджер
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-pending">В отпуске</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-envelope"></i> Написать
+                                </a>
+
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-user-cog text-purple-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Сидоров Алексей</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-briefcase mr-1"></i>
+                                        Бухгалтер
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="status-badge status-new">Новый</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <a href="#" class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-envelope"></i> Написать
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     // Обновленный скрипт для работы с мобильной панелью
+    document.querySelectorAll('.role-card, .role-card-mobile').forEach(button => {
+        button.addEventListener('click', function() {
+            // Удаляем класс active у всех кнопок
+            document.querySelectorAll('.role-card, .role-card-mobile').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Добавляем класс active текущей кнопке
+            this.classList.add('active');
+
+            // Скрываем все разделы контента
+            document.querySelectorAll('.section-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Показываем соответствующий раздел контента
+            const section = this.getAttribute('data-section');
+            document.getElementById(`${section}-content`).classList.add('active');
+
+            // Прокручиваем к верху раздела на мобильных
+            if (window.innerWidth <= 640) {
+                document.getElementById(`${section}-content`).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Скрипт для анимации карточек статистики
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Скрипт для анимации карточек документов
+    document.querySelectorAll('.document-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-2px)';
+            card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = 'none';
+        });
+    });
+    // В блок script
+document.getElementById('order-search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    filterOrders(searchTerm, document.getElementById('status-filter').value);
+});
+
+document.getElementById('status-filter').addEventListener('change', function() {
+    filterOrders(document.getElementById('order-search').value, this.value);
+});
+
+document.getElementById('export-orders').addEventListener('click', function() {
+    // Здесь будет код для экспорта
+    exportOrdersToExcel();
+});
+
+function filterOrders(searchTerm, statusFilter) {
+    const rows = document.querySelectorAll('.table tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
+        const matchesSearch = text.includes(searchTerm);
+        const matchesStatus = !statusFilter || rowStatus.includes(statusFilter);
+
+        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+    });
+}
+
+function exportOrdersToExcel() {
+    // Здесь будет реализация экспорта через API
+    alert('Экспорт заказов в Excel (реализация через бэкенд)');
+}
+</script>
+{% endblock %}

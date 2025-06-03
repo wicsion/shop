@@ -1,0 +1,214 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE }}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "Агентство полного цикла" %}{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- AOS анимации -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --font-size: 16px;
+            --contrast: normal;
+        }
+
+        [data-theme="accessibility"] {
+            --font-size: 20px;
+            --contrast: contrast(150%);
+        }
+
+        body {
+            font-size: var(--font-size);
+            filter: var(--contrast);
+        }
+
+        /* Стили для фиксированного хедера */
+        .header {
+            transition: all 0.3s ease;
+            z-index: 1030;
+        }
+
+        .header-scrolled {
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Версия для слабовидящих -->
+    <div class="accessibility-bar bg-dark text-white py-2">
+        <div class="container d-flex justify-content-end gap-3">
+            <button class="btn btn-sm btn-outline-light" id="font-increase">A+</button>
+            <button class="btn btn-sm btn-outline-light" id="font-decrease">A-</button>
+            <button class="btn btn-sm btn-outline-light" id="toggle-contrast">
+                {% trans "Высокая контрастность" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Фиксированный хедер -->
+    <header class="header bg-white shadow-sm fixed-top">
+        <nav class="navbar navbar-expand-lg container py-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">
+                    <img src="{% static 'images/logo.png' %}" alt="УКСУС" width="140">
+                </a>
+
+                <div class="d-flex align-items-center flex-grow-1 mx-4">
+                    <a href="#catalog" class="btn btn-outline-primary me-3">
+                        <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
+                    </a>
+
+                    <form class="d-flex flex-grow-1" action="{% url 'search' %}" method="GET">
+                        <div class="input-group">
+                            <input type="text"
+                                   class="form-control"
+                                   name="q"
+                                   placeholder="{% trans 'Поиск товаров...' %}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <ul class="navbar-nav me-auto gap-4">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {% trans "Каталог" %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for category in categories %}
+                            <li><a class="dropdown-item" href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#application">{% trans "Нанесение" %}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#design">{% trans "Дизайн" %}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#stands">{% trans "Стенды" %}</a></li>
+                </ul>
+
+                <div class="d-flex gap-3 align-items-center">
+                    {% include 'includes/language_switcher.html' %}
+
+                   {% if user.is_authenticated %}
+    <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger" title="Выход">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </form>
+
+    <div class="dropdown d-inline">
+        <a class="btn btn-primary dropdown-toggle"
+           href="{% url 'accounts:company_dashboard' %}"
+           role="button"
+           id="userMenu"
+           data-bs-toggle="dropdown">
+            <i class="fas fa-user-tie"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
+                <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt me-2"></i>Выход
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+{% else %}
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+        <i class="fas fa-sign-in-alt me-2"></i>Войти
+    </a>
+    <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>Регистрация
+    </a>
+{% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Основной контент с динамическим отступом -->
+    <main role="main" class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Подвал -->
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h3 class="h5">{% trans "Контакты" %}</h3>
+                    <p>{% trans "Телефон:" %} +7 (999) 123-45-67</p>
+                    <p>Email: info@agency.ru</p>
+                </div>
+
+                <div class="col-lg-4">
+                    <h3 class="h5">{% trans "Наши услуги" %}</h3>
+                    <ul class="list-unstyled">
+                        <li><a href="#catalog" class="text-white">{% trans "Каталог товаров" %}</a></li>
+                        <li><a href="#design" class="text-white">{% trans "Дизайн-проекты" %}</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4">
+                    <h3 class="h5">{% trans "Мы в соцсетях" %}</h3>
+                    <div class="social-links">
+                        <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-vk"></i></a>
+                        <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Инициализация AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            easing: 'ease-out-quad'
+        });
+
+        // Автоматический расчет отступа
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.header');
+            const main = document.querySelector('.main-content');
+            main.style.marginTop = header.offsetHeight + 20 + 'px';
+        });
+
+        // Управление тенью хедера
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            header.classList.toggle('header-scrolled', window.scrollY > 50);
+        });
+
+        // Управление доступностью
+        document.getElementById('font-increase').addEventListener('click', () => {
+            document.documentElement.style.fontSize = '20px';
+        });
+
+        document.getElementById('toggle-contrast').addEventListener('click', () => {
+            document.documentElement.setAttribute('data-theme',
+                document.documentElement.getAttribute('data-theme') === 'accessibility' ? 'light' : 'accessibility');
+        });
+    </script>
+</body>
+</html>

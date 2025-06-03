@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+<style>
+    footer {
+        display: none !important;
+    }
+</style>
+{% block content %}
+<div class="container text-center" style="min-height: calc(100vh - 300px); padding-top: 100px; padding-bottom: 100px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Проверьте вашу почту</h2>
+            <p class="lead mb-4">
+                На указанный email ({{ company.email }}) отправлено письмо с инструкциями
+                для завершения регистрации компании <strong>{{ company.legal_name }}</strong>.
+            </p>
+
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Важно!</h4>
+                <p>
+                    Ссылка для подтверждения действительна в течение
+                    <strong>{{ expiration_minutes }} минут</strong>.
+                </p>
+                <p class="mb-0">
+                    Если письмо не пришло, проверьте папку "Спам".
+                </p>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'accounts:resend_verification' company_id=company.id %}"
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Отправить письмо повторно
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

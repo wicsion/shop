@@ -1,0 +1,297 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<!-- Hero Slider -->
+<section class="hero-slider">
+    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{% static 'images/slide1.jpg' %}" class="d-block w-65" alt="Промо-акция" loading="lazy">
+                <div class="carousel-caption d-none d-md-block">
+                    <h1 class="display-4 fw-bold mb-4">{% trans "Инновационные решения" %}</h1>
+                    <a href="#catalog" class="btn btn-primary btn-lg px-4 py-2">{% trans "Подробнее" %}</a>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'images/slide2.jpg' %}" class="d-block w-65" alt="Наши работы" loading="lazy">
+                <div class="carousel-caption d-none d-md-block">
+                    <h1 class="display-4 fw-bold mb-4">{% trans "Профессиональный подход" %}</h1>
+                    <a href="#portfolio" class="btn btn-primary btn-lg px-4 py-2">{% trans "Наши работы" %}</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+</section>
+
+<!-- Hero Section -->
+<section class="hero-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">{% trans "Профессиональные решения для вашего бренда" %}</h1>
+        <div class="row g-4 justify-content-center">
+            <div class="col-auto">
+                <a href="#catalog" class="btn btn-light btn-lg">{% trans "Каталог товаров" %}</a>
+            </div>
+            <div class="col-auto">
+                <a href="#contact" class="btn btn-outline-light btn-lg">{% trans "Консультация" %}</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Welcome Pack Section -->
+<section id="welcome-pack" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Готовые решения" %}</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <div class="col">
+                <div class="card h-100 shadow">
+                    <img src="{% static 'images/pack1.jpg' %}" class="card-img-top" alt="Бизнес-набор">
+                    <div class="card-body">
+                        <h3 class="card-title">Бизнес-набор "Премиум"</h3>
+                        <p class="card-text">Все необходимое для презентации вашего бренда: визитки, блокноты, ручки и фирменные конверты.</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary">
+                                {% trans "Подробнее" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow">
+                    <img src="{% static 'images/pack2.jpg' %}" class="card-img-top" alt="Промо-комплект">
+                    <div class="card-body">
+                        <h3 class="card-title">Промо-комплект "Стандарт"</h3>
+                        <p class="card-text">Готовое решение для промо-акций: флаеры, буклеты, стикеры и промо-стойка.</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary">
+                                {% trans "Подробнее" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow">
+                    <img src="{% static 'images/pack3.jpg' %}" class="card-img-top" alt="Офисный набор">
+                    <div class="card-body">
+                        <h3 class="card-title">Офисный набор "Делюкс"</h3>
+                        <p class="card-text">Комплект для оформления офиса: таблички, стенды, календари и органайзеры с вашим логотипом.</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-primary">
+                                {% trans "Подробнее" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Catalog Preview -->
+<section id="catalog-preview" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Популярные категории" %}</h2>
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="card h-100 product-card">
+                    <span class="product-badge">{% trans "Хит" %}</span>
+                    <a href="#" class="stretched-link">
+                        <img src="{% static 'images/cat1.jpg' %}" class="card-img-top" alt="Полиграфия">
+                    </a>
+                    <div class="card-body text-center">
+                        <h3 class="h5">Полиграфия</h3>
+                        <button class="btn gradient-btn mt-3">
+                            {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100 product-card">
+                    <span class="product-badge">{% trans "Новинка" %}</span>
+                    <a href="#" class="stretched-link">
+                        <img src="{% static 'images/cat2.jpg' %}" class="card-img-top" alt="Сувениры">
+                    </a>
+                    <div class="card-body text-center">
+                        <h3 class="h5">Корпоративные сувениры</h3>
+                        <button class="btn gradient-btn mt-3">
+                            {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100 product-card">
+                    <span class="product-badge">{% trans "Хит" %}</span>
+                    <a href="#" class="stretched-link">
+                        <img src="{% static 'images/cat3.jpg' %}" class="card-img-top" alt="Наружная реклама">
+                    </a>
+                    <div class="card-body text-center">
+                        <h3 class="h5">Наружная реклама</h3>
+                        <button class="btn gradient-btn mt-3">
+                            {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card h-100 product-card">
+                    <span class="product-badge">{% trans "Акция" %}</span>
+                    <a href="#" class="stretched-link">
+                        <img src="{% static 'images/cat4.jpg' %}" class="card-img-top" alt="Упаковка">
+                    </a>
+                    <div class="card-body text-center">
+                        <h3 class="h5">Фирменная упаковка</h3>
+                        <button class="btn gradient-btn mt-3">
+                            {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Portfolio Section -->
+<section id="portfolio" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Наши работы" %}</h2>
+        <div class="row g-3" data-masonry='{"percentPosition": true}'>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card">
+                    <img src="{% static 'images/work1.jpg' %}" class="card-img-top" alt="Рекламная кампания">
+                    <div class="card-body">
+                        <h3 class="h5">Рекламная кампания для "ГлобалТех"</h3>
+                        <p class="card-text">Полный цикл работ: от разработки концепции до реализации.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card">
+                    <img src="{% static 'images/work2.jpg' %}" class="card-img-top" alt="Брендирование офиса">
+                    <div class="card-body">
+                        <h3 class="h5">Брендирование офиса "ФинСервис"</h3>
+                        <p class="card-text">Создание единого стиля для всех помещений компании.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card">
+                    <img src="{% static 'images/work3.jpg' %}" class="card-img-top" alt="Промо-акция">
+                    <div class="card-body">
+                        <h3 class="h5">Промо-акция для "БиоФарм"</h3>
+                        <p class="card-text">Организация и проведение масштабной промо-акции.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News Section -->
+<section id="news" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Последние новости" %}</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <small class="text-muted">15.05.2025</small>
+                        <h3 class="h5 mt-2">Новые материалы для печати</h3>
+                        <p class="card-text">Представляем инновационные экологичные материалы для печати с улучшенными характеристиками.</p>
+                        <a href="#" class="btn btn-link">
+                            {% trans "Читать далее" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <small class="text-muted">10.05.2025</small>
+                        <h3 class="h5 mt-2">Специальные условия для малого бизнеса</h3>
+                        <p class="card-text">Запускаем программу поддержки малого бизнеса со специальными ценами.</p>
+                        <a href="#" class="btn btn-link">
+                            {% trans "Читать далее" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <small class="text-muted">05.05.2025</small>
+                        <h3 class="h5 mt-2">Новые технологии нанесения</h3>
+                        <p class="card-text">Внедрили новую технологию ультрафиолетовой печати с повышенной износостойкостью.</p>
+                        <a href="#" class="btn btn-link">
+                            {% trans "Читать далее" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form -->
+<section id="contact" class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="text-center mb-4">{% trans "Связаться с нами" %}</h2>
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" name="name"
+                                placeholder="{% trans 'Ваше имя' %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="email" class="form-control" name="email"
+                                placeholder="{% trans 'Электронная почта' %}" required>
+                        </div>
+                        <div class="col-12">
+                            <textarea class="form-control" rows="5" name="message"
+                                placeholder="{% trans 'Сообщение' %}" required></textarea>
+                        </div>
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {% trans "Отправить сообщение" %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Инициализация Masonry для портфолио -->
+<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+<script>
+    // Активация доступности
+    const accessibilityToggle = document.getElementById('accessibility-toggle');
+
+    // Инициализация Masonry
+    window.onload = () => {
+        const grid = document.querySelector('[data-masonry]');
+        if(grid) {
+            new Masonry(grid, {
+                itemSelector: '.col',
+                percentPosition: true
+            });
+        }
+    };
+</script>
+{% endblock %}

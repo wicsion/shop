@@ -1,0 +1,105 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="dashboard-section p-6">
+            <article>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold mb-2">{{ news_item.title }}</h1>
+                        <p class="text-gray-500">
+                            <i class="far fa-calendar-alt mr-2"></i>
+                            {{ news_item.pub_date|date:"d.m.Y" }}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="favorite-btn text-blue-500 hover:text-blue-700">
+                            <i class="far fa-bookmark text-xl"></i>
+                        </button>
+                        <button class="favorite-btn text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-share-alt text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <img src="{% static 'images/news-placeholder.jpg' %}" alt="{{ news_item.title }}"
+                         class="w-full h-64 object-cover rounded-xl shadow-md mb-4">
+                </div>
+
+                <div class="content bg-white p-4 rounded-xl shadow-sm">
+                    {{ news_item.content|linebreaks }}
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h3 class="text-xl font-semibold mb-3">{% trans "Дополнительные материалы" %}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                                    <i class="fas fa-file-pdf text-blue-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">{% trans "Презентация" %}</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-file-download mr-1"></i>
+                                        PDF, 2.4 MB
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <a href="#" class="btn-custom">
+                                    <i class="fas fa-download mr-2"></i> {% trans "Скачать" %}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="document-card">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
+                                    <i class="fas fa-images text-purple-500 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">{% trans "Галерея" %}</h3>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-camera mr-1"></i>
+                                        12 фото
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <a href="#" class="btn-custom">
+                                    <i class="fas fa-eye mr-2"></i> {% trans "Посмотреть" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="dashboard-section p-6 mt-6">
+            <h2 class="text-xl lg:text-2xl font-bold mb-6">{% trans "Другие новости" %}</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for i in "123" %}
+                <div class="document-card">
+                    <img src="{% static 'images/news-placeholder.jpg' %}" alt="News {{ i }}"
+                         class="w-full h-40 object-cover rounded-t-xl">
+                    <div class="p-4">
+                        <small class="text-gray-500">{% trans "15.05.2025" %}</small>
+                        <h3 class="text-lg font-medium text-gray-900 mt-1">{% trans "Пример другой новости" %} {{ i }}</h3>
+                        <p class="text-gray-600 text-sm mt-2">{% trans "Краткое описание новости, которое будет отображаться в списке." %}</p>
+                        <a href="#" class="btn-custom mt-3">
+                            <i class="fas fa-book-reader mr-2"></i> {% trans "Читать" %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

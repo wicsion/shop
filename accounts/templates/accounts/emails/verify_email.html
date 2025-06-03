@@ -1,0 +1,106 @@
+{% extends 'main/base.html' %}  <!-- Используем ваш базовый шаблон -->
+
+{% block title %}Подтверждение регистрации компании{% endblock %}
+
+{% block content %}
+<style>
+    .verification-container {
+        max-width: 600px;
+        margin: 5rem auto;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .verification-icon {
+        font-size: 4rem;
+        color: #3b82f6;
+        margin-bottom: 1.5rem;
+    }
+
+    .verification-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+    }
+
+    .verification-message {
+        font-size: 1.1rem;
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .verification-btn {
+        display: inline-block;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .verification-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .verification-alert {
+        background-color: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        color: #0c4a6e;
+        font-size: 0.95rem;
+        margin-top: 1.5rem;
+    }
+</style>
+
+<div class="verification-container">
+    <div class="verification-icon">
+        <i class="fas fa-envelope-open-text"></i>
+    </div>
+
+    <h2 class="verification-title">Подтвердите регистрацию компании</h2>
+
+    <p class="verification-message">
+        Для завершения регистрации компании "{{ company.legal_name }}" перейдите по ссылке в письме,
+        которое мы отправили на адрес <strong>{{ company.email }}</strong>.
+    </p>
+
+    <a href="{{ verification_link }}" class="verification-btn">
+        <i class="fas fa-check-circle mr-2"></i>
+        Подтвердить сейчас
+    </a>
+
+    <div class="verification-alert">
+        <i class="fas fa-info-circle mr-2"></i>
+        Если письмо не пришло, проверьте папку "Спам" или
+        <a href="{% url 'resend_verification' company.id %}">отправьте письмо повторно</a>
+    </div>
+</div>
+
+<script>
+    // Автоматическая проверка подтверждения каждые 10 секунд
+    function checkVerification() {
+        fetch("{% url 'check_verification_status' company.id %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_verified) {
+                    window.location.href = "{% url 'company_dashboard' %}";
+                } else {
+                    setTimeout(checkVerification, 10000);
+                }
+            });
+    }
+
+    // Запускаем проверку через 10 секунд после загрузки страницы
+    setTimeout(checkVerification, 10000);
+</script>
+{% endblock %}

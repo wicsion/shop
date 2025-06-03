@@ -1,0 +1,104 @@
+{% extends 'main/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Заголовок с кнопкой назад -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Финансовый дашборд</h1>
+        <a href="{% url 'accounts:company_dashboard' %}" class="text-blue-500 hover:text-blue-700">
+            <i class="fas fa-arrow-left mr-1"></i> На главную
+        </a>
+    </div>
+
+    <!-- Финансовая статистика -->
+    <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
+        <h2 class="text-xl font-bold mb-4">Финансовая статистика</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat-card">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm">Общая сумма заказов</p>
+                        <p class="text-lg font-bold">{{ total_orders_amount|intcomma }} ₽</p>
+                        <div class="progress-bar mt-1">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm">Средний чек</p>
+                        <p class="text-lg font-bold">{{ average_order_amount|intcomma }} ₽</p>
+                        <div class="progress-bar mt-1">
+                            <div class="progress-fill" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm">Неоплаченные счета</p>
+                        <p class="text-lg font-bold">{{ unpaid_invoices|intcomma }} ₽</p>
+                        <div class="progress-bar mt-1">
+                            <div class="progress-fill" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Дополнительные финансовые данные -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm p-5">
+            <h2 class="text-xl font-bold mb-4">История платежей</h2>
+            <!-- График/таблица платежей -->
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-5">
+            <h2 class="text-xl font-bold mb-4">Финансовые отчеты</h2>
+            <!-- Список отчетов -->
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        @apply p-4 rounded-lg border border-gray-100 shadow-sm;
+    }
+
+    .stat-icon {
+        @apply p-3 rounded-full flex items-center justify-center text-xl;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .progress-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-top: 4px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+    }
+</style>
+{% endblock %}

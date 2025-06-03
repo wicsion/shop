@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+{% block title %}Загрузка документа{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <div class="section-header">
+        <h3><i class="fas fa-file-upload"></i> Загрузка документа</h3>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <div class="file-input-group">
+            <label class="file-input-label">
+                <i class="fas fa-file-pdf"></i>
+                Выберите файл
+                <input type="file" name="file" required>
+            </label>
+        </div>
+
+        <button type="submit" class="btn-gradient">
+            <i class="fas fa-upload mr-2"></i> Загрузить
+        </button>
+    </form>
+</div>
+{% endblock %}

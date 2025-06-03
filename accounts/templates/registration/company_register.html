@@ -1,0 +1,401 @@
+{% extends 'main/base.html' %}
+{% block title %}Регистрация компании{% endblock %}
+
+{% block content %}
+<style>
+    .registration-container {
+        max-width: 700px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .custom-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: border-color 0.2s;
+    }
+
+    .custom-input:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Обновленные стили для карточек */
+    .roles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .role-card {
+        flex: 1;
+        min-width: 220px;
+        max-width: 280px;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .role-card:hover {
+        border-color: #3b82f6;
+        background-color: #f8fafc;
+    }
+
+    .role-card.selected {
+        border-color: #3b82f6;
+        background-color: #f0f9ff;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    .role-icon {
+        font-size: 2.5rem;
+        color: #3b82f6;
+        margin-bottom: 1rem;
+    }
+
+    .role-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .role-description {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .header {
+        transition: all 0.3s ease;
+        z-index: 1030;
+    }
+
+    main {
+        margin-top: 80px;
+    }
+
+    .header-scrolled {
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 10;
+        color: #6b7280;
+    }
+
+    .password-container {
+        position: relative;
+    }
+
+    .password-container input {
+        padding-right: 45px;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+</style>
+      {% if form.errors %}
+<div class="alert alert-danger">
+    {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="registration-container">
+    <h2 class="text-center mb-5 fw-bold">
+        <i class="fas fa-building me-2 text-primary"></i>
+        Регистрация компании
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" id="registrationForm">
+        {% csrf_token %}
+        <input type="hidden" name="organization_type" value="ООО">
+    <input type="hidden" name="company_status" value="Действующее">
+
+        <!-- Обязательные поля -->
+        <div class="mb-4">
+            <label class="form-label">Название компании <span class="text-danger">*</span></label>
+            <input type="text"
+                   name="legal_name"
+                   class="custom-input"
+                   placeholder="ООО 'Пример'"
+                   required>
+            <div class="error-message" id="legal_name_error">Пожалуйста, введите название компании</div>
+        </div>
+
+       <div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <label class="form-label">ИНН <span class="text-danger">*</span></label>
+        <input type="text"
+               name="inn"
+               id="inn"
+               class="custom-input"
+               placeholder="10 или 12 цифр"
+               required
+               maxlength="12">
+        <div class="error-message" id="inn_error">ИНН должен состоять из 10 или 12 цифр</div>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label">Email компании <span class="text-danger">*</span></label>
+        <input type="email"
+               name="email"
+               class="custom-input"
+               placeholder="example@company.com"
+               required>
+        <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
+    </div>
+</div>
+
+<!-- Добавляем поля ФИО -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Имя <span class="text-danger">*</span></label>
+        <input type="text"
+               name="first_name"
+               class="custom-input"
+               placeholder="Ваше имя"
+               required>
+        <div class="error-message" id="first_name_error">Пожалуйста, введите ваше имя</div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Фамилия <span class="text-danger">*</span></label>
+        <input type="text"
+               name="last_name"
+               class="custom-input"
+               placeholder="Ваша фамилия"
+               required>
+        <div class="error-message" id="last_name_error">Пожалуйста, введите вашу фамилию</div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Отчество</label>
+        <input type="text"
+               name="middle_name"
+               class="custom-input"
+               placeholder="Ваше отчество">
+    </div>
+</div>
+
+        <!-- Пароль -->
+        <div class="mb-4 password-container">
+            <label class="form-label">Пароль  <span class="text-danger">*</span></label>
+            <input type="password"
+                   name="password"
+                   id="passwordField"
+                   class="custom-input"
+                   placeholder="Придумайте надежный пароль"
+                   required>
+
+            <div class="error-message" id="password_error">Пожалуйста, введите пароль</div>
+        </div>
+
+        <!-- Обновленный блок выбора должности -->
+        <div class="mb-5">
+            <label class="form-label mb-3 d-block">Ваша должность <span class="text-danger">*</span></label>
+            <div class="roles-container">
+                <label class="role-card">
+                    <input type="radio" name="role" value="admin" class="hidden" required>
+                    <div>
+                        <div class="role-icon">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <h3 class="role-title">Администратор</h3>
+                        <p class="role-description">Полный доступ к системе</p>
+                    </div>
+                </label>
+
+                <label class="role-card">
+                    <input type="radio" name="role" value="accountant" class="hidden">
+                    <div>
+                        <div class="role-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <h3 class="role-title">Бухгалтер</h3>
+                        <p class="role-description">Финансовые операции</p>
+                    </div>
+                </label>
+
+                <label class="role-card">
+                    <input type="radio" name="role" value="manager" class="hidden">
+                    <div>
+                        <div class="role-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="role-title">Менеджер</h3>
+                        <p class="role-description">Управление закупками</p>
+                    </div>
+                </label>
+            </div>
+            <div class="error-message" id="role_error">Пожалуйста, выберите вашу должность</div>
+        </div>
+
+        <div class="form-check mb-5">
+            <input class="form-check-input" type="checkbox" id="terms" required>
+            <label class="form-check-label small" for="terms">
+                Принимаю <a href="#" class="text-decoration-none">условия использования</a>
+            </label>
+            <div class="error-message" id="terms_error">Вы должны принять условия использования</div>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+                Зарегистрироваться
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Выделение выбранной должности
+    document.querySelectorAll('input[name="role"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            this.closest('.role-card').classList.add('selected');
+            document.getElementById('role_error').style.display = 'none';
+        });
+    });
+
+    // Переключение видимости пароля
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordField = document.getElementById('passwordField');
+
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+
+        if (type === 'text') {
+            this.innerHTML = '<i class="far fa-eye-slash"></i>';
+        } else {
+            this.innerHTML = '<i class="far fa-eye"></i>';
+        }
+    });
+
+    // Автоматический расчет высоты header
+    document.addEventListener('DOMContentLoaded', function() {
+        const header = document.querySelector('.header');
+        const main = document.querySelector('main');
+        if (header && main) {
+            main.style.marginTop = header.offsetHeight + 'px';
+        }
+    });
+
+    // Тень при скролле
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.header');
+        if (header) {
+            header.classList.toggle('header-scrolled', window.scrollY > 50);
+        }
+    });
+
+    // Валидация ИНН - только цифры и ограничение длины
+    const innInput = document.getElementById('inn');
+    innInput.addEventListener('input', function() {
+        // Удаляем все нецифровые символы
+        this.value = this.value.replace(/\D/g, '');
+
+        // Проверяем длину ИНН
+        const inn = this.value;
+        if (inn.length !== 10 && inn.length !== 12 && inn.length > 0) {
+            document.getElementById('inn_error').style.display = 'block';
+            this.classList.add('is-invalid');
+        } else {
+            document.getElementById('inn_error').style.display = 'none';
+            this.classList.remove('is-invalid');
+        }
+    });
+
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    let isValid = true;
+    const form = this;
+
+    // Проверка обязательных полей
+    const requiredFields = [
+        {id: 'legal_name', errorId: 'legal_name_error'},
+        {id: 'email', errorId: 'email_error'},
+        {id: 'passwordField', errorId: 'password_error'},
+        {id: 'first_name', errorId: 'first_name_error'},
+        {id: 'last_name', errorId: 'last_name_error'}
+    ];
+
+    requiredFields.forEach(field => {
+        const input = form.querySelector(`[name="${field.id}"]`);
+        if (!input.value.trim()) {
+            document.getElementById(field.errorId).style.display = 'block';
+            input.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById(field.errorId).style.display = 'none';
+            input.classList.remove('is-invalid');
+        }
+    });
+
+        // Проверка ИНН
+        const inn = form.querySelector('[name="inn"]').value;
+        if (inn.length !== 10 && inn.length !== 12) {
+            document.getElementById('inn_error').style.display = 'block';
+            form.querySelector('[name="inn"]').classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Проверка выбранной роли
+        const roleSelected = form.querySelector('input[name="role"]:checked');
+        if (!roleSelected) {
+            document.getElementById('role_error').style.display = 'block';
+            isValid = false;
+        }
+
+        // Проверка чекбокса условий
+        const terms = document.getElementById('terms');
+        if (!terms.checked) {
+            document.getElementById('terms_error').style.display = 'block';
+            terms.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            document.getElementById('terms_error').style.display = 'none';
+            terms.classList.remove('is-invalid');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+# forms.py
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import Company, CustomUser, Document, Order
+from django.contrib.auth.forms import AuthenticationForm
+
+class CompanyRegistrationForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput,
+        label='Пароль',
+        required=True
+    )
+
+    role = forms.ChoiceField(
+        choices=CustomUser.ROLES,
+        label='Должность',
+        required=True,
+        widget=forms.RadioSelect(attrs={'class': 'hidden'})
+    )
+    first_name = forms.CharField(
+        label='Имя',
+        required=True
+    )
+
+    last_name = forms.CharField(
+        label='Фамилия',
+        required=True
+    )
+
+    middle_name = forms.CharField(
+        label='Отчество',
+        required=False
+    )
+
+    class Meta:
+        model = Company
+        fields = [
+            'email',
+            'inn',
+            'legal_name',
+
+        ]
+
+
+
+
+
+class CompanyUserForm(UserCreationForm):
+    role = forms.ChoiceField(
+        choices=CustomUser.ROLES,
+        widget=forms.RadioSelect(attrs={'class': 'hidden'}))
+
+    class Meta:
+        model = CustomUser
+        fields = [ 'email', 'phone', 'role', 'password1', 'password2']
+
+
+class DocumentUploadForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['doc_type', 'file']
+
+
+class OrderCreateForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['excel_file']
+        widgets = {
+            'excel_file': forms.FileInput(attrs={'accept': '.xlsx,.xls'})
+        }
+
+class EmailAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'Email'

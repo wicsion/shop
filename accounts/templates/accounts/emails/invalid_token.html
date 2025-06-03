@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Недействительная ссылка
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Ошибка подтверждения!</h4>
+                        <p>
+                            Ссылка для подтверждения email недействительна или устарела.
+                        </p>
+                        <hr>
+                        <p class="mb-0">
+                            Пожалуйста, запросите новую ссылку для подтверждения или обратитесь в поддержку.
+                        </p>
+                    </div>
+
+                    {% if messages %}
+                        <div class="mt-4">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'accounts:resend_verification' company_id=request.session.new_company_id %}"
+                           class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Отправить ссылку повторно
+                        </a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Вернуться к авторизации
+                        </a>
+                        <!-- Исправленная ссылка для регистрации новой компании -->
+                        <a href="{% url 'accounts:company_register' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Зарегистрировать новую компанию
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

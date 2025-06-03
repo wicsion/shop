@@ -1,0 +1,168 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-26 21:57+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\gifts_project\settings.py:87
+msgid "Russian"
+msgstr ""
+
+#: .\gifts_project\settings.py:88
+msgid "English"
+msgstr ""
+
+#: .\gifts_project\settings.py:89
+msgid "Simplified Chinese"
+msgstr ""
+
+#: .\main\templates\includes\language_switcher.html:7
+msgid "Выбор языка"
+msgstr ""
+
+#: .\main\templates\main\base.html:7 .\main\templates\main\base.html:15
+msgid "Агентство полного цикла"
+msgstr ""
+
+#: .\main\templates\main\base.html:16 .\main\templates\main\index.html:35
+msgid "Профессиональные решения для вашего бренда"
+msgstr ""
+
+#: .\main\templates\main\base.html:45
+msgid "Высокая контрастность"
+msgstr ""
+
+#: .\main\templates\main\base.html:61 .\main\templates\main\base.html:84
+msgid "Каталог"
+msgstr ""
+
+#: .\main\templates\main\base.html:70
+msgid "Поиск товаров..."
+msgstr ""
+
+#: .\main\templates\main\base.html:92
+msgid "Нанесение"
+msgstr ""
+
+#: .\main\templates\main\base.html:93
+msgid "Дизайн"
+msgstr ""
+
+#: .\main\templates\main\base.html:94
+msgid "Стенды"
+msgstr ""
+
+#: .\main\templates\main\base.html:101
+#: .\main\templates\main\personal_cabinet.html:7
+msgid "Личный кабинет"
+msgstr ""
+
+#: .\main\templates\main\base.html:119
+msgid "Контакты"
+msgstr ""
+
+#: .\main\templates\main\base.html:120
+msgid "Телефон:"
+msgstr ""
+
+#: .\main\templates\main\base.html:126
+msgid "Наши услуги"
+msgstr ""
+
+#: .\main\templates\main\base.html:128 .\main\templates\main\index.html:38
+msgid "Каталог товаров"
+msgstr ""
+
+#: .\main\templates\main\base.html:129
+msgid "Дизайн-проекты"
+msgstr ""
+
+#: .\main\templates\main\base.html:135
+msgid "Мы в соцсетях"
+msgstr ""
+
+#: .\main\templates\main\category_detail.html:9
+msgid "Главная"
+msgstr ""
+
+#: .\main\templates\main\index.html:17
+msgid "Инновационные решения"
+msgstr ""
+
+#: .\main\templates\main\index.html:41
+msgid "Консультация"
+msgstr ""
+
+#: .\main\templates\main\index.html:50
+msgid "Готовые решения"
+msgstr ""
+
+#: .\main\templates\main\index.html:61 .\main\templates\main\index.html:87
+msgid "Подробнее"
+msgstr ""
+
+#: .\main\templates\main\index.html:75
+msgid "Популярные категории"
+msgstr ""
+
+#: .\main\templates\main\index.html:80
+msgid "Хит"
+msgstr ""
+
+#: .\main\templates\main\index.html:100
+msgid "Наши работы"
+msgstr ""
+
+#: .\main\templates\main\index.html:120
+msgid "Последние новости"
+msgstr ""
+
+#: .\main\templates\main\index.html:130
+msgid "Читать далее"
+msgstr ""
+
+#: .\main\templates\main\index.html:145
+msgid "Связаться с нами"
+msgstr ""
+
+#: .\main\templates\main\index.html:151
+msgid "Ваше имя"
+msgstr ""
+
+#: .\main\templates\main\index.html:155
+msgid "Электронная почта"
+msgstr ""
+
+#: .\main\templates\main\index.html:159
+msgid "Сообщение"
+msgstr ""
+
+#: .\main\templates\main\index.html:163
+msgid "Отправить сообщение"
+msgstr ""
+
+#: .\main\templates\main\search.html:12
+msgid "Фильтры"
+msgstr ""
+
+#: .\main\templates\main\search.html:26
+msgid "Поиск по каталогу..."
+msgstr ""
+
+#: .\main\templates\main\search.html:37
+msgid "Найти"
+msgstr ""

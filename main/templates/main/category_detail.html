@@ -1,0 +1,69 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">{% trans "Главная" %}</a></li>
+                <li class="breadcrumb-item active">{{ category.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="dashboard-section p-6 mb-6">
+            <h1 class="text-2xl lg:text-3xl font-bold mb-6">{{ category.name }}</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid rounded-xl shadow-md w-full h-auto">
+                </div>
+                <div>
+                    <div class="bg-blue-50 p-4 rounded-xl mb-4">
+                        <h3 class="text-xl font-semibold mb-3">{% trans "Описание категории" %}</h3>
+                        <p class="text-gray-700">{% trans "Здесь будет подробное описание категории, ее особенностей и преимуществ. Текст заполняется администратором в панели управления." %}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="stat-card">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">{% trans "Товаров в категории" %}</p>
+                                    <p class="text-lg font-bold">47</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-boxes"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">{% trans "Популярность" %}</p>
+                                    <p class="text-lg font-bold">85%</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="#products" class="btn-gradient w-full text-center py-3">
+                        <i class="fas fa-list mr-2"></i> {% trans "Смотреть товары" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section p-6" id="products">
+            <h2 class="text-xl lg:text-2xl font-bold mb-6">{% trans "Товары категории" %}</h2>
+
+            <div class="bg-gray-50 rounded-xl p-8 text-center">
+                <i class="fas fa-box-open text-gray-300 text-4xl mb-3"></i>
+                <p class="text-gray-400 font-medium">{% trans "Список товаров будет загружен здесь" %}</p>
+                <p class="text-gray-400 text-sm mt-2">{% trans "Здесь будут отображаться все товары, относящиеся к этой категории" %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
