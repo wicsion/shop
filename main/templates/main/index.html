@@ -2,270 +2,699 @@
 {% load static i18n %}
 
 {% block content %}
+<style>
+    /* Общие стили из обоих шаблонов */
+    .dashboard-section {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 1.25rem;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        backdrop-filter: blur(12px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        @apply mx-2 sm:mx-0;
+    }
+
+    .section-title {
+        @apply text-xl lg:text-2xl font-bold mb-4 lg:mb-6 pb-2 lg:pb-3 relative;
+        background: linear-gradient(45deg, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .hero-slider {
+    min-height: 60vh;
+    position: relative !important;
+}
+
+    .hero-slider > div {
+    transition: opacity 1s ease-in-out !important;
+}
+
+    .section-title::after {
+        content: '';
+        @apply absolute bottom-0 left-0 w-16 lg:w-20 h-1 rounded-full;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%);
+    }
+
+    .btn-gradient {
+        @apply px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2;
+        background: linear-gradient(90deg, #3b82f6 30%, #6366f1 70%) !important;
+        color: white !important;
+        border: none !important;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    /* Новые анимации и эффекты */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 1s ease-out; }
+
+    .product-3d-container {
+        perspective: 1000px;
+    }
+    .product-3d-card:hover img {
+        transform: rotateY(20deg) scale(1.05);
+    }
+
+    .ar-button {
+        transition: all 0.3s;
+        backdrop-filter: blur(5px);
+    }
+    .ar-button:hover {
+        background: rgba(0,0,0,0.7) !important;
+        transform: scale(1.1);
+    }
+
+    /* Кастомный скроллбар */
+    ::-webkit-scrollbar {
+        width: 8px;
+        background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        border-radius: 10px;
+    }
+
+    /* Стили для иконок вместо изображений */
+    .icon-display {
+        font-size: 5rem;
+        color: #3b82f6;
+        margin-bottom: 1rem;
+    }
+
+    .category-icon {
+        font-size: 3rem;
+        color: #3b82f6;
+        margin-bottom: 1rem;
+    }
+
+    .portfolio-icon {
+        font-size: 4rem;
+        color: white;
+        background: linear-gradient(45deg, #3b82f6, #6366f1);
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        margin: 0 auto 1rem;
+    }
+
+    .product-icon {
+        font-size: 2.5rem;
+        color: #3b82f6;
+        margin-right: 1rem;
+    }
+
+    /* Анимация для кнопок */
+    .btn-glow {
+        background: linear-gradient(90deg, #3b82f6, #6366f1);
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        transition: all 0.3s;
+    }
+    .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    }
+
+    .btn-transparent {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+        transition: all 0.3s;
+    }
+    .btn-transparent:hover {
+        border-color: rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.1);
+    }
+
+     /* Анимация бегущей строки */
+    @keyframes scrollTicker {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-100% - 2rem)); }
+    }
+
+    .animate-scrollTicker {
+        animation: scrollTicker 30s linear infinite;
+    }
+
+    .news-ticker {
+        border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .news-item:hover .news-title {
+        color: #3b82f6;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .news-scroll {
+            animation: none;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .news-items {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        ::-webkit-scrollbar {
+            height: 4px;
+        }
+    }
+
+      .hero-slider {
+        position: relative;
+    }
+
+    .text-gradient {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .slider-dot.active {
+        background: white;
+        transform: scale(1.2);
+    }
+</style>
+
+<div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
 <!-- Hero Slider -->
-<section class="hero-slider">
-    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="{% static 'images/slide1.jpg' %}" class="d-block w-100" alt="Промо-акция" loading="lazy">
-                <div class="carousel-caption d-none d-md-block">
-
-                    <a href="#catalog" class="btn btn-primary btn-lg px-4 py-2">{% trans "Подробнее" %}</a>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="{% static 'images/slide2.jpg' %}" class="d-block w-100" alt="Наши работы" loading="lazy">
-                <div class="carousel-caption d-none d-md-block">
-                    <h1 class="display-4 fw-bold mb-4">{% trans "Профессиональный подход" %}</h1>
-                    <a href="#portfolio" class="btn btn-primary btn-lg px-4 py-2">{% trans "Наши работы" %}</a>
+<section class="hero-slider !relative h-[30vh] overflow-hidden mb-8">
+    <!-- Слайд 1 -->
+     <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-100 opacity-100 z-10">
+        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+        <div class="container mx-auto relative z-10 px-6">
+            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeIn">
+                    <span class="text-gradient">{% trans "Профессиональные решения" %}</span> {% trans "для вашего бренда" %}
+                </h1>
+                <p class="text-xl text-white/90 mb-8">
+                    {% trans "Персонализация под ключ — от дизайна до доставки. 100+ вариантов для вашего бизнеса." %}
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                        <i class="fas fa-box-open mr-3"></i> {% trans "Каталог товаров" %}
+                    </a>
+                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                        <i class="fas fa-headset mr-3"></i> {% trans "Консультация" %}
+                    </a>
                 </div>
             </div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        </button>
-    </div>
-</section>
-
-<!-- Hero Section -->
-<section class="hero-section py-5 bg-primary text-white">
-    <div class="container text-center">
-        <h1 class="display-4 mb-4">{% trans "Профессиональные решения для вашего бренда" %}</h1>
-        <div class="row g-4 justify-content-center">
-            <div class="col-auto">
-                <a href="#catalog" class="btn btn-light btn-lg">{% trans "Каталог товаров" %}</a>
-            </div>
-            <div class="col-auto">
-                <a href="#contact" class="btn btn-outline-light btn-lg">{% trans "Консультация" %}</a>
-            </div>
+        <!-- Заглушка 1 - Градиент с абстрактными формами -->
+        <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-500 overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-overlay opacity-30"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-pink-400 rounded-full mix-blend-overlay opacity-20"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNwYXR0ZXJuKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')]"></div>
         </div>
     </div>
+
+    <!-- Слайд 2 -->
+     <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+        <div class="container mx-auto relative z-10 px-6">
+            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                    <span>{% trans "Корпоративные подарки" %}</span> {% trans "и сувениры" %}
+                </h1>
+                <p class="text-xl text-white/90 mb-8">
+                    {% trans "Эксклюзивные решения для ваших бизнес-задач. Индивидуальный подход к каждому клиенту." %}
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                        <i class="fas fa-gift mr-3"></i> {% trans "Смотреть коллекцию" %}
+                    </a>
+                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                        <i class="fas fa-lightbulb mr-3"></i> {% trans "Идеи для бизнеса" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Заглушка 2 - Геометрический узор -->
+        <div class="absolute inset-0 w-full h-full bg-gradient-to-tr from-amber-500 to-red-600 overflow-hidden">
+            <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTAgMEgxMDBWMTAwSDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjUgMjVINDBWNDBIMjVWMjV6TTYwIDI1SDc1VjQwSDYwVjI1ek0yNSA2MEg0MFY3NUgyNVY2MHpNNjAgNjBINzVWNzVINjBWNjB6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')]"></div>
+            <div class="absolute top-1/4 left-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-45"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-12"></div>
+        </div>
+    </div>
+
+    <!-- Слайд 3 -->
+    <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+        <div class="container mx-auto relative z-10 px-6">
+            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                    {% trans "Печать логотипов" %} <span class="text-gradient">{% trans "на любой поверхности" %}</span>
+                </h1>
+                <p class="text-xl text-white/90 mb-8">
+                    {% trans "Современные технологии нанесения: шелкография, тампопечать, лазерная гравировка и другие." %}
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                        <i class="fas fa-print mr-3"></i> {% trans "Технологии печати" %}
+                    </a>
+                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                        <i class="fas fa-question-circle mr-3"></i> {% trans "Как выбрать?" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Заглушка 3 - Технологический фон -->
+        <div class="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-900 to-blue-900 overflow-hidden">
+            <div class="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxMCw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxNSw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIyMCw1IiBmaWxsPSJub25lIi8+PGxpbmUgeDE9IjEwIiB5MT0iNTAiIHgyPSI5MCIgeTI9IjUwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PGxpbmUgeDE9IjUwIiB5MT0iMTAiIHgyPSI1MCIgeTI9IjkwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PC9zdmc+')]"></div>
+            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,195,255,0.1)_0%,transparent_70%)]"></div>
+        </div>
+    </div>
+
+    <!-- Навигационные точки -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="0"></button>
+        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="1"></button>
+        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="2"></button>
+    </div>
+
+    <!-- Кнопки навигации -->
+       <button class="slider-next absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+     <button class="slider-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+        <i class="fas fa-chevron-right"></i>
+    </button>
 </section>
 
-<!-- Welcome Pack Section -->
-<section id="welcome-pack" class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">{% trans "Готовые решения" %}</h2>
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            <div class="col">
-                <div class="card h-100 shadow product-card">
-                    <img src="{% static 'images/pack1.jpg' %}" class="card-img-top" alt="Бизнес-набор">
-                    <div class="card-body">
-                        <h3 class="card-title">Бизнес-набор "Премиум"</h3>
-                        <p class="card-text">Все необходимое для презентации вашего бренда: визитки, блокноты, ручки и фирменные конверты.</p>
+   <!-- Новостной блок вместо trust-bar -->
+<div class="news-ticker py-6 bg-white rounded-xl mb-8 shadow-md">
+    <div class="container mx-auto">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-newspaper text-blue-600"></i>
+                <span>{% trans "Новости и статьи" %}</span>
+            </h3>
+
+            <div class="news-items flex-1 overflow-hidden">
+                <div class="news-scroll flex gap-6 md:gap-8 animate-scrollTicker">
+                    <!-- Новость 1 -->
+                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">27/05</span>
+                        <span class="news-category text-orange-600 font-medium">{% trans "Обновления" %}</span>
+                        <span class="news-title text-gray-800">{% trans "Обновленный прайс-лист на часть складской продукции со 2 июня 2025" %}</span>
+                    </a>
+
+                    <!-- Новость 2 -->
+                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">26/05</span>
+                        <span class="news-category text-purple-600 font-medium">{% trans "Прямой эфир" %}</span>
+                        <span class="news-title text-gray-800">{% trans "Прямой эфир с Андреем Дегтяренко 22 мая 2025 г." %}</span>
+                    </a>
+
+                    <!-- Новость 3 -->
+                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">22/05</span>
+                        <span class="news-category text-green-600 font-medium">{% trans "Анонсы" %}</span>
+                        <span class="news-title text-gray-800">{% trans "Открываем новый набор на курс «Все о gifts.ru»!" %}</span>
+                    </a>
+
+                    <!-- Новость 4 -->
+                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
+                        <span class="news-category text-blue-600 font-medium">{% trans "Условия работы" %}</span>
+                        <span class="news-title text-gray-800">{% trans "2 Выше ранг: новые возможности для повышения вашего ранга!" %}</span>
+                    </a>
+
+                    <!-- Новость 5 -->
+                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
+                        <span class="news-category text-red-600 font-medium">{% trans "Анонсы" %}</span>
+                        <span class="news-title text-gray-800">{% trans "Снова в эфире: приглашаем на онлайн-встречу с Андреем Дегтяренко 22 мая!" %}</span>
+                    </a>
+                </div>
+            </div>
+
+            <a href="#" class="text-blue-600 font-medium hover:text-blue-800 transition flex items-center gap-1">
+                <span>{% trans "Все новости" %}</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+    <!-- Welcome Pack Section -->
+    <div id="welcome-pack" class="dashboard-section py-8 mb-8">
+        <div class="container">
+            <h2 class="section-title text-center">{% trans "Готовые решения" %}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="welcome-pack-card product-card">
+                    <div class="p-5 text-center">
+                        <i class="fas fa-briefcase icon-display"></i>
+                        <h3 class="text-xl font-bold mb-3">{% trans "Бизнес-набор 'Премиум'" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Все необходимое для презентации вашего бренда: визитки, блокноты, ручки и фирменные конверты." %}</p>
                         <div class="d-grid">
-                            <a href="#" class="btn btn-primary">
-                                {% trans "Подробнее" %}
+                            <a href="#" class="btn btn-gradient">
+                                <i class="fas fa-eye mr-2"></i> {% trans "Подробнее" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="welcome-pack-card product-card">
+                    <div class="p-5 text-center">
+                        <i class="fas fa-bullhorn icon-display"></i>
+                        <h3 class="text-xl font-bold mb-3">{% trans "Промо-комплект 'Стандарт'" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Готовое решение для промо-акций: флаеры, буклеты, стикеры и промо-стойка." %}</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-gradient">
+                                <i class="fas fa-eye mr-2"></i> {% trans "Подробнее" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="welcome-pack-card product-card">
+                    <div class="p-5 text-center">
+                        <i class="fas fa-building icon-display"></i>
+                        <h3 class="text-xl font-bold mb-3">{% trans "Офисный набор 'Делюкс'" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Комплект для оформления офиса: таблички, стенды, календари и органайзеры с вашим логотипом." %}</p>
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-gradient">
+                                <i class="fas fa-eye mr-2"></i> {% trans "Подробнее" %}
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card h-100 shadow product-card">
-                    <img src="{% static 'images/pack2.jpg' %}" class="card-img-top" alt="Промо-комплект">
-                    <div class="card-body">
-                        <h3 class="card-title">Промо-комплект "Стандарт"</h3>
-                        <p class="card-text">Готовое решение для промо-акций: флаеры, буклеты, стикеры и промо-стойка.</p>
-                        <div class="d-grid">
-                            <a href="#" class="btn btn-primary">
-                                {% trans "Подробнее" %}
-                            </a>
+        </div>
+    </div>
+
+    <!-- Catalog Preview -->
+    <div id="catalog-preview" class="dashboard-section py-8 mb-8 bg-gray-50">
+        <div class="container">
+            <h2 class="section-title text-center">{% trans "Популярные категории" %}</h2>
+
+            <!-- AI-помощник -->
+            <div class="ai-assistant bg-white rounded-xl shadow-xl p-6 mb-12 max-w-4xl mx-auto border border-blue-100/50 hover:shadow-2xl transition-shadow">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="ai-avatar bg-blue-100 p-4 rounded-full flex-shrink-0">
+                        <i class="fas fa-robot text-blue-600 text-3xl"></i>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="text-2xl font-bold mb-2">{% trans "Не можете определиться?" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Наш менеджер подберет идеальные варианты под ваш бюджет и цели" %}</p>
+                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                        <i class="fas fa-headset mr-3"></i> {% trans "Консультация" %}
+                    </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="product-card relative text-center p-6">
+                    <span class="product-badge bg-blue-500">{% trans "Хит" %}</span>
+                    <i class="fas fa-print category-icon"></i>
+                    <div class="p-4 text-center">
+                        <h3 class="text-lg font-medium">{% trans "Полиграфия" %}</h3>
+                        <button class="btn btn-custom mt-3">
+                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="product-card relative text-center p-6">
+                    <span class="product-badge bg-green-500">{% trans "Новинка" %}</span>
+                    <i class="fas fa-gift category-icon"></i>
+                    <div class="p-4 text-center">
+                        <h3 class="text-lg font-medium">{% trans "Корпоративные сувениры" %}</h3>
+                        <button class="btn btn-custom mt-3">
+                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="product-card relative text-center p-6">
+                    <span class="product-badge bg-blue-500">{% trans "Хит" %}</span>
+                    <i class="fas fa-ad category-icon"></i>
+                    <div class="p-4 text-center">
+                        <h3 class="text-lg font-medium">{% trans "Наружная реклама" %}</h3>
+                        <button class="btn btn-custom mt-3">
+                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="product-card relative text-center p-6">
+                    <span class="product-badge bg-red-500">{% trans "Акция" %}</span>
+                    <i class="fas fa-box-open category-icon"></i>
+                    <div class="p-4 text-center">
+                        <h3 class="text-lg font-medium">{% trans "Фирменная упаковка" %}</h3>
+                        <button class="btn btn-custom mt-3">
+                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D-товары -->
+    <div class="dashboard-section py-8 mb-8">
+        <div class="container">
+            <h2 class="section-title text-center">{% trans "Популярные товары" %}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Товар 1 -->
+                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
+                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-blue-50">
+                        <i class="fas fa-pen-fancy text-6xl text-blue-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
+                        <div class="product-badge absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            {% trans "ХИТ" %}
+                        </div>
+                        <button class="ar-button absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-full">
+                            <i class="fas fa-cube"></i>
+                        </button>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-xl mb-2">{% trans "Ручка премиум" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Гравировка логотипа, деревянный корпус" %}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-blue-600">1 290 ₽</span>
+                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Товар 2 -->
+                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
+                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-green-50">
+                        <i class="fas fa-battery-full text-6xl text-green-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
+                        <div class="product-badge absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            {% trans "НОВИНКА" %}
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-xl mb-2">{% trans "PowerBank с лого" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "10000 mAh, 6 цветов на выбор" %}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-blue-600">2 490 ₽</span>
+                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Товар 3 -->
+                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
+                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-purple-50">
+                        <i class="fas fa-tshirt text-6xl text-purple-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
+                        <div class="product-badge absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            {% trans "ПОПУЛЯРНО" %}
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-xl mb-2">{% trans "Футболка с принтом" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Хлопок 100%, все размеры" %}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-blue-600">1 890 ₽</span>
+                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Товар 4 -->
+                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
+                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-yellow-50">
+                        <i class="fas fa-mug-hot text-6xl text-yellow-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
+                        <div class="product-badge absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            {% trans "АКЦИЯ" %}
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-xl mb-2">{% trans "Кружка с логотипом" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Керамика, объем 350 мл" %}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-blue-600">890 ₽</span>
+                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card h-100 shadow product-card">
-                    <img src="{% static 'images/pack3.jpg' %}" class="card-img-top" alt="Офисный набор">
-                    <div class="card-body">
-                        <h3 class="card-title">Офисный набор "Делюкс"</h3>
-                        <p class="card-text">Комплект для оформления офиса: таблички, стенды, календари и органайзеры с вашим логотипом.</p>
-                        <div class="d-grid">
-                            <a href="#" class="btn btn-primary">
-                                {% trans "Подробнее" %}
+        </div>
+    </div>
+
+    <!-- Преимущества -->
+    <div class="dashboard-section py-8 mb-8 bg-gradient-to-b from-white to-blue-50">
+        <div class="container">
+            <h2 class="section-title text-center">{% trans "Почему клиенты выбирают нас" %}</h2>
+            <p class="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-8">{% trans "Мы делаем больше, чем просто печатаем логотипы" %}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Преимущество 1 -->
+                <div class="feature-card bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border-t-4 border-blue-500">
+                    <div class="icon-box bg-blue-100 text-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-palette text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-center">{% trans "Уникальный дизайн" %}</h3>
+                    <p class="text-gray-600 text-center">{% trans "Наши дизайнеры создадут концепт специально для вашего бренда" %}</p>
+                </div>
+
+                <!-- Преимущество 2 -->
+                <div class="feature-card bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border-t-4 border-purple-500">
+                    <div class="icon-box bg-purple-100 text-purple-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-bolt text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-center">{% trans "Скорость" %}</h3>
+                    <p class="text-gray-600 text-center">{% trans "Срочное производство за 3 дня при необходимости" %}</p>
+                </div>
+
+                <!-- Преимущество 3 -->
+                <div class="feature-card bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border-t-4 border-green-500">
+                    <div class="icon-box bg-green-100 text-green-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-leaf text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-center">{% trans "Экоматериалы" %}</h3>
+                    <p class="text-gray-600 text-center">{% trans "Используем перерабатываемые и биоразлагаемые материалы" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+       <!-- Contact Form -->
+    <div id="contact" class="dashboard-section py-8 mb-8">
+        <div class="container">
+            <div class="max-w-2xl mx-auto">
+                <h2 class="section-title text-center mb-6">{% trans "Связаться с нами" %}</h2>
+                <div class="flex flex-col md:flex-row gap-8 mb-8">
+                    <div class="contact-info-card bg-white p-6 rounded-xl shadow-md flex-1">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="contact-icon bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg">{% trans "Телефон" %}</h3>
+                                <p class="text-gray-600">+7 (123) 456-78-90</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="contact-icon bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg">{% trans "Email" %}</h3>
+                                <p class="text-gray-600">info@brandgifts.ru</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="contact-icon bg-purple-100 text-purple-600 w-12 h-12 rounded-full flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg">{% trans "Адрес" %}</h3>
+                                <p class="text-gray-600">Москва, ул. Примерная, 123</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="social-links-card bg-white p-6 rounded-xl shadow-md flex-1">
+                        <h3 class="font-bold text-lg mb-4">{% trans "Мы в соцсетях" %}</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="#" class="social-link bg-blue-600 text-white p-3 rounded-lg flex items-center gap-2">
+                                <i class="fab fa-vk"></i> VK
+                            </a>
+                            <a href="#" class="social-link bg-blue-400 text-white p-3 rounded-lg flex items-center gap-2">
+                                <i class="fab fa-telegram"></i> Telegram
+                            </a>
+                            <a href="#" class="social-link bg-pink-600 text-white p-3 rounded-lg flex items-center gap-2">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </a>
+                            <a href="#" class="social-link bg-green-500 text-white p-3 rounded-lg flex items-center gap-2">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
 
-<!-- Catalog Preview -->
-<section id="catalog-preview" class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">{% trans "Популярные категории" %}</h2>
-        <div class="row g-4">
-            <div class="col-6 col-md-3">
-                <div class="card h-100 product-card">
-                    <span class="product-badge">{% trans "Хит" %}</span>
-                    <a href="#" class="stretched-link">
-                        <img src="{% static 'images/cat1.jpg' %}" class="card-img-top" alt="Полиграфия">
-                    </a>
-                    <div class="card-body text-center">
-                        <h3 class="h5">Полиграфия</h3>
-                        <button class="btn gradient-btn mt-3">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card h-100 product-card">
-                    <span class="product-badge">{% trans "Новинка" %}</span>
-                    <a href="#" class="stretched-link">
-                        <img src="{% static 'images/cat2.jpg' %}" class="card-img-top" alt="Сувениры">
-                    </a>
-                    <div class="card-body text-center">
-                        <h3 class="h5">Корпоративные сувениры</h3>
-                        <button class="btn gradient-btn mt-3">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card h-100 product-card">
-                    <span class="product-badge">{% trans "Хит" %}</span>
-                    <a href="#" class="stretched-link">
-                        <img src="{% static 'images/cat3.jpg' %}" class="card-img-top" alt="Наружная реклама">
-                    </a>
-                    <div class="card-body text-center">
-                        <h3 class="h5">Наружная реклама</h3>
-                        <button class="btn gradient-btn mt-3">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card h-100 product-card">
-                    <span class="product-badge">{% trans "Акция" %}</span>
-                    <a href="#" class="stretched-link">
-                        <img src="{% static 'images/cat4.jpg' %}" class="card-img-top" alt="Упаковка">
-                    </a>
-                    <div class="card-body text-center">
-                        <h3 class="h5">Фирменная упаковка</h3>
-                        <button class="btn gradient-btn mt-3">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Portfolio Section -->
-<section id="portfolio" class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">{% trans "Наши работы" %}</h2>
-        <div class="row g-3" data-masonry='{"percentPosition": true}'>
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card product-card">
-                    <img src="{% static 'images/work1.jpg' %}" class="card-img-top" alt="Рекламная кампания">
-                    <div class="card-body">
-                        <h3 class="h5">Рекламная кампания для "ГлобалТех"</h3>
-                        <p class="card-text">Полный цикл работ: от разработки концепции до реализации.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card product-card">
-                    <img src="{% static 'images/work2.jpg' %}" class="card-img-top" alt="Брендирование офиса">
-                    <div class="card-body">
-                        <h3 class="h5">Брендирование офиса "ФинСервис"</h3>
-                        <p class="card-text">Создание единого стиля для всех помещений компании.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card product-card">
-                    <img src="{% static 'images/work3.jpg' %}" class="card-img-top" alt="Промо-акция">
-                    <div class="card-body">
-                        <h3 class="h5">Промо-акция для "БиоФарм"</h3>
-                        <p class="card-text">Организация и проведение масштабной промо-акции.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- News Section -->
-<section id="news" class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">{% trans "Последние новости" %}</h2>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 product-card">
-                    <div class="card-body">
-                        <small class="text-muted">15.05.2025</small>
-                        <h3 class="h5 mt-2">Новые материалы для печати</h3>
-                        <p class="card-text">Представляем инновационные экологичные материалы для печати с улучшенными характеристиками.</p>
-                        <a href="#" class="btn btn-link">
-                            {% trans "Читать далее" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 product-card">
-                    <div class="card-body">
-                        <small class="text-muted">10.05.2025</small>
-                        <h3 class="h5 mt-2">Специальные условия для малого бизнеса</h3>
-                        <p class="card-text">Запускаем программу поддержки малого бизнеса со специальными ценами.</p>
-                        <a href="#" class="btn btn-link">
-                            {% trans "Читать далее" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 product-card">
-                    <div class="card-body">
-                        <small class="text-muted">05.05.2025</small>
-                        <h3 class="h5 mt-2">Новые технологии нанесения</h3>
-                        <p class="card-text">Внедрили новую технологию ультрафиолетовой печати с повышенной износостойкостью.</p>
-                        <a href="#" class="btn btn-link">
-                            {% trans "Читать далее" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Contact Form -->
-<section id="contact" class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h2 class="text-center mb-4">{% trans "Связаться с нами" %}</h2>
-                <form method="post" class="needs-validation" novalidate>
+                <form method="post" class="contact-form needs-validation" novalidate>
                     {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" name="name"
-                                placeholder="{% trans 'Ваше имя' %}" required>
+                    <div class="form-header bg-blue-600 text-white p-4 rounded-t-xl flex items-center gap-3">
+                        <i class="fas fa-comment-dots text-xl"></i>
+                        <h3 class="font-bold">{% trans "Напишите нам сообщение" %}</h3>
+                    </div>
+                    <div class="form-body bg-white p-6 rounded-b-xl shadow-md">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-group">
+                                <label class="block text-gray-700 mb-2">{% trans "Ваше имя" %}</label>
+                                <div class="relative">
+                                    <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
+                                    <input type="text" class="form-control w-full pl-10" name="name" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-gray-700 mb-2">{% trans "Электронная почта" %}</label>
+                                <div class="relative">
+                                    <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                                    <input type="email" class="form-control w-full pl-10" name="email" required>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <input type="email" class="form-control" name="email"
-                                placeholder="{% trans 'Электронная почта' %}" required>
+                        <div class="form-group mb-4">
+                            <label class="block text-gray-700 mb-2">{% trans "Тема сообщения" %}</label>
+                            <div class="relative">
+                                <i class="fas fa-tag absolute left-3 top-3 text-gray-400"></i>
+                                <select class="form-control w-full pl-10" name="subject">
+                                    <option>{% trans "Выберите тему" %}</option>
+                                    <option>{% trans "Запрос на сотрудничество" %}</option>
+                                    <option>{% trans "Консультация по продуктам" %}</option>
+                                    <option>{% trans "Техническая поддержка" %}</option>
+                                    <option>{% trans "Другое" %}</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <textarea class="form-control" rows="5" name="message"
-                                placeholder="{% trans 'Сообщение' %}" required></textarea>
+                        <div class="form-group mb-4">
+                            <label class="block text-gray-700 mb-2">{% trans "Сообщение" %}</label>
+                            <div class="relative">
+                                <i class="fas fa-edit absolute left-3 top-3 text-gray-400"></i>
+                                <textarea class="form-control w-full pl-10" rows="5" name="message" required></textarea>
+                            </div>
                         </div>
-                        <div class="col-12 text-center">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                {% trans "Отправить сообщение" %}
+                        <div class="form-group mb-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="consent" name="consent" class="mr-2" required>
+                                <label for="consent" class="text-gray-700 text-sm">
+                                    {% trans "Я согласен на обработку персональных данных" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-gradient px-8 py-4 text-lg">
+                                <i class="fas fa-paper-plane mr-2"></i> {% trans "Отправить сообщение" %}
                             </button>
                         </div>
                     </div>
@@ -273,21 +702,121 @@
             </div>
         </div>
     </div>
-</section>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 <script>
-    // Инициализация Masonry
-    window.onload = () => {
-        const grid = document.querySelector('[data-masonry]');
-        if(grid) {
-            new Masonry(grid, {
-                itemSelector: '.col',
-                percentPosition: true
+    // Анимация для FAQ элементов
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const answer = this.querySelector('p');
+            answer.classList.toggle('show');
+        });
+    });
+
+    // Инициализация карты (заглушка)
+    function initMap() {
+        console.log('Map would be initialized here');
+        // В реальном проекте здесь был бы код инициализации Google Maps или Yandex Maps
+    }
+
+    // Остановка анимации при наведении
+    document.querySelectorAll('.news-scroll').forEach(scroll => {
+        scroll.addEventListener('mouseenter', () => {
+            scroll.style.animationPlayState = 'paused';
+        });
+
+        scroll.addEventListener('mouseleave', () => {
+            scroll.style.animationPlayState = 'running';
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Более точный селектор для слайдов
+        const slider = document.querySelector('.hero-slider');
+        if (!slider) return;
+
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        const prevBtn = document.querySelector('.slider-prev');
+        const nextBtn = document.querySelector('.slider-next');
+        let currentSlide = 0;
+        let slideInterval;
+
+               function updateSlider() {
+            slides.forEach((slide, index) => {
+                slide.style.opacity = index === currentSlide ? '1' : '0';
+                slide.style.zIndex = index === currentSlide ? '10' : '0';
+            });
+
+            dots.forEach(dot => dot.classList.remove('active'));
+            if (dots[currentSlide]) {
+                dots[currentSlide].classList.add('active');
+            }
+        }
+
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlider();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlider();
+        }
+
+        // Клики на точки
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentSlide = index;
+                updateSlider();
+                resetInterval();
+            });
+        });
+
+        // Кнопки "Вперёд/Назад"
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                nextSlide();
+                resetInterval();
             });
         }
-    };
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                prevSlide();
+                resetInterval();
+            });
+        }
+
+        // Сброс интервала
+        function resetInterval() {
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+
+        // Автопереключение
+        if (slides.length > 0) {
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+
+        // Остановка при наведении на слайдер
+        slider.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        slider.addEventListener('mouseleave', () => {
+            if (slides.length > 0) {
+                slideInterval = setInterval(nextSlide, 5000);
+            }
+        });
+
+        // Инициализация
+        updateSlider();
+    });
+
 </script>
 {% endblock %}
