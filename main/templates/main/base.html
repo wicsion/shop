@@ -10,7 +10,7 @@
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/custom.css' %}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- AOS анимации -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
@@ -18,26 +18,224 @@
         :root {
             --font-size: 16px;
             --contrast: normal;
+            --primary: #3BB77E;
+            --secondary: #F4F6FA;
+            --accent: #FFBA43;
+            --text: #253D4E;
+            --gradient: linear-gradient(135deg, var(--primary), var(--accent));
         }
 
         [data-theme="accessibility"] {
             --font-size: 20px;
             --contrast: contrast(150%);
+            --primary: #000;
+            --secondary: #fff;
         }
 
         body {
+            font-family: 'Quicksand', sans-serif;
+            line-height: 1.6;
             font-size: var(--font-size);
             filter: var(--contrast);
         }
 
-        /* Стили для фиксированного хедера */
+        /* Header styles */
         .header {
             transition: all 0.3s ease;
             z-index: 1030;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: white;
         }
 
         .header-scrolled {
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .main-content {
+            margin-top: 120px;
+        }
+
+        /* Product cards */
+        .product-card {
+            position: relative;
+            border: 1px solid #ECECEC;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--accent);
+            color: #000;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 2;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 183, 126, 0.3);
+        }
+
+        .gradient-btn {
+            background-image: var(--gradient);
+            border: none;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .gradient-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+            color: white;
+        }
+
+        /* Forms */
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        /* Dashboard sections */
+        .dashboard-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-icon {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        /* Document cards */
+        .document-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .document-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-animate {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 767px) {
+            .navbar-nav {
+                flex-direction: column !important;
+            }
+
+            .header .container-fluid {
+                flex-wrap: wrap;
+            }
+
+            .main-content {
+                margin-top: 150px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1279px) {
+            .product-card {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .container {
+                max-width: 1280px;
+            }
+        }
+
+        /* Carousel adjustments */
+        .hero-slider {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        .carousel {
+            line-height: 0;
+        }
+
+        .carousel-inner {
+            border-radius: 0;
+        }
+
+        .carousel img {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        @media (max-width: 768px) {
+            .carousel img {
+                height: 300px;
+            }
+
+            .carousel-caption h1 {
+                font-size: 2rem !important;
+            }
+        }
+
+        /* Custom buttons */
+        .btn-custom {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Accessibility */
+        [data-theme="accessibility"] .btn {
+            border: 2px solid #000;
         }
     </style>
 </head>
