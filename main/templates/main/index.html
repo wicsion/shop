@@ -3,7 +3,7 @@
 
 {% block content %}
 <style>
-    /* Общие стили из обоих шаблонов */
+    /* Общие стили */
     .dashboard-section {
         background: rgba(255, 255, 255, 0.98);
         border-radius: 1.25rem;
@@ -15,15 +15,15 @@
     }
 
     .section-title {
-    @apply text-3xl lg:text-4xl font-extrabold mb-6 lg:mb-8 pb-3 lg:pb-4 relative;
-    background: linear-gradient(45deg, #3b82f6, #6366f1);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Добавляем легкую тень для лучшей читаемости */
-    letter-spacing: -0.5px; /* Уменьшаем межбуквенное расстояние для больших шрифтов */
-}
-    #welcome-pack .section-title,
+        @apply text-3xl lg:text-4xl font-extrabold mb-6 lg:mb-8 pb-3 lg:pb-4 relative;
+        background: linear-gradient(45deg, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        letter-spacing: -0.5px;
+    }
+        #welcome-pack .section-title,
 #catalog-preview .section-title {
     @apply text-4xl lg:text-5xl; /* Еще больше увеличиваем размер для этих секций */
 }
@@ -34,6 +34,31 @@
 
 .product-card h3 {
     @apply text-xl font-bold mb-3; /* Делаем более жирными заголовки товаров */
+}
+.btn-custom {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-custom::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: left 0.3s ease;
+}
+
+.btn-custom:hover::before {
+  left: 0;
+}
+
+.btn-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 /* Увеличиваем размер текста в преимуществах */
@@ -75,12 +100,18 @@
         color: white !important;
         border: none !important;
     }
+
     .btn-gradient:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
 
-    /* Новые анимации и эффекты */
+    .category-icon {
+        font-size: 2.5rem;
+        color: #3b82f6;
+        margin-bottom: 1rem;
+    }
+     /* Новые анимации и эффекты */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -113,38 +144,241 @@
         border-radius: 10px;
     }
 
-    /* Стили для иконок вместо изображений */
-    .icon-display {
-        font-size: 5rem;
-        color: #3b82f6;
-        margin-bottom: 1rem;
-    }
+.category-card {
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    overflow: hidden; /* Скрываем избыточное содержимое по умолчанию */
+    height: 200px; /* Фиксированная высота */
+    min-height: 180px;
+    z-index: 1;
+    width: 100%;
+    margin-bottom: 20px;
+}
 
-    .category-icon {
+
+.category-card:hover {
+    position: relative;
+    z-index: 100;
+    overflow: visible;
+
+    height: auto;
+    min-height: 200px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px) scale(1.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
+}
+
+/* Обертка для grid-элементов */
+.grid > div {
+    position: relative;
+
+    margin-bottom: 20px;
+}
+
+.grid {
+    position: relative;
+}
+
+/* Остальные стили оставляем без изменений */
+.category-card .category-icon-wrapper i {
+    transition: all 0.3s ease;
+}
+
+.category-card:hover .category-icon-wrapper i {
+    transform: scale(1.1);
+}
+
+.subcategory-list {
+    position: relative;
+    max-height: 100px;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+     margin-top: -1px;
+
+}
+
+.category-card:hover .subcategory-list {
+    max-height: 1000px; /* Достаточно большое значение для показа всех элементов */
+    overflow: visible;
+    position: absolute; /* Абсолютное позиционирование при наведении */
+    left: 0;
+    right: 0;
+    background: white; /* Фон, чтобы перекрывать другие элементы */
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1); /* Тень для визуального отделения */
+    z-index: 101; /* Выше, чем у карточки */
+    padding: 0 1.5rem 1.5rem; /* Отступы для содержимого */
+    border-radius: 0 0 12px 12px; /* Скругление углов снизу */
+    margin-top: -1px; /* Убираем возможный зазор */
+}
+
+.show-more-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 10px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.category-card:hover .show-more-indicator {
+    display: none;
+}
+
+.show-more-text {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.subcategory-item {
+    padding: 6px 0;
+    transition: all 0.6s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.subcategory-item:nth-child(3) {
+    opacity: 0.6;
+}
+
+.subcategory-item:nth-child(n+4) {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.category-card:hover .subcategory-item {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+.category-card:hover .subcategory-item:nth-child(n+4) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.category-card:hover .subcategory-item:nth-child(3) {
+    opacity: 1;
+}
+
+.subcategory-item:hover {
+    color: #3b82f6;
+    transform: translateX(5px) !important;
+}
+
+.subcategory-item:hover a {
+    color: #3b82f6 !important;
+}
+
+.subcategory-bullet {
+    width: 6px;
+    height: 6px;
+    background-color: #9ca3af;
+    border-radius: 50%;
+    margin-right: 10px;
+    transition: all 0.2s ease;
+}
+
+.subcategory-item:hover .subcategory-bullet {
+    background-color: #3b82f6;
+    transform: scale(1.3);
+}
+.category-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.subcategory-list {
+    max-height: 100px; /* Высота для 3 элементов */
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.category-card:hover .subcategory-list {
+    max-height: 1000px; /* Достаточно большое значение для показа всех элементов */
+}
+
+.show-more-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.category-card:hover .show-more-indicator {
+    opacity: 0;
+}
+
+.show-more-text {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.subcategory-item {
+    transition: all 0.2s ease;
+}
+
+.subcategory-item:hover {
+    color: #3b82f6;
+    transform: translateX(5px);
+}
+
+    /* Стили для иконок */
+    .icon-display {
         font-size: 3rem;
         color: #3b82f6;
         margin-bottom: 1rem;
     }
 
-    .portfolio-icon {
-        font-size: 4rem;
-        color: white;
-        background: linear-gradient(45deg, #3b82f6, #6366f1);
-        width: 100px;
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 20px;
-        margin: 0 auto 1rem;
+    /* Стили для Hero Slider */
+    .hero-slider {
+        position: relative;
     }
 
-    .product-icon {
-        font-size: 2.5rem;
+    .text-gradient {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .slider-dot.active {
+        background: white;
+        transform: scale(1.2);
+    }
+
+    /* Стили для новостной ленты */
+    .news-ticker {
+        border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .news-item:hover .news-title {
         color: #3b82f6;
-        margin-right: 1rem;
+        text-decoration: underline;
     }
-
     /* Анимация для кнопок */
     .btn-glow {
         background: linear-gradient(90deg, #3b82f6, #6366f1);
@@ -156,8 +390,7 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
     }
-
-    .btn-transparent {
+      .btn-transparent {
         background: transparent;
         color: white;
         border: 2px solid rgba(255,255,255,0.3);
@@ -169,6 +402,7 @@
     }
 
      /* Анимация бегущей строки */
+
     @keyframes scrollTicker {
         0% { transform: translateX(0); }
         100% { transform: translateX(calc(-100% - 2rem)); }
@@ -177,8 +411,7 @@
     .animate-scrollTicker {
         animation: scrollTicker 30s linear infinite;
     }
-
-    .news-ticker {
+      .news-ticker {
         border: 1px solid rgba(59, 130, 246, 0.1);
     }
 
@@ -186,6 +419,7 @@
         color: #3b82f6;
         text-decoration: underline;
     }
+
 
     @media (max-width: 768px) {
         .news-scroll {
@@ -203,8 +437,7 @@
             height: 4px;
         }
     }
-
-      .hero-slider {
+          .hero-slider {
         position: relative;
     }
 
@@ -219,547 +452,601 @@
         background: white;
         transform: scale(1.2);
     }
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
 </style>
 
 <div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
-<!-- Hero Slider -->
-<section class="hero-slider !relative h-[30vh] overflow-hidden mb-8">
-    <!-- Слайд 1 -->
-     <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-100 opacity-100 z-10">
-        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-        <div class="container mx-auto relative z-10 px-6">
-            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeIn">
-                    <span class="text-gradient">{% trans "Профессиональные решения" %}</span> {% trans "для вашего бренда" %}
-                </h1>
-                <p class="text-xl text-white/90 mb-8">
-                    {% trans "Персонализация под ключ — от дизайна до доставки. 100+ вариантов для вашего бизнеса." %}
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                        <i class="fas fa-box-open mr-3"></i> {% trans "Каталог товаров" %}
-                    </a>
-                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                        <i class="fas fa-headset mr-3"></i> {% trans "Консультация" %}
-                    </a>
+    <!-- Hero Slider -->
+    <section class="hero-slider !relative h-[30vh] overflow-hidden mb-8">
+        <!-- Слайд 1 -->
+         <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-100 opacity-100 z-10">
+            <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+            <div class="container mx-auto relative z-10 px-6">
+                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeIn">
+                        <span class="text-gradient">{% trans "Профессиональные решения" %}</span> {% trans "для вашего бренда" %}
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8">
+                        {% trans "Персонализация под ключ — от дизайна до доставки. 100+ вариантов для вашего бизнеса." %}
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                            <i class="fas fa-box-open mr-3"></i> {% trans "Каталог товаров" %}
+                        </a>
+                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-headset mr-3"></i> {% trans "Консультация" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Заглушка 1 - Градиент с абстрактными формами -->
+            <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-500 overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-overlay opacity-30"></div>
+                <div class="absolute bottom-0 left-0 w-80 h-80 bg-pink-400 rounded-full mix-blend-overlay opacity-20"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNwYXR0ZXJuKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')]"></div>
+            </div>
+        </div>
+
+        <!-- Слайд 2 -->
+         <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+            <div class="container mx-auto relative z-10 px-6">
+                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                        <span>{% trans "Корпоративные подарки" %}</span> {% trans "и сувениры" %}
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8">
+                        {% trans "Эксклюзивные решения для ваших бизнес-задач. Индивидуальный подход к каждому клиенту." %}
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                            <i class="fas fa-gift mr-3"></i> {% trans "Смотреть коллекцию" %}
+                        </a>
+                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-lightbulb mr-3"></i> {% trans "Идеи для бизнеса" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Заглушка 2 - Геометрический узор -->
+            <div class="absolute inset-0 w-full h-full bg-gradient-to-tr from-amber-500 to-red-600 overflow-hidden">
+                <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTAgMEgxMDBWMTAwSDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjUgMjVINDBWNDBIMjVWMjV6TTYwIDI1SDc1VjQwSDYwVjI1ek0yNSA2MEg0MFY3NUgyNVY2MHpNNjAgNjBINzVWNzVINjBWNjB6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')]"></div>
+                <div class="absolute top-1/4 left-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-45"></div>
+                <div class="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-12"></div>
+            </div>
+        </div>
+
+        <!-- Слайд 3 -->
+        <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
+            <div class="container mx-auto relative z-10 px-6">
+                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                        {% trans "Печать логотипов" %} <span class="text-gradient">{% trans "на любой поверхности" %}</span>
+                    </h1>
+                    <p class="text-xl text-white/90 mb-8">
+                        {% trans "Современные технологии нанесения: шелкография, тампопечать, лазерная гравировка и другие." %}
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
+                            <i class="fas fa-print mr-3"></i> {% trans "Технологии печати" %}
+                        </a>
+                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-question-circle mr-3"></i> {% trans "Как выбрать?" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Заглушка 3 - Технологический фон -->
+            <div class="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-900 to-blue-900 overflow-hidden">
+                <div class="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxMCw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxNSw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIyMCw1IiBmaWxsPSJub25lIi8+PGxpbmUgeDE9IjEwIiB5MT0iNTAiIHgyPSI5MCIgeTI9IjUwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PGxpbmUgeDE9IjUwIiB5MT0iMTAiIHgyPSI1MCIgeTI9IjkwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PC9zdmc+')]"></div>
+                <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,195,255,0.1)_0%,transparent_70%)]"></div>
+            </div>
+        </div>
+
+        <!-- Навигационные точки -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="0"></button>
+            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="1"></button>
+            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="2"></button>
+        </div>
+
+        <!-- Кнопки навигации -->
+           <button class="slider-next absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+         <button class="slider-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </section>
+
+       <!-- Новостной блок вместо trust-bar -->
+    <div class="news-ticker py-6 bg-white rounded-xl mb-8 shadow-md">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-newspaper text-blue-600"></i>
+                    <span>{% trans "Новости и статьи" %}</span>
+                </h3>
+
+                <div class="news-items flex-1 overflow-hidden">
+                    <div class="news-scroll flex gap-6 md:gap-8 animate-scrollTicker">
+                        <!-- Новость 1 -->
+                        <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                            <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">27/05</span>
+                            <span class="news-category text-orange-600 font-medium">{% trans "Обновления" %}</span>
+                            <span class="news-title text-gray-800">{% trans "Обновленный прайс-лист на часть складской продукции со 2 июня 2025" %}</span>
+                        </a>
+
+                        <!-- Новость 2 -->
+                        <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                            <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">26/05</span>
+                            <span class="news-category text-purple-600 font-medium">{% trans "Прямой эфир" %}</span>
+                            <span class="news-title text-gray-800">{% trans "Прямой эфир с Андреем Дегтяренко 22 мая 2025 г." %}</span>
+                        </a>
+
+                        <!-- Новость 3 -->
+                        <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                            <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">22/05</span>
+                            <span class="news-category text-green-600 font-medium">{% trans "Анонсы" %}</span>
+                            <span class="news-title text-gray-800">{% trans "Открываем новый набор на курс «Все о gifts.ru»!" %}</span>
+                        </a>
+
+                        <!-- Новость 4 -->
+                        <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                            <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
+                            <span class="news-category text-blue-600 font-medium">{% trans "Условия работы" %}</span>
+                            <span class="news-title text-gray-800">{% trans "2 Выше ранг: новые возможности для повышения вашего ранга!" %}</span>
+                        </a>
+
+                        <!-- Новость 5 -->
+                        <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
+                            <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
+                            <span class="news-category text-red-600 font-medium">{% trans "Анонсы" %}</span>
+                            <span class="news-title text-gray-800">{% trans "Снова в эфире: приглашаем на онлайн-встречу с Андреем Дегтяренко 22 мая!" %}</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="#" class="text-blue-600 font-medium hover:text-blue-800 transition flex items-center gap-1">
+                    <span>{% trans "Все новости" %}</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+ <!-- Categories Section -->
+<!-- Секция категорий -->
+<section class="dashboard-section py-8 mb-8">
+    <div class="container">
+        <div class="text-center mb-12 relative">
+            <h2 class="inline-block text-3xl md:text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 px-6 py-4">
+                {% trans "Брендированная продукция" %}
+            </h2>
+            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Одежда -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-tshirt text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Одежда" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кепки и бейсболки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Панамы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Рубашки поло" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Лонгсливы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки для промо" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ветровки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Толстовки" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+5</span>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Посуда -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-mug-hot text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Посуда" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кружки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Термокружки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бутылки для воды" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чайные наборы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофейные наборы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бокалы" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ручки -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-pen text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Ручки" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Пластиковые ручки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Металлические ручки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Эко ручки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Карандаши" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футляры для ручек" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+2</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Электроника -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-mobile-alt text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Электроника" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Аккумуляторы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Зарядные устройства" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мобильные аксессуары" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Колонки и наушники" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Флешки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Увлажнители" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сумки -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-shopping-bag text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Сумки" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Сумки для покупок" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Рюкзаки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Поясные сумки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Сумки для ноутбука" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Сумки для документов" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ежедневники и блокноты -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-book text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Ежедневники и блокноты" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Калькулятор ежедневника" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ежедневники" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Блокноты" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с ежедневниками" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Упаковка -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-box-open text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Упаковка" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Коробки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Пакеты" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Подарочная упаковка" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Упаковка на заказ" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Новогодняя упаковка" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Подарочные наборы -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-gift text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Подарочные наборы" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бизнес наборы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы из кожи" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы велком-пак" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Дорожные наборы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с термокружками" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с аккумуляторами" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Корпоративные подарки -->
+
+            <div class="category-card group p-6">
+                <div class="flex items-center mb-4">
+                    <div class="category-icon-wrapper mr-4">
+                        <i class="fas fa-building text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        {% trans "Корпоративные подарки" %}
+                    </h3>
+                </div>
+                <div class="subcategory-list">
+                    <ul class="space-y-2 pl-2">
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Настольные аксессуары" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кошельки" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Визитницы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бейджи и ленты" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Награды" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Антистрессы" %}</a>
+                        </li>
+                        <li class="subcategory-item flex items-center">
+                            <span class="subcategory-bullet"></span>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Брелки" %}</a>
+                        </li>
+                    </ul>
+                    <div class="show-more-indicator">
+                        <span class="show-more-text">+4</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Заглушка 1 - Градиент с абстрактными формами -->
-        <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-500 overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-overlay opacity-30"></div>
-            <div class="absolute bottom-0 left-0 w-80 h-80 bg-pink-400 rounded-full mix-blend-overlay opacity-20"></div>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNwYXR0ZXJuKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')]"></div>
-        </div>
     </div>
 
-    <!-- Слайд 2 -->
-     <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
-        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-        <div class="container mx-auto relative z-10 px-6">
-            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
-                    <span>{% trans "Корпоративные подарки" %}</span> {% trans "и сувениры" %}
-                </h1>
-                <p class="text-xl text-white/90 mb-8">
-                    {% trans "Эксклюзивные решения для ваших бизнес-задач. Индивидуальный подход к каждому клиенту." %}
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                        <i class="fas fa-gift mr-3"></i> {% trans "Смотреть коллекцию" %}
-                    </a>
-                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                        <i class="fas fa-lightbulb mr-3"></i> {% trans "Идеи для бизнеса" %}
-                    </a>
-                </div>
-            </div>
-        </div>
-        <!-- Заглушка 2 - Геометрический узор -->
-        <div class="absolute inset-0 w-full h-full bg-gradient-to-tr from-amber-500 to-red-600 overflow-hidden">
-            <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTAgMEgxMDBWMTAwSDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjUgMjVINDBWNDBIMjVWMjV6TTYwIDI1SDc1VjQwSDYwVjI1ek0yNSA2MEg0MFY3NUgyNVY2MHpNNjAgNjBINzVWNzVINjBWNjB6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')]"></div>
-            <div class="absolute top-1/4 left-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-45"></div>
-            <div class="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-12"></div>
-        </div>
-    </div>
-
-    <!-- Слайд 3 -->
-    <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
-        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-        <div class="container mx-auto relative z-10 px-6">
-            <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
-                    {% trans "Печать логотипов" %} <span class="text-gradient">{% trans "на любой поверхности" %}</span>
-                </h1>
-                <p class="text-xl text-white/90 mb-8">
-                    {% trans "Современные технологии нанесения: шелкография, тампопечать, лазерная гравировка и другие." %}
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                        <i class="fas fa-print mr-3"></i> {% trans "Технологии печати" %}
-                    </a>
-                    <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                        <i class="fas fa-question-circle mr-3"></i> {% trans "Как выбрать?" %}
-                    </a>
-                </div>
-            </div>
-        </div>
-        <!-- Заглушка 3 - Технологический фон -->
-        <div class="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-900 to-blue-900 overflow-hidden">
-            <div class="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxMCw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxNSw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIyMCw1IiBmaWxsPSJub25lIi8+PGxpbmUgeDE9IjEwIiB5MT0iNTAiIHgyPSI5MCIgeTI9IjUwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PGxpbmUgeDE9IjUwIiB5MT0iMTAiIHgyPSI1MCIgeTI9IjkwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PC9zdmc+')]"></div>
-            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,195,255,0.1)_0%,transparent_70%)]"></div>
-        </div>
-    </div>
-
-    <!-- Навигационные точки -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="0"></button>
-        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="1"></button>
-        <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="2"></button>
-    </div>
-
-    <!-- Кнопки навигации -->
-       <button class="slider-next absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-        <i class="fas fa-chevron-left"></i>
-    </button>
-     <button class="slider-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-        <i class="fas fa-chevron-right"></i>
-    </button>
 </section>
 
-   <!-- Новостной блок вместо trust-bar -->
-<div class="news-ticker py-6 bg-white rounded-xl mb-8 shadow-md">
-    <div class="container mx-auto">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-newspaper text-blue-600"></i>
-                <span>{% trans "Новости и статьи" %}</span>
-            </h3>
 
-            <div class="news-items flex-1 overflow-hidden">
-                <div class="news-scroll flex gap-6 md:gap-8 animate-scrollTicker">
-                    <!-- Новость 1 -->
-                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
-                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">27/05</span>
-                        <span class="news-category text-orange-600 font-medium">{% trans "Обновления" %}</span>
-                        <span class="news-title text-gray-800">{% trans "Обновленный прайс-лист на часть складской продукции со 2 июня 2025" %}</span>
-                    </a>
-
-                    <!-- Новость 2 -->
-                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
-                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">26/05</span>
-                        <span class="news-category text-purple-600 font-medium">{% trans "Прямой эфир" %}</span>
-                        <span class="news-title text-gray-800">{% trans "Прямой эфир с Андреем Дегтяренко 22 мая 2025 г." %}</span>
-                    </a>
-
-                    <!-- Новость 3 -->
-                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
-                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">22/05</span>
-                        <span class="news-category text-green-600 font-medium">{% trans "Анонсы" %}</span>
-                        <span class="news-title text-gray-800">{% trans "Открываем новый набор на курс «Все о gifts.ru»!" %}</span>
-                    </a>
-
-                    <!-- Новость 4 -->
-                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
-                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
-                        <span class="news-category text-blue-600 font-medium">{% trans "Условия работы" %}</span>
-                        <span class="news-title text-gray-800">{% trans "2 Выше ранг: новые возможности для повышения вашего ранга!" %}</span>
-                    </a>
-
-                    <!-- Новость 5 -->
-                    <a href="#" class="news-item flex items-center gap-3 whitespace-nowrap">
-                        <span class="news-date bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">20/05</span>
-                        <span class="news-category text-red-600 font-medium">{% trans "Анонсы" %}</span>
-                        <span class="news-title text-gray-800">{% trans "Снова в эфире: приглашаем на онлайн-встречу с Андреем Дегтяренко 22 мая!" %}</span>
-                    </a>
-                </div>
-            </div>
-
-            <a href="#" class="text-blue-600 font-medium hover:text-blue-800 transition flex items-center gap-1">
-                <span>{% trans "Все новости" %}</span>
-                <i class="fas fa-chevron-right"></i>
-            </a>
-        </div>
-    </div>
-</div>
-
-   <!-- Welcome Pack Section -->
-<div id="welcome-pack" class="dashboard-section py-8 mb-8">
-    <div class="container">
-        <h2 class="text-2xl  text-center font-black mb-3">{% trans "Готовые решения" %}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="welcome-pack-card product-card">
-                <div class="p-5 text-center">
-                    <i class="fas fa-briefcase icon-display"></i>
-                    <h3 class="text-xl font-bold mb-3">{% trans "Бизнес-набор 'Премиум'" %}</h3>
-                    <p class="text-gray-600 mb-4">{% trans "Все необходимое для презентации вашего бренда: визитки, блокноты, ручки и фирменные конверты." %}</p>
-                    <div class="d-grid">
-                        <a href="#" class="btn btn-custom mt-3 inline-flex items-center justify-center">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </a>
+    <!-- AI Assistant Section -->
+    <section class="dashboard-section py-8 mb-8 bg-blue-50">
+        <div class="container mx-auto text-center max-w-4xl">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="flex flex-col items-center gap-6">
+                    <div class="ai-avatar bg-blue-100 p-4 rounded-full">
+                        <i class="fas fa-robot text-blue-600 text-3xl"></i>
                     </div>
-                </div>
-            </div>
-            <div class="welcome-pack-card product-card">
-                <div class="p-5 text-center">
-                    <i class="fas fa-bullhorn icon-display"></i>
-                    <h3 class="text-xl font-bold mb-3">{% trans "Промо-комплект 'Стандарт'" %}</h3>
-                    <p class="text-gray-600 mb-4">{% trans "Готовое решение для промо-акций: флаеры, буклеты, стикеры и промо-стойка." %}</p>
-                    <div class="d-grid">
-                        <a href="#" class="btn btn-custom mt-3 inline-flex items-center justify-center">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="welcome-pack-card product-card">
-                <div class="p-5 text-center">
-                    <i class="fas fa-building icon-display"></i>
-                    <h3 class="text-xl font-bold mb-3">{% trans "Офисный набор 'Делюкс'" %}</h3>
-                    <p class="text-gray-600 mb-4">{% trans "Комплект для оформления офиса: таблички, стенды, календари и органайзеры с вашим логотипом." %}</p>
-                    <div class="d-grid">
-                        <a href="#" class="btn btn-custom mt-3 inline-flex items-center justify-center">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Catalog Preview -->
-    <div id="catalog-preview" class="dashboard-section py-8 mb-8 bg-gray-50">
-    <div class="container">
-        <h2 class="text-2xl  text-center font-black mb-3">{% trans "Популярные категории" %}</h2>
-
-            <!-- AI-помощник -->
-          <div class="ai-assistant bg-white rounded-xl shadow-xl p-6 mb-12 max-w-4xl mx-auto border border-blue-100/50 hover:shadow-2xl transition-shadow">
-    <div class="flex flex-col items-center text-center gap-6">
-        <div class="ai-avatar bg-blue-100 p-4 rounded-full flex-shrink-0">
-            <i class="fas fa-robot text-blue-600 text-3xl"></i>
-        </div>
-        <div>
-            <h3 class="text-2xl font-black mb-2">{% trans "Не можете определиться?" %}</h3>
-            <p class="text-gray-600 mb-4">{% trans "Наш менеджер подберет идеальные варианты под ваш бюджет и цели" %}</p>
-            <a href="#contact" class="btn btn-custom mt-3 inline-flex items-center justify-center">
-                <i class="fas fa-headset mr-2"></i> {% trans "Консультация" %}
-            </a>
-        </div>
-    </div>
-</div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="product-card relative text-center p-6">
-                    <span class="product-badge bg-blue-500">{% trans "Хит" %}</span>
-                    <i class="fas fa-print category-icon"></i>
-                    <div class="p-4 text-center">
-                        <h3 class="text-lg font-medium">{% trans "Полиграфия" %}</h3>
-                        <button class="btn btn-custom mt-3">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="product-card relative text-center p-6">
-                    <span class="product-badge bg-green-500">{% trans "Новинка" %}</span>
-                    <i class="fas fa-gift category-icon"></i>
-                    <div class="p-4 text-center">
-                        <h3 class="text-lg font-medium">{% trans "Корпоративные сувениры" %}</h3>
-                        <button class="btn btn-custom mt-3">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="product-card relative text-center p-6">
-                    <span class="product-badge bg-blue-500">{% trans "Хит" %}</span>
-                    <i class="fas fa-ad category-icon"></i>
-                    <div class="p-4 text-center">
-                        <h3 class="text-lg font-medium">{% trans "Наружная реклама" %}</h3>
-                        <button class="btn btn-custom mt-3">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="product-card relative text-center p-6">
-                    <span class="product-badge bg-red-500">{% trans "Акция" %}</span>
-                    <i class="fas fa-box-open category-icon"></i>
-                    <div class="p-4 text-center">
-                        <h3 class="text-lg font-medium">{% trans "Фирменная упаковка" %}</h3>
-                        <button class="btn btn-custom mt-3">
-                            <i class="fas fa-arrow-right mr-2"></i> {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3D-товары -->
-    <div class="dashboard-section py-8 mb-8">
-        <div class="container">
-            <h2 class="text-2xl  text-center font-black mb-3">{% trans "Популярные товары" %}</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Товар 1 -->
-                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
-                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-blue-50">
-                        <i class="fas fa-pen-fancy text-6xl text-blue-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
-                        <div class="product-badge absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            {% trans "ХИТ" %}
-                        </div>
-                        <button class="ar-button absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-full">
-                            <i class="fas fa-cube"></i>
-                        </button>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-xl mb-2">{% trans "Ручка премиум" %}</h3>
-                        <p class="text-gray-600 mb-4">{% trans "Гравировка логотипа, деревянный корпус" %}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-2xl font-bold text-blue-600">1 290 ₽</span>
-                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 2 -->
-                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
-                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-green-50">
-                        <i class="fas fa-battery-full text-6xl text-green-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
-                        <div class="product-badge absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            {% trans "НОВИНКА" %}
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-xl mb-2">{% trans "PowerBank с лого" %}</h3>
-                        <p class="text-gray-600 mb-4">{% trans "10000 mAh, 6 цветов на выбор" %}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-2xl font-bold text-blue-600">2 490 ₽</span>
-                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 3 -->
-                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
-                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-purple-50">
-                        <i class="fas fa-tshirt text-6xl text-purple-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
-                        <div class="product-badge absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            {% trans "ПОПУЛЯРНО" %}
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-xl mb-2">{% trans "Футболка с принтом" %}</h3>
-                        <p class="text-gray-600 mb-4">{% trans "Хлопок 100%, все размеры" %}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-2xl font-bold text-blue-600">1 890 ₽</span>
-                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 4 -->
-                <div class="product-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group">
-                    <div class="product-3d-container relative h-64 flex items-center justify-center bg-yellow-50">
-                        <i class="fas fa-mug-hot text-6xl text-yellow-600 transition-transform duration-500 group-hover:rotate-y-12"></i>
-                        <div class="product-badge absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            {% trans "АКЦИЯ" %}
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-xl mb-2">{% trans "Кружка с логотипом" %}</h3>
-                        <p class="text-gray-600 mb-4">{% trans "Керамика, объем 350 мл" %}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-2xl font-bold text-blue-600">890 ₽</span>
-                            <button class="add-to-cart-btn bg-blue-100 text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Portfolio Section -->
-    <div id="portfolio" class="dashboard-section py-8 mb-8">
-        <div class="container">
-            <h2 class="text-2xl  text-center font-black mb-3">{% trans "Наши работы" %}</h2>
-            <p class="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-8">{% trans "Реальные кейсы для компаний из разных сфер" %}</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Работа 1 -->
-                <div class="portfolio-item group relative overflow-hidden rounded-2xl shadow-lg bg-blue-600 text-white p-8 text-center h-full flex flex-col justify-between">
                     <div>
-                        <i class="fas fa-university portfolio-icon"></i>
-                        <h3 class="text-white text-2xl font-bold mb-2">{% trans "Брендирование для Альфа-Банк" %}</h3>
-                        <p class="text-white/80 mb-4">{% trans "5000 наборов для сотрудников" %}</p>
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button class="ar-btn bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur hover:bg-white/30 transition">
-                            <i class="fas fa-cube mr-2"></i> {% trans "AR-просмотр" %}
-                        </button>
-                        <button class="details-btn bg-white text-blue-600 px-4 py-2 rounded-full hover:bg-blue-50 transition">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Работа 2 -->
-                <div class="portfolio-item group relative overflow-hidden rounded-2xl shadow-lg bg-green-600 text-white p-8 text-center h-full flex flex-col justify-between">
-                    <div>
-                        <i class="fas fa-hamburger portfolio-icon"></i>
-                        <h3 class="text-white text-2xl font-bold mb-2">{% trans "Сувениры для Burger King" %}</h3>
-                        <p class="text-white/80 mb-4">{% trans "Промо-кампания к летнему сезону" %}</p>
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button class="ar-btn bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur hover:bg-white/30 transition">
-                            <i class="fas fa-cube mr-2"></i> {% trans "AR-просмотр" %}
-                        </button>
-                        <button class="details-btn bg-white text-green-600 px-4 py-2 rounded-full hover:bg-green-50 transition">
-                            {% trans "Подробнее" %}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Работа 3 -->
-                <div class="portfolio-item group relative overflow-hidden rounded-2xl shadow-lg bg-purple-600 text-white p-8 text-center h-full flex flex-col justify-between">
-                    <div>
-                        <i class="fas fa-mobile-alt portfolio-icon"></i>
-                        <h3 class="text-white text-2xl font-bold mb-2">{% trans "Промо для Samsung" %}</h3>
-                        <p class="text-white/80 mb-4">{% trans "Корпоративные подарки к запуску новой линейки" %}</p>
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button class="ar-btn bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur hover:bg-white/30 transition">
-                            <i class="fas fa-cube mr-2"></i> {% trans "AR-просмотр" %}
-                        </button>
-                        <button class="details-btn bg-white text-purple-600 px-4 py-2 rounded-full hover:bg-purple-50 transition">
-                            {% trans "Подробнее" %}
-                        </button>
+                        <h3 class="text-2xl font-black mb-2">{% trans "Не можете определиться?" %}</h3>
+                        <p class="text-gray-600 mb-4">{% trans "Наш менеджер подберет идеальные варианты под ваш бюджет и цели" %}</p>
+                       <a href="#contact" class="btn-gradient btn-custom px-6 py-3 text-lg mt-3">
+  <i class="fas fa-headset mr-2"></i> {% trans "Консультация" %}
+</a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="contact" class="dashboard-section py-8 mb-8">
-        <div class="container">
-            <div class="max-w-2xl mx-auto">
-                <h2 class="text-2xl  text-center font-black mb-3">{% trans "Связаться с нами" %}</h2>
-                <div class="flex flex-col md:flex-row gap-8 mb-8">
-                    <div class="contact-info-card bg-white p-6 rounded-xl shadow-md flex-1">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="contact-icon bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center">
-                               <i class="fas fa-phone-alt"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">{% trans "Телефон" %}</h3>
-                                <p class="text-gray-600">+7 (123) 456-78-90</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="contact-icon bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center">
-                                 <i class="fas fa-envelope"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">{% trans "Email" %}</h3>
-                                <p class="text-gray-600">info@brandgifts.ru</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="contact-icon bg-purple-100 text-purple-600 w-12 h-12 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">{% trans "Адрес" %}</h3>
-                                <p class="text-gray-600">Москва, ул. Примерная, 123</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="social-links-card bg-white p-6 rounded-xl shadow-md flex-1">
-                        <h3 class="font-bold text-lg mb-4">{% trans "Мы в соцсетях" %}</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <a href="#" class="social-link bg-blue-600 text-white p-3 rounded-lg flex items-center gap-2">
-                                <i class="fab fa-vk"></i> VK
-                            </a>
-                            <a href="#" class="social-link bg-blue-400 text-white p-3 rounded-lg flex items-center gap-2">
-                                <i class="fab fa-telegram"></i> Telegram
-                            </a>
-                            <a href="#" class="social-link bg-pink-600 text-white p-3 rounded-lg flex items-center gap-2">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </a>
-                            <a href="#" class="social-link bg-green-500 text-white p-3 rounded-lg flex items-center gap-2">
-                                <i class="fab fa-whatsapp"></i> WhatsApp
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <form method="post" class="contact-form needs-validation" novalidate>
-                    {% csrf_token %}
-                    <div class="form-header bg-blue-600 text-white p-4 rounded-t-xl flex items-center gap-3">
-                        <i class="fas -dots text-xl"></i>
-                        <h3 class="font-bold">{% trans "Напишите нам сообщение" %}</h3>
-                    </div>
-                    <div class="form-body bg-white p-6 rounded-b-xl shadow-md">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div class="form-group">
-                                <label class="block text-gray-700 mb-2">{% trans "Ваше имя" %}</label>
-                                <div class="relative">
-                                    <i class="fas absolute left-3 top-3 text-gray-400"></i>
-                                    <input type="text" class="form-control w-full pl-10" name="name" required>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="block text-gray-700 mb-2">{% trans "Электронная почта" %}</label>
-                                <div class="relative">
-                                    <i class="fas  absolute left-3 top-3 text-gray-400"></i>
-                                    <input type="email" class="form-control w-full pl-10" name="email" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label class="block text-gray-700 mb-2">{% trans "Тема сообщения" %}</label>
-                            <div class="relative">
-                                <i class="fas left-3 top-3 text-gray-400"></i>
-                                <select class="form-control w-full pl-10" name="subject">
-                                    <option>{% trans "Выберите тему" %}</option>
-                                    <option>{% trans "Запрос на сотрудничество" %}</option>
-                                    <option>{% trans "Консультация по продуктам" %}</option>
-                                    <option>{% trans "Техническая поддержка" %}</option>
-                                    <option>{% trans "Другое" %}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label class="block text-gray-700 mb-2">{% trans "Сообщение" %}</label>
-                            <div class="relative">
-                                <i class="fas absolute left-3 top-3 text-gray-400"></i>
-                                <textarea class="form-control w-full pl-10" rows="5" name="message" required></textarea>
-                            </div>
-                        </div>
-                        <div class="form-group mb-4">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="consent" name="consent" class="mr-2" required>
-                                <label for="consent" class="text-gray-700 text-sm">
-                                    {% trans "Я согласен на обработку персональных данных" %}
-                                </label>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-custom mt-3 inline-flex items-center justify-center px-6 py-3 text-lg">
-    <i class="fas fa-paper-plane mr-2"></i> {% trans "Отправить сообщение" %}
-</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    </div>
+    </section>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -874,6 +1161,50 @@
         // Инициализация
         updateSlider();
     });
+      // Анимация для категорий
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.querySelector('i').classList.add('animate-bounce');
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.querySelector('i').classList.remove('animate-bounce');
+        });
+    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Динамически обновляем счетчики "показать еще"
+    document.querySelectorAll('.subcategory-list').forEach(list => {
+        const items = list.querySelectorAll('.subcategory-item');
+        const totalItems = items.length;
+        const visibleItems = 3;
+
+        if (totalItems > visibleItems) {
+            const moreCount = totalItems - visibleItems;
+            const indicator = list.querySelector('.show-more-indicator');
+
+            if (indicator) {
+                indicator.querySelector('.show-more-text').textContent = `+${moreCount}`;
+            }
+        } else {
+            // Если элементов меньше или равно 3, скрываем индикатор
+            const indicator = list.querySelector('.show-more-indicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+    });
+
+    // Анимация при наведении на элементы
+    document.querySelectorAll('.subcategory-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
 
 </script>
 {% endblock %}
