@@ -200,18 +200,43 @@
 
 }
 
-.category-card:hover .subcategory-list {
-    max-height: 1000px; /* Достаточно большое значение для показа всех элементов */
-    overflow: visible;
-    position: absolute; /* Абсолютное позиционирование при наведении */
+/* Стили для обычных карточек (список вниз) */
+.category-card:hover .subcategory-list:not(.bottom-card .subcategory-list) {
+    max-height: 1000px;
+    position: absolute;
     left: 0;
     right: 0;
-    background: white; /* Фон, чтобы перекрывать другие элементы */
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1); /* Тень для визуального отделения */
-    z-index: 101; /* Выше, чем у карточки */
-    padding: 0 1.5rem 1.5rem; /* Отступы для содержимого */
-    border-radius: 0 0 12px 12px; /* Скругление углов снизу */
-    margin-top: -1px; /* Убираем возможный зазор */
+    background: white;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    z-index: 101;
+    padding: 0 1.5rem 1.5rem;
+    border-radius: 0 0 12px 12px;
+    margin-top: -1px;
+}
+
+/* Стили для нижних карточек (список вверх) */
+.bottom-card:hover .subcategory-list {
+    max-height: 1000px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%; /* Это заставляет список появляться сверху */
+    background: white;
+    box-shadow: 0 -10px 15px rgba(0,0,0,0.1); /* Тень сверху */
+    z-index: 101;
+    padding: 1.5rem 1.5rem 0;
+    border-radius: 12px 12px 0 0; /* Скругление углов сверху */
+    margin-bottom: -1px;
+}
+
+/* Индикатор "показать еще" для нижних карточек */
+.bottom-card .show-more-indicator {
+    bottom: auto;
+    top: 100px; /* Позиционируем внизу видимой области */
+    background: linear-gradient(to top, rgba(255,255,255,0), rgba(255,255,255,1));
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 0;
 }
 
 .show-more-indicator {
@@ -892,7 +917,7 @@
 
             <!-- Упаковка -->
 
-            <div class="category-card group p-6">
+            <div class="category-card bottom-card group p-6">
                 <div class="flex items-center mb-4">
                     <div class="category-icon-wrapper mr-4">
                         <i class="fas fa-box-open text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
@@ -932,7 +957,7 @@
 
             <!-- Подарочные наборы -->
 
-            <div class="category-card group p-6">
+            <div class="category-card bottom-card group p-6">
                 <div class="flex items-center mb-4">
                     <div class="category-icon-wrapper mr-4">
                         <i class="fas fa-gift text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
@@ -976,7 +1001,7 @@
 
             <!-- Корпоративные подарки -->
 
-            <div class="category-card group p-6">
+            <div class="category-card bottom-card group p-6">
                 <div class="flex items-center mb-4">
                     <div class="category-icon-wrapper mr-4">
                         <i class="fas fa-building text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
