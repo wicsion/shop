@@ -239,24 +239,8 @@
     padding-bottom: 0;
 }
 
-.show-more-indicator {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 10px;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
 
-.category-card:hover .show-more-indicator {
-    display: none;
-}
+
 
 .show-more-text {
     background: rgba(59, 130, 246, 0.1);
@@ -705,7 +689,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+5</span>
+
                     </div>
                 </div>
             </div>
@@ -749,7 +733,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+3</span>
+
                     </div>
                 </div>
             </div>
@@ -789,7 +773,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+2</span>
+
                     </div>
                 </div>
             </div>
@@ -834,7 +818,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+3</span>
+
                     </div>
                 </div>
             </div>
@@ -874,7 +858,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+2</span>
+
                     </div>
                 </div>
             </div>
@@ -910,7 +894,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+1</span>
+
                     </div>
                 </div>
             </div>
@@ -950,7 +934,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+2</span>
+
                     </div>
                 </div>
             </div>
@@ -994,7 +978,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+3</span>
+
                     </div>
                 </div>
             </div>
@@ -1042,7 +1026,7 @@
                         </li>
                     </ul>
                     <div class="show-more-indicator">
-                        <span class="show-more-text">+4</span>
+
                     </div>
                 </div>
             </div>
@@ -1197,27 +1181,6 @@
         });
     });
 document.addEventListener('DOMContentLoaded', function() {
-    // Динамически обновляем счетчики "показать еще"
-    document.querySelectorAll('.subcategory-list').forEach(list => {
-        const items = list.querySelectorAll('.subcategory-item');
-        const totalItems = items.length;
-        const visibleItems = 3;
-
-        if (totalItems > visibleItems) {
-            const moreCount = totalItems - visibleItems;
-            const indicator = list.querySelector('.show-more-indicator');
-
-            if (indicator) {
-                indicator.querySelector('.show-more-text').textContent = `+${moreCount}`;
-            }
-        } else {
-            // Если элементов меньше или равно 3, скрываем индикатор
-            const indicator = list.querySelector('.show-more-indicator');
-            if (indicator) {
-                indicator.style.display = 'none';
-            }
-        }
-    });
 
     // Анимация при наведении на элементы
     document.querySelectorAll('.subcategory-item').forEach(item => {
