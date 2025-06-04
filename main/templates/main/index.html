@@ -65,13 +65,34 @@
 .feature-card p {
     @apply text-lg; /* Увеличиваем основной текст */
 }
+/* Стили для Hero Slider */
+     body {
+        margin: 0;
+        padding: 0;
+    }
+
+    main {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
     .hero-slider {
-    min-height: 60vh;
-    position: relative !important;
-}
-    .ai-assistant {
-    text-align: center;
-}
+        position: relative;
+         min-height: 40vh;
+         border-radius: 0 !important;
+        margin-top: 0 !important;
+         margin-bottom: 0 !important;
+
+    height: 300px;
+
+    }
+     header {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none !important;
+    }
+
+
 
 .ai-assistant .btn-transparent {
     border:1px solid rgba(59, 130, 246, 0.3);
@@ -362,10 +383,7 @@
         margin-bottom: 1rem;
     }
 
-    /* Стили для Hero Slider */
-    .hero-slider {
-        position: relative;
-    }
+
 
     .text-gradient {
         background: linear-gradient(45deg, #3b82f6, #8b5cf6);
@@ -382,6 +400,10 @@
     /* Стили для новостной ленты */
     .news-ticker {
         border: 1px solid rgba(59, 130, 246, 0.1);
+
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+
     }
 
     .news-item:hover .news-title {
@@ -469,110 +491,109 @@
 }
 </style>
 
-<div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
-    <!-- Hero Slider -->
-    <section class="hero-slider !relative h-[30vh] overflow-hidden mb-8">
+
+  <!-- Hero Slider -->
+    <section class="hero-slider !relative h-[200px] sm:h-[250px] md:h-[300px] overflow-hidden mb-8">
         <!-- Слайд 1 -->
-         <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-100 opacity-100 z-10">
+        <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-300 opacity-100 z-10">
             <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-            <div class="container mx-auto relative z-10 px-6">
-                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeIn">
+            <div class="container mx-auto relative z-10 px-4">
+                <div class="max-w-xl bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-white/20">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">
                         <span class="text-gradient">{% trans "Профессиональные решения" %}</span> {% trans "для вашего бренда" %}
                     </h1>
-                    <p class="text-xl text-white/90 mb-8">
+                    <p class="text-sm sm:text-base text-white/90 mb-4 sm:mb-6">
                         {% trans "Персонализация под ключ — от дизайна до доставки. 100+ вариантов для вашего бизнеса." %}
                     </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                            <i class="fas fa-box-open mr-3"></i> {% trans "Каталог товаров" %}
+                    <div class="flex flex-wrap gap-2 sm:gap-3">
+                        <a href="#catalog" class="btn-glow px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center">
+                            <i class="fas fa-box-open mr-2"></i> {% trans "Каталог" %}
                         </a>
-                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                            <i class="fas fa-headset mr-3"></i> {% trans "Консультация" %}
+                        <a href="#contact" class="btn-transparent px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold border border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-headset mr-2"></i> {% trans "Консультация" %}
                         </a>
                     </div>
                 </div>
             </div>
-            <!-- Заглушка 1 - Градиент с абстрактными формами -->
+            <!-- Фон -->
             <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-600 to-purple-500 overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-overlay opacity-30"></div>
-                <div class="absolute bottom-0 left-0 w-80 h-80 bg-pink-400 rounded-full mix-blend-overlay opacity-20"></div>
-                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNwYXR0ZXJuKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')]"></div>
+                <div class="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-400 rounded-full mix-blend-overlay opacity-30"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 sm:w-48 sm:h-48 bg-pink-400 rounded-full mix-blend-overlay opacity-20"></div>
             </div>
         </div>
 
         <!-- Слайд 2 -->
-         <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+        <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-300 opacity-0 z-0">
             <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-            <div class="container mx-auto relative z-10 px-6">
-                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+            <div class="container mx-auto relative z-10 px-4">
+                <div class="max-w-xl bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-white/20">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">
                         <span>{% trans "Корпоративные подарки" %}</span> {% trans "и сувениры" %}
                     </h1>
-                    <p class="text-xl text-white/90 mb-8">
+                    <p class="text-sm sm:text-base text-white/90 mb-4 sm:mb-6">
                         {% trans "Эксклюзивные решения для ваших бизнес-задач. Индивидуальный подход к каждому клиенту." %}
                     </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                            <i class="fas fa-gift mr-3"></i> {% trans "Смотреть коллекцию" %}
+                    <div class="flex flex-wrap gap-2 sm:gap-3">
+                        <a href="#catalog" class="btn-glow px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center">
+                            <i class="fas fa-gift mr-2"></i> {% trans "Коллекция" %}
                         </a>
-                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                            <i class="fas fa-lightbulb mr-3"></i> {% trans "Идеи для бизнеса" %}
+                        <a href="#contact" class="btn-transparent px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold border border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-lightbulb mr-2"></i> {% trans "Идеи" %}
                         </a>
                     </div>
                 </div>
             </div>
-            <!-- Заглушка 2 - Геометрический узор -->
+            <!-- Фон -->
             <div class="absolute inset-0 w-full h-full bg-gradient-to-tr from-amber-500 to-red-600 overflow-hidden">
-                <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTAgMEgxMDBWMTAwSDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjUgMjVINDBWNDBIMjVWMjV6TTYwIDI1SDc1VjQwSDYwVjI1ek0yNSA2MEg0MFY3NUgyNVY2MHpNNjAgNjBINzVWNzVINjBWNjB6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')]"></div>
-                <div class="absolute top-1/4 left-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-45"></div>
-                <div class="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-lg transform rotate-12"></div>
+                <div class="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-lg transform rotate-45"></div>
             </div>
         </div>
 
         <!-- Слайд 3 -->
-        <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-1000 opacity-0 z-0">
+        <div class="hero-slide absolute inset-0 flex items-center transition-opacity duration-300 opacity-0 z-0">
             <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-            <div class="container mx-auto relative z-10 px-6">
-                <div class="max-w-2xl bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20">
-                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+            <div class="container mx-auto relative z-10 px-4">
+                <div class="max-w-xl bg-white/10 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-white/20">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">
                         {% trans "Печать логотипов" %} <span class="text-gradient">{% trans "на любой поверхности" %}</span>
                     </h1>
-                    <p class="text-xl text-white/90 mb-8">
-                        {% trans "Современные технологии нанесения: шелкография, тампопечать, лазерная гравировка и другие." %}
+                    <p class="text-sm sm:text-base text-white/90 mb-4 sm:mb-6">
+                        {% trans "Современные технологии нанесения: шелкография, тампопечать, лазерная гравировка." %}
                     </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="#catalog" class="btn-glow px-8 py-4 rounded-xl text-lg font-semibold flex items-center">
-                            <i class="fas fa-print mr-3"></i> {% trans "Технологии печати" %}
+                    <div class="flex flex-wrap gap-2 sm:gap-3">
+                        <a href="#catalog" class="btn-glow px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center">
+                            <i class="fas fa-print mr-2"></i> {% trans "Технологии" %}
                         </a>
-                        <a href="#contact" class="btn-transparent px-8 py-4 rounded-xl text-lg font-semibold border-2 border-white/30 hover:border-white/60 transition">
-                            <i class="fas fa-question-circle mr-3"></i> {% trans "Как выбрать?" %}
+                        <a href="#contact" class="btn-transparent px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-semibold border border-white/30 hover:border-white/60 transition">
+                            <i class="fas fa-question-circle mr-2"></i> {% trans "Выбрать" %}
                         </a>
                     </div>
                 </div>
             </div>
-            <!-- Заглушка 3 - Технологический фон -->
+            <!-- Фон -->
             <div class="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-900 to-blue-900 overflow-hidden">
-                <div class="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxMCw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxNSw1IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIyMCw1IiBmaWxsPSJub25lIi8+PGxpbmUgeDE9IjEwIiB5MT0iNTAiIHgyPSI5MCIgeTI9IjUwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PGxpbmUgeDE9IjUwIiB5MT0iMTAiIHgyPSI1MCIgeTI9IjkwIiBzdHJva2U9IiMwMGMzZmYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+PC9zdmc+')]"></div>
-                <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,195,255,0.1)_0%,transparent_70%)]"></div>
+                <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0iIzAwYzNmZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIxMCw1IiBmaWxsPSJub25lIi8+PC9zdmc+')]"></div>
             </div>
         </div>
 
         <!-- Навигационные точки -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="0"></button>
-            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="1"></button>
-            <button class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="2"></button>
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+            <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="0"></button>
+            <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="1"></button>
+            <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white/50 hover:bg-white transition" data-slide="2"></button>
         </div>
 
-        <!-- Кнопки навигации -->
-           <button class="slider-next absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-            <i class="fas fa-chevron-left"></i>
+        <!-- Кнопки навигации (исправленные направления) -->
+        <button class="slider-prev absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-2 sm:p-3 rounded-full transition">
+            <i class="fas fa-chevron-left text-xs sm:text-sm"></i>
         </button>
-         <button class="slider-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-            <i class="fas fa-chevron-right"></i>
+        <button class="slider-next absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/30 hover:bg-white/50 text-white p-2 sm:p-3 rounded-full transition">
+            <i class="fas fa-chevron-right text-xs sm:text-sm"></i>
         </button>
     </section>
+
+
+
 
        <!-- Новостной блок вместо trust-bar -->
     <div class="news-ticker py-6 bg-white rounded-xl mb-8 shadow-md">
@@ -1025,9 +1046,7 @@
                             <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Брелки" %}</a>
                         </li>
                     </ul>
-                    <div class="show-more-indicator">
 
-                    </div>
                 </div>
             </div>
         </div>
@@ -1086,90 +1105,71 @@
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Более точный селектор для слайдов
-        const slider = document.querySelector('.hero-slider');
-        if (!slider) return;
+ document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.querySelector('.hero-slider');
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+    const prevBtn = document.querySelector('.slider-prev');
+    const nextBtn = document.querySelector('.slider-next');
+    let currentSlide = 0;
+    let slideInterval;
 
-        const slides = document.querySelectorAll('.hero-slide');
-        const dots = document.querySelectorAll('.slider-dot');
-        const prevBtn = document.querySelector('.slider-prev');
-        const nextBtn = document.querySelector('.slider-next');
-        let currentSlide = 0;
-        let slideInterval;
-
-               function updateSlider() {
-            slides.forEach((slide, index) => {
-                slide.style.opacity = index === currentSlide ? '1' : '0';
-                slide.style.zIndex = index === currentSlide ? '10' : '0';
-            });
-
-            dots.forEach(dot => dot.classList.remove('active'));
-            if (dots[currentSlide]) {
-                dots[currentSlide].classList.add('active');
-            }
-        }
-
-
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            updateSlider();
-        }
-
-        function prevSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            updateSlider();
-        }
-
-        // Клики на точки
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', (e) => {
-                e.preventDefault();
-                currentSlide = index;
-                updateSlider();
-                resetInterval();
-            });
+    function updateSlider() {
+        slides.forEach((slide, index) => {
+            slide.style.opacity = index === currentSlide ? '1' : '0';
+            slide.style.zIndex = index === currentSlide ? '10' : '0';
         });
 
-        // Кнопки "Вперёд/Назад"
-        if (nextBtn) {
-            nextBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                nextSlide();
-                resetInterval();
-            });
-        }
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[currentSlide].classList.add('active');
+    }
 
-        if (prevBtn) {
-            prevBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                prevSlide();
-                resetInterval();
-            });
-        }
-
-        // Сброс интервала
-        function resetInterval() {
-            clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, 5000);
-        }
-
-        // Автопереключение
-        if (slides.length > 0) {
-            slideInterval = setInterval(nextSlide, 5000);
-        }
-
-        // Остановка при наведении на слайдер
-        slider.addEventListener('mouseenter', () => clearInterval(slideInterval));
-        slider.addEventListener('mouseleave', () => {
-            if (slides.length > 0) {
-                slideInterval = setInterval(nextSlide, 5000);
-            }
-        });
-
-        // Инициализация
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
         updateSlider();
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        updateSlider();
+    }
+
+    // Клики на точки
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentSlide = index;
+            updateSlider();
+            resetInterval();
+        });
     });
+
+    // Кнопки навигации
+    nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        nextSlide();
+        resetInterval();
+    });
+
+    prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        prevSlide();
+        resetInterval();
+    });
+
+    // Автопереключение
+    function resetInterval() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 5000);
+    }
+
+    // Инициализация
+    updateSlider();
+    resetInterval();
+
+    // Остановка при наведении
+    slider.addEventListener('mouseenter', () => clearInterval(slideInterval));
+    slider.addEventListener('mouseleave', resetInterval);
+});
       // Анимация для категорий
     document.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('mouseenter', function() {
