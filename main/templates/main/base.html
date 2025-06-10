@@ -24,6 +24,78 @@
             --primary-rgb: 39, 33, 223;
         }
 
+        .top-navbar {
+    background: white !important;
+    padding: 0.3rem 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1040;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    border-bottom: 2px solid var(--primary);
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.top-navbar.hiding {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+
+        .top-navbar.visible {
+            transform: translateY(0);
+        }
+
+       .header {
+    position: fixed;
+    top: 46px; /* высота верхнего меню */
+    width: 100%;
+    z-index: 1030;
+    transition: top 0.4s ease;
+    background: white;
+}
+
+        .main-content {
+            margin-top: 140px; /* высота верхнего меню + хедера */
+        }
+
+        .top-navbar .nav-link.btn-outline-primary {
+            color: var(--primary) !important;
+            border: 1px solid var(--primary) !important;
+            background: transparent !important;
+        }
+
+        .top-navbar .nav-link.btn-outline-primary:hover,
+        .top-navbar .nav-link.btn-outline-primary:focus {
+            background: var(--primary) !important;
+            color: white !important;
+        }
+
+        .top-navbar .nav-link.btn-outline-primary.active {
+            background: var(--primary) !important;
+            color: white !important;
+        }
+
+        .carousel img {
+            margin-top: 140px; /* увеличенный отступ для слайдера */
+        }
+
+        @media (max-width: 768px) {
+            .carousel img {
+                margin-top: 120px;
+            }
+        }
+
+        /* Адаптация хедера */
+        .header {
+            top: 46px; /* Учитываем высоту верхнего меню */
+        }
+
+        .main-content {
+            margin-top: 120px; /* Уменьшенный отступ для основного контента */
+        }
+
         [data-theme="accessibility"] {
             --font-size: 20px;
             --contrast: contrast(150%);
@@ -38,22 +110,8 @@
             filter: var(--contrast);
         }
 
-        /* Header styles */
-        .header {
-            transition: all 0.3s ease;
-            z-index: 1030;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: white;
-        }
-
         .header-scrolled {
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .main-content {
-            margin-top: 120px;
         }
 
         /* Mega dropdown menu */
@@ -209,6 +267,31 @@
             border: 2px solid #000;
         }
 
+        /* Secondary navigation */
+        .secondary-nav {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(90deg, rgb(10, 2, 2) 0%, rgba(0, 0, 0, 0.1) 100%);
+            z-index: 1020;
+            padding: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .secondary-nav .nav-link {
+            color: var(--text);
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-nav .nav-link:hover {
+            background: linear-gradient(90deg, rgba(39,33,223,0.2) 0%, rgba(255,186,67,0.2) 100%);
+            color: var(--primary);
+        }
+
         /* Responsive breakpoints */
         @media (max-width: 992px) {
             .mega-dropdown-menu {
@@ -227,6 +310,22 @@
 
             .main-content {
                 margin-top: 150px;
+            }
+
+            .secondary-nav {
+                top: 110px;
+            }
+
+            .top-navbar {
+                display: none; /* Скрываем на мобильных */
+            }
+
+            .header {
+                top: 0;
+            }
+
+            .main-content {
+                margin-top: 120px;
             }
         }
 
@@ -248,6 +347,7 @@
             height: 500px;
             object-fit: cover;
             object-position: center;
+            margin-top: 90px; /* Отступ для хедера */
         }
 
         @media (max-width: 768px) {
@@ -297,316 +397,326 @@
         .order-status-indicator.completed { background: #3b82f6; }
 
         .subcategory-item a {
-    padding: 0.5rem 1.5rem;
-    margin: 0.15rem 0;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    display: block;
-}
+            padding: 0.5rem 1.5rem;
+            margin: 0.15rem 0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: block;
+        }
 
-.subcategory-item a:hover {
-    background-color: rgba(59, 130, 246, 0.08);
-    transform: translateX(3px);
-    color: #3b82f6 !important;
-}
+        .subcategory-item a:hover {
+            background-color: rgba(59, 130, 246, 0.08);
+            transform: translateX(3px);
+            color: #3b82f6 !important;
+        }
+
+        /* Новые стили для поиска */
+        .search-form {
+            flex-grow: 1;
+            max-width: 600px;
+            margin: 0 20px;
+        }
+
+        /* Стили для языкового переключателя */
+        .language-switcher {
+            margin-left: auto;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Версия для слабовидящих -->
-    <div class="accessibility-bar bg-dark text-white py-2">
-        <div class="container d-flex justify-content-end gap-3">
-            <button class="btn btn-sm btn-outline-light" id="font-increase">A+</button>
-            <button class="btn btn-sm btn-outline-light" id="font-decrease">A-</button>
-            <button class="btn btn-sm btn-outline-light" id="toggle-contrast">
-                {% trans "Высокая контрастность" %}
-            </button>
-        </div>
-    </div>
 
-    <!-- Фиксированный хедер -->
-    <header class="header bg-white shadow-sm fixed-top">
-        <nav class="navbar navbar-expand-lg container py-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">
-                    <img src="{% static ""  %}" alt="УКСУС" width="140">
+<!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
+<nav class="top-navbar bg-white shadow-sm fixed-top border-bottom border-primary visible" id="top-navbar">
+    <div class="container d-flex justify-content-center">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#application">
+                    <i class></i>{% trans "Нанесение" %}
                 </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#design">
+                    <i class></i>{% trans "Дизайн" %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#stands">
+                    <i class></i>{% trans "Стенды" %}
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+<!-- Фиксированный хедер (остается на месте) -->
+<header class="header bg-white shadow-sm fixed-top" id="main-header">
+    <nav class="navbar navbar-expand-lg container py-2">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="{% static ""  %}" alt="УКСУС" width="140">
+            </a>
 
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <div class="d-flex align-items-center flex-grow-1 mx-4">
-                        <!-- Кнопка Каталог -->
-                        <div class="dropdown me-3">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button"
-                                    id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
-                            </button>
-                            <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
-                                <div class="row g-4">
-                                    <!-- Основные категории -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
-                                        </ul>
-                                    </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                                    <!-- Дополнительные категории -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
-                                        </ul>
-                                    </div>
-
-                                    <!-- Подкатегории одежды -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
-                                        </ul>
-                                    </div>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <!-- Кнопка Каталог -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
+                        </button>
+                        <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
+                            <div class="row g-4">
+                                <!-- Основные категории -->
+                                <div class="col-md-4">
+                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
+                                    </ul>
                                 </div>
+
+                                <!-- Дополнительные категории -->
+                                <div class="col-md-4">
+                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- Подкатегории одежды -->
+                                <div class="col-md-4">
+                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
+                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </ul>
+                    </div>
+
+                    <!-- Поиск -->
+                    <form class="search-form" action="{% url 'search' %}" method="GET">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск товаров...' %}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="d-flex gap-3 align-items-center language-switcher">
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger" title="Выход">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+
+                        <div class="dropdown d-inline">
+                            <a class="btn btn-primary dropdown-toggle"
+                               href="{% url 'accounts:company_dashboard' %}"
+                               role="button"
+                               id="userMenu"
+                               data-bs-toggle="dropdown">
+                                <i class="fas fa-user-tie"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Выход
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </div>
-
-                        <!-- Поиск -->
-                        <form class="d-flex flex-grow-1" action="{% url 'search' %}" method="GET">
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск товаров...' %}">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Основное меню -->
-                    <ul class="navbar-nav me-auto gap-4">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="mainCatalogDropdown"
-                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% trans "Каталог" %}
-                            </a>
-                            <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="mainCatalogDropdown">
-                                <div class="row g-4">
-                                    <!-- Основные категории -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
-                                        </ul>
-                                    </div>
-
-                                    <!-- Дополнительные категории -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
-                                        </ul>
-                                    </div>
-
-                                    <!-- Подкатегории одежды -->
-                                    <div class="col-md-4">
-                                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
-                                            <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="#application">{% trans "Нанесение" %}</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#design">{% trans "Дизайн" %}</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#stands">{% trans "Стенды" %}</a></li>
-                    </ul>
-
-                    <div class="d-flex gap-3 align-items-center">
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                        <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Регистрация
+                        </a>
                         {% include 'includes/language_switcher.html' %}
-
-                        {% if user.is_authenticated %}
-                            <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger" title="Выход">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                </button>
-                            </form>
-
-                            <div class="dropdown d-inline">
-                                <a class="btn btn-primary dropdown-toggle"
-                                   href="{% url 'accounts:company_dashboard' %}"
-                                   role="button"
-                                   id="userMenu"
-                                   data-bs-toggle="dropdown">
-                                    <i class="fas fa-user-tie"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-sign-out-alt me-2"></i>Выход
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        {% else %}
-                            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i>Войти
-                            </a>
-                            <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
-                                <i class="fas fa-user-plus me-2"></i>Регистрация
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Основной контент с динамическим отступом -->
-    <main role="main" class="main-content">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Подвал -->
-    <footer class="bg-dark text-white py-5 mt-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <h3 class="h5">{% trans "Контакты" %}</h3>
-                    <p>{% trans "Телефон:" %} +7 (999) 123-45-67</p>
-                    <p>Email: info@agency.ru</p>
-                </div>
-
-                <div class="col-lg-4">
-                    <h3 class="h5">{% trans "Наши услуги" %}</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="#catalog" class="text-white">{% trans "Каталог товаров" %}</a></li>
-                        <li><a href="#design" class="text-white">{% trans "Дизайн-проекты" %}</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-4">
-                    <h3 class="h5">{% trans "Мы в соцсетях" %}</h3>
-                    <div class="social-links">
-                        <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-vk"></i></a>
-                        <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-telegram"></i></a>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </footer>
+    </nav>
+</header>
 
-    <!-- Подключение Bootstrap JS через CDN для надежности -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        // Инициализация AOS
-        AOS.init({
-            duration: 800,
-            once: true,
-            easing: 'ease-out-quad'
-        });
+<!-- Основной контент с динамическим отступом -->
+<main role="main" class="main-content">
+    {% block content %}{% endblock %}
+</main>
 
-        // Автоматический расчет отступа
-        document.addEventListener('DOMContentLoaded', function() {
-            const header = document.querySelector('.header');
-            const main = document.querySelector('.main-content');
-            main.style.marginTop = header.offsetHeight + 20 + 'px';
-        });
+<!-- Подвал -->
+<footer class="bg-dark text-white py-5 mt-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h3 class="h5">{% trans "Контакты" %}</h3>
+                <p>{% trans "Телефон:" %} +7 (999) 123-45-67</p>
+                <p>Email: info@agency.ru</p>
+            </div>
 
-        // Управление тенью хедера
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('.header');
-            header.classList.toggle('header-scrolled', window.scrollY > 50);
-        });
+            <div class="col-lg-4">
+                <h3 class="h5">{% trans "Наши услуги" %}</h3>
+                <ul class="list-unstyled">
+                    <li><a href="#catalog" class="text-white">{% trans "Каталог товаров" %}</a></li>
+                    <li><a href="#design" class="text-white">{% trans "Дизайн-проекты" %}</a></li>
+                </ul>
+            </div>
 
-        // Управление доступностью
-        document.getElementById('font-increase').addEventListener('click', () => {
-            document.documentElement.style.fontSize = '20px';
-        });
+            <div class="col-lg-4">
+                <h3 class="h5">{% trans "Мы в соцсетях" %}</h3>
+                <div class="social-links">
+                    <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-vk"></i></a>
+                    <a href="#" class="btn btn-outline-light rounded-circle"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
 
-        document.getElementById('font-decrease').addEventListener('click', () => {
-            document.documentElement.style.fontSize = '16px';
-        });
+<!-- Подключение Bootstrap JS через CDN для надежности -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-        document.getElementById('toggle-contrast').addEventListener('click', () => {
-            document.documentElement.setAttribute('data-theme',
-                document.documentElement.getAttribute('data-theme') === 'accessibility' ? 'light' : 'accessibility');
-        });
+<script>
+    // Основной скрипт для управления скрытием меню при скролле
+    document.addEventListener('DOMContentLoaded', function() {
+        const topNavbar = document.getElementById('top-navbar');
+        const header = document.getElementById('main-header');
+        const mainContent = document.querySelector('.main-content');
 
-        // Toast notification function
+        if (!topNavbar || !header || !mainContent) return;
+
+        let lastScroll = 0;
+        const scrollThreshold = 100;
+        let isScrollingDown = false;
+        let scrollTimeout;
+
+        // Функция для обновления отступов
+        function updateLayout() {
+            const headerHeight = header.offsetHeight;
+            const topNavbarVisible = !topNavbar.classList.contains('hiding');
+
+            if (topNavbarVisible) {
+                mainContent.style.marginTop = `${headerHeight + topNavbar.offsetHeight + 20}px`;
+                header.style.top = '46px';
+            } else {
+                mainContent.style.marginTop = `${headerHeight + 20}px`;
+                header.style.top = '0';
+            }
+        }
+
+        // Обработчик скролла
+        function handleScroll() {
+            const currentScroll = window.pageYOffset;
+            isScrollingDown = currentScroll > lastScroll;
+
+            // В самом верху страницы - показываем меню полностью
+            if (currentScroll <= 0) {
+                topNavbar.style.opacity = '1';
+                topNavbar.style.transform = 'translateY(0)';
+                topNavbar.classList.remove('hiding');
+                header.classList.remove('header-scrolled-up');
+                lastScroll = currentScroll;
+                updateLayout();
+                return;
+            }
+
+            // Плавное скрытие при скролле вниз
+            if (isScrollingDown && currentScroll > scrollThreshold) {
+                const scrollDiff = currentScroll - scrollThreshold;
+                const maxScrollDiff = 200;
+                const opacity = 1 - Math.min(scrollDiff / maxScrollDiff, 1);
+                const translateY = -Math.min(scrollDiff / 4, 25);
+
+                topNavbar.style.opacity = opacity;
+                topNavbar.style.transform = `translateY(${translateY}px)`;
+
+                if (opacity <= 0.1) {
+                    topNavbar.classList.add('hiding');
+                    header.classList.add('header-scrolled-up');
+                }
+            }
+            // Показываем меню при скролле вверх
+            else if (!isScrollingDown) {
+                topNavbar.style.opacity = '1';
+                topNavbar.style.transform = 'translateY(0)';
+                topNavbar.classList.remove('hiding');
+                header.classList.remove('header-scrolled-up');
+            }
+
+            lastScroll = currentScroll;
+            updateLayout();
+
+            // Оптимизация производительности
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                // Дополнительные действия после завершения скролла
+            }, 100);
+        }
+
+        // Инициализация
+        updateLayout();
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('resize', updateLayout);
+
+        // Инициализация AOS для анимаций
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                once: true,
+                easing: 'ease-out-quad'
+            });
+        }
+
+        // Функция для показа уведомлений
         function showToast(message) {
             const toast = document.createElement('div');
             toast.className = 'toast';
@@ -618,7 +728,7 @@
             }, 3000);
         }
 
-        // Cart functionality
+        // Обработчики для корзины
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', async () => {
                 const productId = button.dataset.productId;
@@ -632,7 +742,8 @@
                 }
             });
         });
-    </script>
-    {% block extra_js %}{% endblock %}
+    });
+</script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>
