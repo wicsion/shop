@@ -768,6 +768,17 @@
             @apply grid-cols-6;
         }
     }
+    /* Показываем первые 2 элемента без наведения */
+.subcategory-item:nth-child(1),
+.subcategory-item:nth-child(2),
+.subcategory-item:nth-child(3){
+    display: flex;
+}
+
+/* Второй элемент полупрозрачный */
+.subcategory-item:nth-child(3) {
+    opacity: 0.2;
+}
 
 </style>
 
@@ -1155,7 +1166,7 @@
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мобильные аксессуары" %}</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Увлажнители" %}</a>
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
@@ -1167,7 +1178,7 @@
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Увлажнители" %}</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мобильные аксессуары" %}</a>
                         </li>
                     </ul>
                     <div class="show-more-indicator"></div>
@@ -1235,7 +1246,7 @@
                     <ul class="space-y-2 pl-2">
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Калькулятор ежедневника" %}</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Блокноты" %}</a>
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
@@ -1243,11 +1254,11 @@
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Блокноты" %}</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы " %}</a>
                         </li>
                         <li class="subcategory-item flex items-center">
                             <span class="subcategory-bullet"></span>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с ежедневниками" %}</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Калькулятор ежедневника" %}</a>
                         </li>
                     </ul>
                     <div class="show-more-indicator"></div>
@@ -1355,7 +1366,7 @@
         <ul class="space-y-2 pl-2">
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Настольные аксессуары" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Награды" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
@@ -1371,7 +1382,7 @@
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Награды" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Настольные аксессуары" %}</a>
             </li>
         </ul>
     </div>
@@ -1388,23 +1399,28 @@
             <i class="fas fa-umbrella text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
         </div>
         <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            {% trans "Дождевики" %}
+            {% trans "Зонты" %}
         </h3>
     </div>
     <div class="subcategory-list">
         <ul class="space-y-2 pl-2">
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Прозрачные дождевики" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Зонты-трости" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Складные дождевики" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Складные зонты" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Дождевики с логотипом" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Малые зонты" %}</a>
             </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские зонты" %}</a>
+            </li>
+
         </ul>
     </div>
     <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
