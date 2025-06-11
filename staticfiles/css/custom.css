@@ -58,7 +58,7 @@ body {
 :root {
     --primary: #3BB77E;
     --secondary: #F4F6FA;
-    --accent: #FFBA43;
+    --accent: #1e389c;
     --text: #253D4E;
     --gradient: linear-gradient(135deg, var(--primary), var(--accent));
 }

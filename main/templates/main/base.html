@@ -4,9 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "Агентство полного цикла" %}{% endblock %}</title>
+    <title>{% block title %}{% trans "Уксус" %}{% endblock %}</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Стили -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -14,443 +18,366 @@
 
     <style>
         :root {
-            --font-size: 16px;
-            --contrast: normal;
-            --primary: #2721df;
-            --secondary: #F4F6FA;
-            --accent: #FFBA43;
-            --text: #253D4E;
-            --gradient: linear-gradient(135deg, var(--primary), var(--accent));
-            --primary-rgb: 39, 33, 223;
-        }
-
-        .top-navbar {
-    background: white !important;
-    padding: 0.3rem 0;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1040;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    border-bottom: 2px solid var(--primary);
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.top-navbar.hiding {
-    opacity: 0;
-    transform: translateY(-100%);
-}
-
-
-        .top-navbar.visible {
-            transform: translateY(0);
-        }
-
-       .header {
-    position: fixed;
-    top: 46px; /* высота верхнего меню */
-    width: 100%;
-    z-index: 1030;
-    transition: top 0.4s ease;
-    background: white;
-}
-
-        .main-content {
-            margin-top: 140px; /* высота верхнего меню + хедера */
-        }
-
-        .top-navbar .nav-link.btn-outline-primary {
-            color: var(--primary) !important;
-            border: 1px solid var(--primary) !important;
-            background: transparent !important;
-        }
-
-        .top-navbar .nav-link.btn-outline-primary:hover,
-        .top-navbar .nav-link.btn-outline-primary:focus {
-            background: var(--primary) !important;
-            color: white !important;
-        }
-
-        .top-navbar .nav-link.btn-outline-primary.active {
-            background: var(--primary) !important;
-            color: white !important;
-        }
-
-        .carousel img {
-            margin-top: 140px; /* увеличенный отступ для слайдера */
-        }
-
-        @media (max-width: 768px) {
-            .carousel img {
-                margin-top: 120px;
-            }
-        }
-
-        /* Адаптация хедера */
-        .header {
-            top: 46px; /* Учитываем высоту верхнего меню */
-        }
-
-        .main-content {
-            margin-top: 120px; /* Уменьшенный отступ для основного контента */
-        }
-
-        [data-theme="accessibility"] {
-            --font-size: 20px;
-            --contrast: contrast(150%);
-            --primary: #000;
-            --secondary: #fff;
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #f8fafc;
+            --accent: #7c3aed;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --bg: #ffffff;
+            --bg-dark: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --primary-rgb: 37, 99, 235;
         }
 
         body {
-            font-family: 'Quicksand', sans-serif;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
             line-height: 1.6;
-            font-size: var(--font-size);
-            filter: var(--contrast);
+            overflow-x: hidden;
         }
 
-        .header-scrolled {
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Mega dropdown menu */
-        .mega-dropdown-menu {
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            max-height: 80vh;
-            overflow-y: auto;
-            z-index: 1080;
-            width: 900px !important;
-        }
-
-        .mega-dropdown-menu .dropdown-header {
-            color: var(--primary);
-            border-bottom: 2px solid rgba(var(--primary-rgb), 0.1);
-            padding-bottom: 0.75rem;
-            margin-bottom: 1rem;
-            font-size: 1.05rem;
-        }
-
-        .mega-dropdown-menu .dropdown-item {
-            padding: 0.5rem 1.5rem;
-            margin: 0.15rem 0;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .mega-dropdown-menu .dropdown-item:hover {
-            background-color: rgba(var(--primary-rgb), 0.08);
-            transform: translateX(3px);
-            color: var(--primary);
-        }
-
-        /* Product cards */
-        .product-card {
-            position: relative;
-            border: 1px solid #ECECEC;
-            border-radius: 15px;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: white;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: var(--accent);
-            color: #000;
-            padding: 6px 15px;
-            border-radius: 20px;
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Manrope', sans-serif;
             font-weight: 700;
-            font-size: 14px;
-            z-index: 2;
         }
 
-        /* Buttons */
+
+        /* Навигация */
+        .main-navbar {
+            background: var(--bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .main-navbar.scrolled {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030; /* Выше чем у хедера */
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1),
+                opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1);
+    transform: translateY(0);
+    opacity: 1;
+    will-change: transform, opacity;
+}
+
+.top-navbar.hiding {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+#main-header {
+    z-index: 1020;
+    top: 50px;
+    transition: top 0.4s cubic-bezier(0.25, 0.8, 0.5, 1); /* Добавьте эту строку */
+}
+
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--text);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Кнопки */
+        .btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+
         .btn-primary {
-            transition: transform 0.2s, box-shadow 0.2s;
             background-color: var(--primary);
             border-color: var(--primary);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 183, 126, 0.3);
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
 
-        .gradient-btn {
-            background-image: var(--gradient);
-            border: none;
-            transition: all 0.3s ease;
+        .btn-outline-primary {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
             color: white;
         }
 
-        .gradient-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-            color: white;
-        }
-
-        /* Forms */
+        /* Формы */
         .form-control {
             border-radius: 8px;
-            padding: 12px;
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
         }
 
-        /* Dashboard sections */
-        .dashboard-section {
-            background: white;
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Карточки */
+        .card {
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .stat-icon {
-            color: var(--primary);
-            font-size: 24px;
-        }
-
-        /* Document cards */
-        .document-card {
-            background: white;
-            border-radius: 12px;
+            border: 1px solid var(--border);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
+            background: var(--bg);
         }
 
-        .document-card:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateY(-3px);
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
         }
 
-        /* Animations */
+        /* Анимации */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-animate {
-            animation: fadeIn 0.6s ease-out;
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
         }
 
-        /* Custom buttons */
-        .btn-custom {
-            background: white;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 10px 20px;
-            transition: all 0.3s ease;
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
 
-        .btn-custom:hover {
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
             background: var(--primary);
-            color: white;
+            border-radius: 3px;
         }
 
-        /* Accessibility */
-        [data-theme="accessibility"] .btn {
-            border: 2px solid #000;
+        /* Mega dropdown menu */
+        .mega-dropdown {
+            position: static !important;
         }
 
-        /* Secondary navigation */
-        .secondary-nav {
-            position: fixed;
-            top: 60px;
+        .mega-dropdown-menu {
             left: 0;
+            right: 0;
             width: 100%;
-            background: linear-gradient(90deg, rgb(10, 2, 2) 0%, rgba(0, 0, 0, 0.1) 100%);
-            z-index: 1020;
-            padding: 10px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 2rem;
+            margin-top: 0;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: none;
         }
 
-        .secondary-nav .nav-link {
-            color: var(--text);
-            font-weight: 600;
-            padding: 8px 15px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .secondary-nav .nav-link:hover {
-            background: linear-gradient(90deg, rgba(39,33,223,0.2) 0%, rgba(255,186,67,0.2) 100%);
+        .mega-dropdown-menu .dropdown-header {
             color: var(--primary);
+            font-weight: 600;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
         }
 
-        /* Responsive breakpoints */
+        .mega-dropdown-menu .dropdown-item {
+            padding: 0.5rem 0;
+            margin: 0.25rem 0;
+            transition: all 0.2s ease;
+            color: var(--text);
+            border-radius: 6px;
+        }
+
+        .mega-dropdown-menu .dropdown-item:hover {
+            background-color: rgba(var(--primary-rgb), 0.05);
+            color: var(--primary);
+            padding-left: 0.5rem;
+        }
+
+        /* Адаптивность */
         @media (max-width: 992px) {
             .mega-dropdown-menu {
+                position: relative !important;
                 width: 100% !important;
-                left: 0 !important;
-                transform: none !important;
+                padding: 1rem;
+                box-shadow: none;
             }
 
-            .navbar-nav {
-                flex-direction: column !important;
+            .navbar-collapse {
+                padding: 1rem 0;
             }
-
-            .header .container-fluid {
-                flex-wrap: wrap;
-            }
-
-            .main-content {
-                margin-top: 150px;
-            }
-
-            .secondary-nav {
-                top: 110px;
-            }
-
-            .top-navbar {
-                display: none; /* Скрываем на мобильных */
-            }
-
-            .header {
-                top: 0;
-            }
-
-            .main-content {
-                margin-top: 120px;
-            }
-        }
-
-        @media (min-width: 768px) and (max-width: 1279px) {
-            .product-card {
-                flex: 0 0 50%;
-                max-width: 50%;
-            }
-        }
-
-        @media (min-width: 1280px) {
-            .container {
-                max-width: 1280px;
-            }
-        }
-
-        .carousel img {
-            width: 100%;
-            height: 500px;
-            object-fit: cover;
-            object-position: center;
-            margin-top: 90px; /* Отступ для хедера */
         }
 
         @media (max-width: 768px) {
-            .carousel img {
-                height: 300px;
+            .main-content {
+                margin-top: 70px !important;
             }
 
-            .carousel-caption h1 {
-                font-size: 2rem !important;
+            .nav-link.active::after {
+                display: none;
             }
         }
 
-        /* Toast notifications */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 9999;
-            animation: fadeIn 0.3s ease-out;
+        /* Темы */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-light: #60a5fa;
+            --primary-dark: #2563eb;
+            --secondary: #1e293b;
+            --accent: #8b5cf6;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --bg: #0f172a;
+            --bg-dark: #1e293b;
         }
 
-        /* Registration form */
-        .registration-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        [data-theme="dark"] .main-navbar {
+            background: var(--bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        /* Order status indicators */
-        .order-status-indicator {
-            width: 12px;
-            height: 12px;
+        [data-theme="dark"] .card {
+            background: var(--bg-dark);
+            border-color: var(--border);
+        }
+
+        [data-theme="dark"] .form-control {
+            background: var(--bg-dark);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        /* Переключатель темы */
+        .theme-switcher {
+            width: 40px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .theme-switcher::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--bg);
             border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-        }
-        .order-status-indicator.new { background: #3b82f6; }
-        .order-status-indicator.processing { background: #f59e0b; }
-        .order-status-indicator.completed { background: #3b82f6; }
-
-        .subcategory-item a {
-            padding: 0.5rem 1.5rem;
-            margin: 0.15rem 0;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            display: block;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
         }
 
-        .subcategory-item a:hover {
-            background-color: rgba(59, 130, 246, 0.08);
-            transform: translateX(3px);
-            color: #3b82f6 !important;
+        [data-theme="dark"] .theme-switcher::after {
+            left: 22px;
+            background: var(--text);
         }
 
-        /* Новые стили для поиска */
-        .search-form {
-            flex-grow: 1;
-            max-width: 600px;
-            margin: 0 20px;
+        /* Анимации AOS */
+        [data-aos] {
+            transition: all 0.6s ease;
         }
+          /* Добавьте этот стиль в ваш CSS-блок */
+.mega-dropdown-menu .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
 
-        /* Стили для языкового переключателя */
-        .language-switcher {
-            margin-left: auto;
-        }
-    </style>
+.mega-dropdown-menu .col-md-4 {
+    position: relative;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}
+
+@media (max-width: 768px) {
+    .mega-dropdown-menu .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+
+</style>
 </head>
 
 <body>
 
 <!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
-<nav class="top-navbar bg-white shadow-sm fixed-top border-bottom border-primary visible" id="top-navbar">
+<nav class="top-navbar bg-white fixed-top border-bottom border-primary" id="top-navbar" style="border-bottom: 3px solid var(--primary) !important;">
     <div class="container d-flex justify-content-center">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills gap-4">
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#application">
+                <a class="nav-link px-3 py-2  fw-bold text-primary" href="#application">
                     <i class></i>{% trans "Нанесение" %}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#design">
+                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#design">
                     <i class></i>{% trans "Дизайн" %}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 rounded-pill btn-outline-primary" href="#stands">
+                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#stands">
                     <i class></i>{% trans "Стенды" %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#contacts">
+                    <i class></i>{% trans "Контакты" %}
                 </a>
             </li>
         </ul>
     </div>
 </nav>
 
+
 <!-- Фиксированный хедер (остается на месте) -->
-<header class="header bg-white shadow-sm fixed-top" id="main-header">
+<header class="header bg-white fixed-top" id="main-header" style="top: 60px; border-bottom: none !important;">
     <nav class="navbar navbar-expand-lg container py-2">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
@@ -463,128 +390,129 @@
 
             <div class="collapse navbar-collapse" id="navbarContent">
                 <div class="d-flex align-items-center flex-grow-1">
-                    <!-- Кнопка Каталог -->
-                    <div class="dropdown me-3">
-                        <button class="btn btn-outline-primary dropdown-toggle" type="button"
-                                id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
-                        </button>
-                        <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
-                            <div class="row g-4">
-                                <!-- Основные категории -->
-                                <div class="col-md-4">
-                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
-                                    <ul class="list-unstyled">
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
-                                    </ul>
-                                </div>
+    <!-- Кнопка Каталог -->
+    <div class="dropdown me-3">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
+        </button>
+       <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Основные категории -->
+            <div class="col-md-4 mb-3">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
+                </ul>
+            </div>
 
-                                <!-- Дополнительные категории -->
-                                <div class="col-md-4">
-                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
-                                    <ul class="list-unstyled">
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
-                                    </ul>
-                                </div>
+            <!-- Дополнительные категории -->
+            <div class="col-md-4 mb-3">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
+                </ul>
+            </div>
 
-                                <!-- Подкатегории одежды -->
-                                <div class="col-md-4">
-                                    <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
-                                    <ul class="list-unstyled">
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
-                                        <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </ul>
-                    </div>
-
-                    <!-- Поиск -->
-                    <form class="search-form" action="{% url 'search' %}" method="GET">
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск товаров...' %}">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="d-flex gap-3 align-items-center language-switcher">
-                    {% if user.is_authenticated %}
-                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-danger" title="Выход">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </button>
-                        </form>
-
-                        <div class="dropdown d-inline">
-                            <a class="btn btn-primary dropdown-toggle"
-                               href="{% url 'accounts:company_dashboard' %}"
-                               role="button"
-                               id="userMenu"
-                               data-bs-toggle="dropdown">
-                                <i class="fas fa-user-tie"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Выход
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-sign-in-alt me-2"></i>Войти
-                        </a>
-                        <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-2"></i>Регистрация
-                        </a>
-                        {% include 'includes/language_switcher.html' %}
-                    {% endif %}
-                </div>
+            <!-- Подкатегории одежды -->
+            <div class="col-md-4 mb-3">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
+                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
+                </ul>
             </div>
         </div>
-    </nav>
+ </div>
+</ul>
+</div>
+                          <form class="search-form flex-grow-1 me-3" action="{% url 'search' %}" method="GET">
+        <div class="input-group">
+            <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск ...' %}">
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+                 <!-- Блок с кнопками пользователя, смещенный вправо -->
+         <div class="d-flex gap-3 ms-auto">
+            {% if user.is_authenticated %}
+                <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger" title="Выход">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+
+                <div class="dropdown d-inline">
+                    <a class="btn btn-primary dropdown-toggle"
+                       href="{% url 'accounts:company_dashboard' %}"
+                       role="button"
+                       id="userMenu"
+                       data-bs-toggle="dropdown">
+                        <i class="fas fa-user-tie"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выход
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Войти
+                </a>
+                <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Регистрация
+                </a>
+                {% include 'includes/language_switcher.html' %}
+
+            {% endif %}
+        </div>
+    </div>
+</div></div>
+          </nav>
+
 </header>
 
 <!-- Основной контент с динамическим отступом -->
@@ -626,88 +554,72 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    // Основной скрипт для управления скрытием меню при скролле
-    document.addEventListener('DOMContentLoaded', function() {
-        const topNavbar = document.getElementById('top-navbar');
-        const header = document.getElementById('main-header');
-        const mainContent = document.querySelector('.main-content');
+        document.addEventListener('DOMContentLoaded', function() {
+            const topNavbar = document.getElementById('top-navbar');
+            const header = document.getElementById('main-header');
+            const mainContent = document.querySelector('.main-content');
 
-        if (!topNavbar || !header || !mainContent) return;
+            if (!topNavbar || !header || !mainContent) return;
 
-        let lastScroll = 0;
-        const scrollThreshold = 100;
-        let isScrollingDown = false;
-        let scrollTimeout;
+            let lastScroll = 0;
+            const scrollThreshold = 50;
+            let isHidden = false;
+            let scrollTimeout = null;
 
-        // Функция для обновления отступов
-        function updateLayout() {
-            const headerHeight = header.offsetHeight;
-            const topNavbarVisible = !topNavbar.classList.contains('hiding');
-
-            if (topNavbarVisible) {
-                mainContent.style.marginTop = `${headerHeight + topNavbar.offsetHeight + 20}px`;
-                header.style.top = '46px';
-            } else {
-                mainContent.style.marginTop = `${headerHeight + 20}px`;
-                header.style.top = '0';
-            }
-        }
-
-        // Обработчик скролла
-        function handleScroll() {
-            const currentScroll = window.pageYOffset;
-            isScrollingDown = currentScroll > lastScroll;
-
-            // В самом верху страницы - показываем меню полностью
-            if (currentScroll <= 0) {
-                topNavbar.style.opacity = '1';
-                topNavbar.style.transform = 'translateY(0)';
-                topNavbar.classList.remove('hiding');
-                header.classList.remove('header-scrolled-up');
-                lastScroll = currentScroll;
-                updateLayout();
-                return;
-            }
-
-            // Плавное скрытие при скролле вниз
-            if (isScrollingDown && currentScroll > scrollThreshold) {
-                const scrollDiff = currentScroll - scrollThreshold;
-                const maxScrollDiff = 200;
-                const opacity = 1 - Math.min(scrollDiff / maxScrollDiff, 1);
-                const translateY = -Math.min(scrollDiff / 4, 25);
-
-                topNavbar.style.opacity = opacity;
-                topNavbar.style.transform = `translateY(${translateY}px)`;
-
-                if (opacity <= 0.1) {
-                    topNavbar.classList.add('hiding');
-                    header.classList.add('header-scrolled-up');
+            function updateLayout() {
+                const headerHeight = header.offsetHeight;
+                if (isHidden) {
+                    mainContent.style.marginTop = `${headerHeight + 20}px`;
+                    header.style.top = '0';
+                } else {
+                    mainContent.style.marginTop = `${headerHeight + topNavbar.offsetHeight}px`;
+                    header.style.top = `${topNavbar.offsetHeight}px`;
                 }
             }
-            // Показываем меню при скролле вверх
-            else if (!isScrollingDown) {
-                topNavbar.style.opacity = '1';
-                topNavbar.style.transform = 'translateY(0)';
-                topNavbar.classList.remove('hiding');
-                header.classList.remove('header-scrolled-up');
-            }
 
-            lastScroll = currentScroll;
+          function handleScroll() {
+    const currentScroll = window.pageYOffset;
+
+    if (scrollTimeout) {
+        cancelAnimationFrame(scrollTimeout);
+    }
+
+    if (currentScroll <= 0) {
+        if (isHidden) {
+            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
+            topNavbar.classList.remove('hiding');
+            isHidden = false;
             updateLayout();
+        }
+        lastScroll = currentScroll;
+        return;
+    }
 
-            // Оптимизация производительности
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                // Дополнительные действия после завершения скролла
-            }, 100);
+    scrollTimeout = requestAnimationFrame(() => {
+        if (currentScroll > lastScroll && currentScroll > scrollThreshold && !isHidden) {
+            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
+            topNavbar.classList.add('hiding');
+            isHidden = true;
+            updateLayout();
+        }
+        else if (currentScroll < lastScroll && isHidden) {
+            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
+            topNavbar.classList.remove('hiding');
+            isHidden = false;
+            updateLayout();
         }
 
-        // Инициализация
-        updateLayout();
-        window.addEventListener('scroll', handleScroll);
-        window.addEventListener('resize', updateLayout);
+        lastScroll = currentScroll;
+    });
+}
+            // Инициализация
+            updateLayout();
+            window.addEventListener('scroll', handleScroll, {passive: true});
+            window.addEventListener('resize', updateLayout);
+        });
 
-        // Инициализация AOS для анимаций
+
+        // Инициализация AOS
         if (typeof AOS !== 'undefined') {
             AOS.init({
                 duration: 800,
@@ -715,6 +627,7 @@
                 easing: 'ease-out-quad'
             });
         }
+
 
         // Функция для показа уведомлений
         function showToast(message) {
@@ -741,7 +654,6 @@
                     console.error('Error:', error);
                 }
             });
-        });
     });
 </script>
 {% block extra_js %}{% endblock %}
