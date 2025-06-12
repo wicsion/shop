@@ -252,9 +252,9 @@
 
 .category-card:hover {
     z-index: 100;
-    overflow: visible;
+     overflow: visible;
     height: auto;
-    min-height: auto;
+     min-height: auto;
     box-shadow: 0 15px 30px rgba(59, 130, 246, 0.15);
 
     transition: transform 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
@@ -681,7 +681,7 @@
     /* Адаптивные стили для заголовков и текста */
 .category-card h3 {
     @apply text-xl font-extrabold;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     line-height: 1.3;
     margin-bottom: 12px;
     white-space: nowrap;
@@ -809,6 +809,114 @@
             width: 220px; /* Немного уменьшаем ширину на мобильных */
         }
     }
+    /* Добавьте эти стили в ваш CSS */
+  .category-links {
+    position: relative;
+    z-index: 15;
+    margin-top: -45px;
+    margin-bottom: 30px;
+  }
+
+  .category-link-group {
+     position: relative;
+  display: inline-block;
+  }
+.category-dropdown {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 280px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.category-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.category-dropdown::-webkit-scrollbar-thumb {
+  background-color: #3b82f6;
+  border-radius: 3px;
+}
+
+.category-dropdown::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 3px;
+}
+
+
+.category-dropdown a {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    display: block;
+}
+  .category-link-group:hover .category-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.category-link-group:hover .category-link-btn i {
+  transform: rotate(180deg);
+}
+
+.category-link-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  font-weight: 600; /* Добавляем жирность */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #3b82f6, #6366f1, #8b5cf6);
+}
+
+.category-link-btn:hover {
+  background-image: linear-gradient(to right, #2563eb, #4f46e5, #7c3aed);
+  transform: translateY(-2px);
+}
+
+  .category-dropdown {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .category-link-group:hover .category-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .category-link-group:hover .category-link-btn i {
+    transform: rotate(180deg);
+  }
+  .category-link-btn {
+  position: relative;
+  z-index: 70; /* Чтобы кнопка была над полоской */
+  padding-bottom:15px; /* Добавляем отступ снизу для полоски */
+}
+  .category-link-btn i {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #3b82f6, #6366f1, #8b5cf6);
+        transition: transform 0.3s ease;
+
+}
+  .category-title {
+    margin-top: 0rem; /* или другое значение */
+}
 
 </style>
 
@@ -1003,11 +1111,168 @@
 <section class="dashboard-section py-8 mb-8 relative z-0" style="margin-top: -20px;">
     <div class="container">
         <div class="text-center mb-12 relative">
-            <h2 class="inline-block text-3xl md:text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 px-6 py-4">
-                {% trans "Мерч и корпоративные подарки "%}
-            </h2>
-            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+            <h2 class="category-title inline-block text-3xl md:text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 px-6 py-4">
+    {% trans "Мерч и корпоративные подарки "%}
+</h2>
+
         </div>
+
+          <div class="category-links flex justify-center gap-8 mb-8">
+  <!-- Бренды -->
+    <div class="category-link-group relative">
+      <button class="category-link-btn flex items-center text-lg font-bold">
+    Бренды
+    <i class="fas fa-chevron-down ml-2 text-sm transition-transform"></i>
+  </button>
+    <div class="category-dropdown absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 opacity-0 invisible transition-all duration-300 transform -translate-y-2">
+      <div class="grid grid-cols-1 gap-1 p-3 max-h-96 overflow-y-auto">
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Acer</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Altavolo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Andor</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Apollo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Author's</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Avoska</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">B&C Collection</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Bobber</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Bric's</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Bugatti</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Burst</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Careon</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Colop</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">CoolColor</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Coreflect</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Delsey</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Digma</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Doppler</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Echolac</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ermenrich</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Escalada</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Fare</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ganzo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">GoGadget</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Hard Work</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Huzzle. Головоломки</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ideus</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Indivo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Inspire</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">IQ Puzzle</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">James Harvest</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Klymit</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Knirps</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Lamark</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Leatherman</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Levenhuk</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Luva</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Magellan</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Mandarina Duck</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Manevr</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Marzotto</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Matteo Tantini</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Molti</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Newonce</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ninebot</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">oPen</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Parker</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Pasabahce</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Philippi</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Pininfarina</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Piquadro</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Pleep</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Prodir</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Regent inox</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Reisenthel</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Relaxika</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Rene Royal</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Rezolution</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ritter-Pen</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Roncato</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Roxon. Мультитулы</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Sber</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Senator</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Sherst</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Sol's</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Stanley</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Stilolinea</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Stormtech</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Stride</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">T-Bolka</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">teplo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">TH Clothes</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Thermalli</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Thermos</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Tony Perotti</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">TP-Link</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Tribe</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Troika</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Uniscend</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Unit</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Very Marque</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Victorinox</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Wenger</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Xiaomi</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Zippo</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">«Арктика»</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Башкирский фарфоровый завод</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">БЗРП</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">«Адъютант»</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">«Контекст»</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Арт-проект «Принтэссенция»</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">«Соль»</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Яндекс</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Новинки -->
+<div class="category-link-group relative">
+  <div class="relative inline-block">
+    <button class="category-link-btn flex items-center text-lg font-bold">
+      Новинки
+      <i class="fas fa-chevron-down ml-2 text-sm transition-transform"></i>
+    </button>
+    <!-- Полоска сверху -->
+    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+  </div>
+  <div class="category-dropdown absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 opacity-0 invisible transition-all duration-300 transform -translate-y-2">
+    <div class="grid grid-cols-1 gap-1 p-3 max-h-96 overflow-y-auto">
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Одежда</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Посуда</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ручки</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Электроника</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Зонты</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Сумки</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Ежедневники и блокноты</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Упаковка</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Элементы кастомизации</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Подарочные наборы</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Дом</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Отдых</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Вкусные подарки</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Спортивные товары</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Корпоративные подарки</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Производство на заказ</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Праздники</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Новогодние подарки</a>
+      <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Маркетинговая поддержка</a>
+    </div>
+  </div>
+</div>
+
+  <!-- Велком паки -->
+  <div class="category-link-group relative">
+      <button class="category-link-btn flex items-center text-lg font-bold">
+    Велком паки
+    <i class="fas fa-chevron-down ml-2 text-sm transition-transform"></i>
+  </button>
+    <div class="category-dropdown absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 opacity-0 invisible transition-all duration-300 transform -translate-y-2">
+      <div class="grid grid-cols-1 gap-1 p-3">
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Стартовый набор</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Улучшенный набор</a>
+        <a href="#" class="px-3 py-2 hover:bg-blue-50 rounded-md text-gray-700 hover:text-blue-600">Премиум для компаний</a>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Остальной код секции категорий остается без изменений -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2">
@@ -2078,5 +2343,30 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.add('clicked');
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчики для открытия/закрытия меню при наведении
+    document.querySelectorAll('.category-link-group').forEach(group => {
+        const btn = group.querySelector('.category-link-btn');
+        const dropdown = group.querySelector('.category-dropdown');
+
+        // Открываем при наведении на группу
+        group.addEventListener('mouseenter', function () {
+            dropdown.classList.remove('opacity-0', 'invisible', '-translate-y-2');
+            dropdown.classList.add('opacity-100', 'visible', 'translate-y-0');
+            btn.querySelector('i').classList.add('rotate-180');
+        });
+
+        // Закрываем при уходе с группы
+        group.addEventListener('mouseleave', function () {
+            dropdown.classList.remove('opacity-100', 'visible', 'translate-y-0');
+            dropdown.classList.add('opacity-0', 'invisible', '-translate-y-2');
+            btn.querySelector('i').classList.remove('rotate-180');
+        });
+    })
+})
+
+
+
+
 </script>
 {% endblock %}

@@ -18,9 +18,9 @@
 
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #1d4ed8;
             --primary-light: #3b82f6;
-            --primary-dark: #1d4ed8;
+            --primary-dark: #1e389c;
             --secondary: #f8fafc;
             --accent: #7c3aed;
             --text: #1e293b;
@@ -374,37 +374,48 @@
         }
           /* Добавьте этот стиль в ваш CSS-блок */
 
+.ms-auto {
+    margin-left: auto !important;
+}
 
+.d-flex.gap-3 {
+    margin-left: auto;
+    margin-right: -110px;
+}
 
 </style>
 </head>
 
 <body>
 
+
 <!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
-<nav class="top-navbar bg-white fixed-top border-bottom border-primary" id="top-navbar" style="border-bottom: 3px solid var(--primary) !important;">
+<nav class="top-navbar bg-white fixed-top" id="top-navbar" style="border-bottom: 3px solid var(--primary) !important;">
     <div class="container d-flex justify-content-center">
         <ul class="nav nav-pills gap-4">
             <li class="nav-item">
-                <a class="nav-link px-3 py-2  fw-bold text-primary" href="#application">
+                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#application">  <!-- Увеличили px-3 на px-4 -->
                     <i class></i>{% trans "Нанесение" %}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#design">
+                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#design">  <!-- Увеличили px-3 на px-4 -->
                     <i class></i>{% trans "Дизайн" %}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#stands">
+                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#stands">  <!-- Увеличили px-3 на px-4 -->
                     <i class></i>{% trans "Стенды" %}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 fw-bold text-primary" href="#contacts">
+                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#contacts">  <!-- Увеличили px-3 на px-4 -->
                     <i class></i>{% trans "Контакты" %}
                 </a>
             </li>
+<div class="d-flex align-items-center gap-3">
+            {% include 'includes/language_switcher.html' %}
+        </div>
         </ul>
     </div>
 </nav>
@@ -494,7 +505,7 @@
         </div>
     </div>
 </div>
-                          <form class="search-form flex-grow-1 me-3" action="{% url 'search' %}" method="GET">
+                           <form class="search-form flex-grow-1 me-3" action="{% url 'search' %}" method="GET">
         <div class="input-group">
             <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск ...' %}">
             <button class="btn btn-primary" type="submit">
@@ -535,17 +546,15 @@
                         </li>
                     </ul>
                 </div>
-            {% else %}
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
-                    <i class="fas fa-sign-in-alt me-2"></i>Войти
-                </a>
-                <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
-                    <i class="fas fa-user-plus me-2"></i>Регистрация
-                </a>
-                {% include 'includes/language_switcher.html' %}
-
-            {% endif %}
-        </div>
+                 {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+            <i class="fas fa-sign-in-alt me-2"></i>Войти
+        </a>
+        <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Регистрация
+        </a>
+    {% endif %}
+</div>
     </div>
 </div></div>
           </nav>
