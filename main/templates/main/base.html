@@ -85,6 +85,106 @@
     top: 50px;
     transition: top 0.4s cubic-bezier(0.25, 0.8, 0.5, 1); /* Добавьте эту строку */
 }
+.header.scrolled {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .header.scrolled {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+/* Mega dropdown menu */
+.mega-dropdown {
+    position: static !important;
+}
+
+    .mega-dropdown-menu {
+
+
+    max-width: 1000px;
+    padding: 2rem;
+    margin-top: 0;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: none;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.mega-dropdown-menu .dropdown-header {
+    color: var(--primary);
+    font-weight: 600;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.mega-dropdown-menu .dropdown-item {
+    padding: 0.5rem 1rem;
+    margin: 0.25rem 0;
+    transition: all 0.2s ease;
+    color: var(--text);
+    border-radius: 6px;
+    white-space: normal;
+}
+
+.mega-dropdown-menu .dropdown-item:hover {
+    background-color: rgba(var(--primary-rgb), 0.05);
+    color: var(--primary);
+    padding-left: 1.5rem;
+}
+
+.mega-dropdown-menu .container-fluid {
+    padding-right: 0;
+    padding-left: 0;
+}
+  .mega-dropdown-menu .row {
+        display: flex;
+        flex-wrap: nowrap; /* Отключаем перенос на новую строку */
+        overflow-x: auto; /* Добавляем горизонтальную прокрутку если не помещается */
+        padding-bottom: 10px; /* Пространство для скроллбара */
+    }
+
+    .mega-dropdown-menu .col-lg-4 {
+        flex: 0 0 auto; /* Отключаем автоматическое растягивание */
+        width: 33.333%; /* Фиксируем ширину колонки */
+        min-width: 250px; /* Минимальная ширина колонки */
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-bottom: 0; /* Убираем отступ снизу */
+    }
+
+    /* Стили для скроллбара */
+    .mega-dropdown-menu .row::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .mega-dropdown-menu .row::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+
+    .mega-dropdown-menu .row::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 3px;
+    }
+
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 991.98px) {
+        .mega-dropdown-menu .row {
+            flex-wrap: wrap; /* Включаем перенос на мобильных */
+        }
+
+        .mega-dropdown-menu .col-lg-4 {
+            width: 100%; /* Полная ширина на мобильных */
+            min-width: 100%;
+            margin-bottom: 1.5rem; /* Возвращаем отступ снизу */
+        }
+    }
+
+    .mega-dropdown-menu .col-lg-4:last-child {
+        margin-bottom: 0;
+    }
+
 
 
         .nav-link {
@@ -194,57 +294,12 @@
             border-radius: 3px;
         }
 
-        /* Mega dropdown menu */
-        .mega-dropdown {
-            position: static !important;
-        }
 
-        .mega-dropdown-menu {
-            left: 0;
-            right: 0;
-            width: 100%;
-            padding: 2rem;
-            margin-top: 0;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-
-        .mega-dropdown-menu .dropdown-header {
-            color: var(--primary);
-            font-weight: 600;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .mega-dropdown-menu .dropdown-item {
-            padding: 0.5rem 0;
-            margin: 0.25rem 0;
-            transition: all 0.2s ease;
-            color: var(--text);
-            border-radius: 6px;
-        }
-
-        .mega-dropdown-menu .dropdown-item:hover {
-            background-color: rgba(var(--primary-rgb), 0.05);
-            color: var(--primary);
-            padding-left: 0.5rem;
-        }
-
-        /* Адаптивность */
-        @media (max-width: 992px) {
-            .mega-dropdown-menu {
-                position: relative !important;
-                width: 100% !important;
-                padding: 1rem;
-                box-shadow: none;
-            }
 
             .navbar-collapse {
                 padding: 1rem 0;
             }
-        }
+
 
         @media (max-width: 768px) {
             .main-content {
@@ -318,28 +373,7 @@
             transition: all 0.6s ease;
         }
           /* Добавьте этот стиль в ваш CSS-блок */
-.mega-dropdown-menu .row {
-    display: flex;
-    flex-wrap: wrap;
-    margin-right: -15px;
-    margin-left: -15px;
-}
 
-.mega-dropdown-menu .col-md-4 {
-    position: relative;
-    width: 100%;
-    padding-right: 15px;
-    padding-left: 15px;
-    flex: 0 0 33.333333%;
-    max-width: 33.333333%;
-}
-
-@media (max-width: 768px) {
-    .mega-dropdown-menu .col-md-4 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-}
 
 
 </style>
@@ -391,71 +425,74 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <div class="d-flex align-items-center flex-grow-1">
     <!-- Кнопка Каталог -->
-    <div class="dropdown me-3">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button"
-                id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
-        </button>
-       <ul class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Основные категории -->
-            <div class="col-md-4 mb-3">
-                <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Одежда</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Ручки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Флешки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Ежедневники</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Зонты</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Бизнес и офис</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Брелоки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Съедобные подарки</a></li>
-                </ul>
-            </div>
+    <!-- Кнопка Каталог -->
+<div class="dropdown me-3">
+    <button class="btn btn-outline-primary dropdown-toggle" type="button"
+            id="catalogButton" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
+    </button>
+    <div class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
+        <div class="container-fluid px-0">
+            <div class="row gx-5">
+                <!-- Основные категории -->
+                <div class="col-lg-4">
+                    <div class="mb-4">
+                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
+                        <div class="d-flex flex-column">
+                            <a class="dropdown-item py-2" href="#">Одежда</a>
+                            <a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a>
+                            <a class="dropdown-item py-2" href="#">Ручки</a>
+                            <a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a>
+                            <a class="dropdown-item py-2" href="#">Флешки</a>
+                            <a class="dropdown-item py-2" href="#">Ежедневники</a>
+                            <a class="dropdown-item py-2" href="#">Зонты</a>
+                            <a class="dropdown-item py-2" href="#">Бизнес и офис</a>
+                            <a class="dropdown-item py-2" href="#">Брелоки</a>
+                            <a class="dropdown-item py-2" href="#">Съедобные подарки</a>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Дополнительные категории -->
-            <div class="col-md-4 mb-3">
-                <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Часы и погодные станции</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Дом и быт</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Кухня и бар</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Гаджеты</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Новый год и Рождество</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Сад и инструменты</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Антистрессы</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Подарочная упаковка</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Полиграфия</a></li>
-                </ul>
-            </div>
+                <!-- Дополнительные категории -->
+                <div class="col-lg-4">
+                    <div class="mb-4">
+                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
+                        <div class="d-flex flex-column">
+                            <a class="dropdown-item py-2" href="#">Часы и погодные станции</a>
+                            <a class="dropdown-item py-2" href="#">Дом и быт</a>
+                            <a class="dropdown-item py-2" href="#">Кухня и бар</a>
+                            <a class="dropdown-item py-2" href="#">Гаджеты</a>
+                            <a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a>
+                            <a class="dropdown-item py-2" href="#">Сад и инструменты</a>
+                            <a class="dropdown-item py-2" href="#">Антистрессы</a>
+                            <a class="dropdown-item py-2" href="#">Подарочная упаковка</a>
+                            <a class="dropdown-item py-2" href="#">Полиграфия</a>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Подкатегории одежды -->
-            <div class="col-md-4 mb-3">
-                <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Футболки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Галстуки и платки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Водолазки, джемперы</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Плащи и дождевики</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Майки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Рубашки-поло</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Толстовки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Халаты и тапочки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Шапки, шарфы, перчатки, носки</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Штаны, брюки и шорты</a></li>
-                    <li class="mb-2"><a class="dropdown-item py-2" href="#">Детская одежда</a></li>
-                </ul>
+                <!-- Подкатегории одежды -->
+                <div class="col-lg-4">
+                    <div class="mb-4">
+                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
+                        <div class="d-flex flex-column">
+                            <a class="dropdown-item py-2" href="#">Футболки</a>
+                            <a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a>
+                            <a class="dropdown-item py-2" href="#">Галстуки и платки</a>
+                            <a class="dropdown-item py-2" href="#">Водолазки, джемперы</a>
+                            <a class="dropdown-item py-2" href="#">Плащи и дождевики</a>
+                            <a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a>
+                            <a class="dropdown-item py-2" href="#">Майки</a>
+                            <a class="dropdown-item py-2" href="#">Рубашки</a>
+                            <a class="dropdown-item py-2" href="#">Рубашки-поло</a>
+                            <a class="dropdown-item py-2" href="#">Толстовки</a>
+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
- </div>
-</ul>
+    </div>
 </div>
                           <form class="search-form flex-grow-1 me-3" action="{% url 'search' %}" method="GET">
         <div class="input-group">
@@ -579,6 +616,16 @@
 
           function handleScroll() {
     const currentScroll = window.pageYOffset;
+     // Добавьте этот блок для затенения хедера
+    if (currentScroll > 10) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+
+    if (scrollTimeout) {
+        cancelAnimationFrame(scrollTimeout);
+    }
 
     if (scrollTimeout) {
         cancelAnimationFrame(scrollTimeout);
@@ -612,6 +659,8 @@
         lastScroll = currentScroll;
     });
 }
+
+
             // Инициализация
             updateLayout();
             window.addEventListener('scroll', handleScroll, {passive: true});

@@ -779,6 +779,36 @@
 .subcategory-item:nth-child(3) {
     opacity: 0.2;
 }
+  #help-bubble {
+    position: fixed;
+    right: 24px;
+    top: 50px; /* Изменено с top-20 (5rem/80px) на 3rem/48px */
+    z-index: 9999;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+    #help-bubble.hidden {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+    }
+
+    #help-bubble:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 640px) {
+        #help-bubble {
+            right: 16px;
+            bottom: 16px;
+        }
+
+        #help-bubble .relative > div {
+            width: 220px; /* Немного уменьшаем ширину на мобильных */
+        }
+    }
 
 </style>
 
@@ -1529,48 +1559,31 @@
     </div>
 </div>
 
-<!-- Детская одежда -->
+<!-- Велком-паки -->
 <div class="category-card group p-6">
     <div class="flex items-center mb-4">
         <div class="category-icon-wrapper mr-4">
-            <i class="fas fa-child text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+            <i class="fas fa-hands-helping text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
         </div>
         <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            {% trans "Детская одежда" %}
+            {% trans "Велком-паки" %}
         </h3>
     </div>
-    <div class="subcategory-list">
+   <div class="subcategory-list">
         <ul class="space-y-2 pl-2">
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские футболки" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Стартовый набор" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские толстовки" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Улучшенный набор" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские комбинезоны" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские брюки" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские платья" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские шапки" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детские шарфы" %}</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Премиум для компаний" %}</a>
             </li>
         </ul>
-        <div class="show-more-indicator"></div>
     </div>
     <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
@@ -1821,45 +1834,33 @@
 </div>
 
 
-<!-- Велком-паки -->
-<div class="category-card group p-6">
-    <div class="flex items-center mb-4">
-        <div class="category-icon-wrapper mr-4">
-            <i class="fas fa-box-open text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
-        </div>
-        <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            {% trans "Велком-паки" %}
-        </h3>
-    </div>
-    <div class="subcategory-list">
-        <ul class="space-y-2 pl-2">
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Стартовый набор" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Улучшенный набор" %}</a>
-            </li>
-            <li class="subcategory-item flex items-center">
-                <span class="subcategory-bullet"></span>
-                <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Премиум для компаний" %}</a>
-            </li>
-        </ul>
-    </div>
-    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
-            <i class="fas fa-shopping-cart text-blue-600"></i>
-        </button>
-    </div>
-</div>
+
         </div>
              </div>
+
+
+
+<div id="help-bubble" class="fixed top-20 right-3 z-[9999] hidden">
+    <div class="relative">
+        <div class="bg-white rounded-lg shadow-lg p-4 w-64 animate-bounce">
+            <p class="text-sm text-gray-700 mb-2">Нужна помощь с выбором?</p>
+            <div class="flex justify-between">
+                <button id="close-bubble" class="text-gray-400 hover:text-gray-600 text-sm">
+                    Нет, спасибо
+                </button>
+                <a href="#contact" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                    Да, помочь
+                </a>
+            </div>
+        </div>
+
     </div>
+</div>
+
 </section>
 
 
-</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -2057,5 +2058,25 @@
             });
         }
     });
+document.addEventListener('DOMContentLoaded', function() {
+    const bubble = document.getElementById('help-bubble');
+    const closeBtn = document.getElementById('close-bubble');
+
+    // Показываем через 5 секунд
+    setTimeout(() => {
+        bubble.classList.remove('hidden');
+    }, 10000);
+
+    // Закрытие по кнопке
+    closeBtn.addEventListener('click', function() {
+        bubble.classList.add('hidden');
+    });
+
+
+    // Отмечаем, что было взаимодействие
+    bubble.addEventListener('click', function() {
+        this.classList.add('clicked');
+    });
+});
 </script>
 {% endblock %}
