@@ -1,0 +1,111 @@
+<!-- main/templates/main/product_detail.html -->
+{% extends "main/base.html" %}}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in product.images.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}"
+                             class="d-block w-100"
+                             alt="{{ image.alt_text }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button"
+                        data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button"
+                        data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="lead">
+                {% if product.discount_price %}
+                <span class="text-muted text-decoration-line-through">
+                    {{ product.price }} ₽
+                </span>
+                <span class="text-danger fw-bold">
+                    {{ product.discount_price }} ₽
+                </span>
+                {% else %}
+                <span class="fw-bold">
+                    {{ product.price }} ₽
+                </span>
+                {% endif %}
+            </p>
+
+            <div class="mb-4">
+                <p>{{ product.description }}</p>
+            </div>
+
+            <form action="{% url 'main:add_to_cart' product.id %}" method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="input-group mb-3" style="max-width: 200px;">
+                    <input type="number" name="quantity" value="1" min="1"
+                           class="form-control">
+                    <button type="submit" class="btn btn-primary">
+                        {% trans "Add to Cart" %}
+                    </button>
+                </div>
+            </form>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-heart"></i> {% trans "Wishlist" %}
+                </button>
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-share-alt"></i> {% trans "Share" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if related_products %}
+    <div class="mt-5">
+        <h3>{% trans "Related Products" %}</h3>
+        <div class="row">
+            {% for product in related_products %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <img src="{{ product.images.first.image.url }}"
+                         class="card-img-top"
+                         alt="{{ product.images.first.alt_text }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">
+                            {% if product.discount_price %}
+                            <span class="text-muted text-decoration-line-through">
+                                {{ product.price }} ₽
+                            </span>
+                            <span class="text-danger fw-bold">
+                                {{ product.discount_price }} ₽
+                            </span>
+                            {% else %}
+                            <span class="fw-bold">
+                                {{ product.price }} ₽
+                            </span>
+                            {% endif %}
+                        </p>
+                        <a href="{{ product.get_absolute_url }}"
+                           class="btn btn-primary">
+                            {% trans "View Details" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Хлебные крошки -->
+    <nav class="breadcrumbs mb-6">
+        <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
+        <span class="separator">/</span>
+        <span>{% trans "Поиск" %}</span>
+    </nav>
+
+    <!-- Заголовок поиска -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+            {% trans "Результаты поиска" %} "{{ query }}"
+        </h1>
+        <div class="text-gray-600">
+            {% if page_obj %}
+                {% blocktrans count counter=page_obj.paginator.count %}
+                {{ counter }} товар
+                {% plural %}
+                {{ counter }} товаров
+                {% endblocktrans %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if query %}
+        {% if not page_obj %}
+            <div class="alert alert-info">
+                <p>{% trans "По вашему запросу" %} <strong>"{{ query }}"</strong> {% trans "ничего не найдено." %}</p>
+                <p>{% trans "Попробуйте изменить ключевые слова и поискать еще раз." %}</p>
+            </div>
+        {% else %}
+            <!-- Список товаров -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in page_obj %}
+                <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+                    <a href="{{ product.get_absolute_url }}" class="block">
+                        <div class="aspect-w-1 aspect-h-1 bg-gray-100">
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}"
+                                 class="object-cover w-full h-full">
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    {% if product.has_discount %}
+                                    <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
+                                    <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
+                                    {% else %}
+                                    <span class="font-bold">{{ product.price }} ₽</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.is_new %}
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    <div class="px-4 pb-4">
+                        <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                                data-product-id="{{ product.id }}">
+                            {% trans "В корзину" %}
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?q={{ query }}&page=1" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</a>
+                    <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&lsaquo;</a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="px-3 py-1 border rounded bg-blue-600 text-white">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?q={{ query }}&page={{ num }}" class="px-3 py-1 border rounded hover:bg-gray-100">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&rsaquo;</a>
+                    <a href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning">
+            {% trans "Вы не указали поисковый запрос." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавление в корзину
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.getAttribute('data-product-id');
+
+            fetch(`/ru/add-to-cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData()
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Обновление счетчика корзины в шапке
+                    if (data.cart_total) {
+                        document.getElementById('cart-count').textContent = data.cart_total;
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

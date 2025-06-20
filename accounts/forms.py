@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Company, CustomUser, Document, Order
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate
 
 class CompanyRegistrationForm(forms.ModelForm):
     password = forms.CharField(
@@ -69,7 +70,30 @@ class OrderCreateForm(forms.ModelForm):
             'excel_file': forms.FileInput(attrs={'accept': '.xlsx,.xls'})
         }
 
+
+
+
 class EmailAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'Email'
+
+    def clean(self):
+        email = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if email and password:
+            self.user_cache = authenticate(
+                request=self.request,
+                email=email,
+                password=password
+            )
+            if self.user_cache is None:
+                raise forms.ValidationError(
+                    "Неправильный email или пароль."
+                )
+            elif not self.user_cache.is_active:
+                raise forms.ValidationError(
+                    "Аккаунт не активирован. Проверьте вашу почту."
+                )
+        return self.cleaned_data

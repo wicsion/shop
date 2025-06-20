@@ -1,0 +1,68 @@
+[
+  {
+    "model": "main.product",
+    "pk": 1,
+    "fields": {
+      "name": "Ноутбук Acer Aspire 5",
+      "slug": "acer-aspire-5",
+      "category": 1,
+      "brand": 1,
+      "sku": "ACR-ASP5-001",
+      "short_description": "Мощный ноутбук для работы и развлечений",
+      "description": "Ноутбук Acer Aspire 5 с процессором Intel Core i5, 8 ГБ оперативной памяти и SSD на 512 ГБ. Идеален для работы и мультимедиа.",
+      "price": 54990.00,
+      "old_price": 59990.00,
+      "is_featured": true,
+      "is_new": true,
+      "is_bestseller": false,
+      "in_stock": true,
+      "quantity": 15,
+      "created_at": "2023-01-15T10:00:00Z",
+      "updated_at": "2023-01-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "main.product",
+    "pk": 2,
+    "fields": {
+      "name": "Монитор Acer Nitro XV272U",
+      "slug": "acer-nitro-xv272u",
+      "category": 2,
+      "brand": 1,
+      "sku": "ACR-NIT-XV272U",
+      "short_description": "Игровой монитор 27\" с разрешением QHD",
+      "description": "Монитор Acer Nitro XV272U с IPS матрицей, разрешением 2560x1440, частотой обновления 170 Гц и временем отклика 1 мс. Идеален для геймеров.",
+      "price": 32990.00,
+      "old_price": null,
+      "is_featured": false,
+      "is_new": true,
+      "is_bestseller": true,
+      "in_stock": true,
+      "quantity": 8,
+      "created_at": "2023-02-10T10:00:00Z",
+      "updated_at": "2023-02-10T10:00:00Z"
+    }
+  },
+  {
+    "model": "main.product",
+    "pk": 3,
+    "fields": {
+      "name": "Сумка Altavolo Milano",
+      "slug": "altavolo-milano",
+      "category": 3,
+      "brand": 2,
+      "sku": "ALT-MIL-001",
+      "short_description": "Стильная кожаная сумка через плечо",
+      "description": "Кожаная сумка Altavolo Milano с отделением для ноутбука до 15.6\", несколькими карманами и регулируемым ремнем. Материал - натуральная кожа.",
+      "price": 12990.00,
+      "old_price": 14990.00,
+      "is_featured": true,
+      "is_new": false,
+      "is_bestseller": true,
+      "in_stock": true,
+      "quantity": 10,
+      "created_at": "2022-11-20T10:00:00Z",
+      "updated_at": "2022-11-20T10:00:00Z"
+    }
+  }
+ ]

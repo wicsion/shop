@@ -1,0 +1,1025 @@
+[
+  {
+    "model": "main.brand",
+    "pk": 1,
+    "fields": {
+      "name": "Acer",
+      "slug": "acer",
+      "logo": "brands/acer.png",
+      "description": "Acer - ведущий производитель компьютерной техники и электроники, предлагающий инновационные решения для дома и офиса.",
+      "additional_info": "Компания Acer была основана в 1976 году и с тех пор является одним из лидеров на рынке компьютерной техники. Продукция бренда включает ноутбуки, мониторы, проекторы и другую электронику."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 2,
+    "fields": {
+      "name": "Altavolo",
+      "slug": "altavolo",
+      "logo": "brands/altavolo.png",
+      "description": "Altavolo - итальянский бренд, специализирующийся на производстве стильных и функциональных аксессуаров.",
+      "additional_info": "Бренд Altavolo сочетает в своих продуктах итальянский дизайн и высокое качество материалов. Ассортимент включает сумки, кошельки и другие аксессуары."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 3,
+    "fields": {
+      "name": "Andor",
+      "slug": "andor",
+      "logo": "brands/andor.png",
+      "description": "Andor предлагает широкий ассортимент товаров для дома и офиса с акцентом на качество и функциональность.",
+      "additional_info": "Бренд Andor известен своими практичными решениями для организации пространства и хранения вещей."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 4,
+    "fields": {
+      "name": "Apollo",
+      "slug": "apollo",
+      "logo": "brands/apollo.png",
+      "description": "Apollo - бренд спортивного инвентаря и товаров для активного отдыха.",
+      "additional_info": "Продукция Apollo включает велосипеды, спортивные аксессуары и снаряжение для туризма."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 5,
+    "fields": {
+      "name": "Author's",
+      "slug": "authors",
+      "logo": "brands/authors.png",
+      "description": "Author's - эксклюзивные авторские изделия ручной работы.",
+      "additional_info": "Бренд Author's представляет уникальные изделия, созданные мастерами вручную с использованием качественных материалов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 6,
+    "fields": {
+      "name": "Avoska",
+      "slug": "avoska",
+      "logo": "brands/avoska.png",
+      "description": "Avoska - стильные и экологичные сетчатые сумки для покупок.",
+      "additional_info": "Сумки Avoska - это современная интерпретация классических советских авосек, выполненных из экологичных материалов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 7,
+    "fields": {
+      "name": "B&C Collection",
+      "slug": "bc-collection",
+      "logo": "brands/bc-collection.png",
+      "description": "B&C Collection - элегантные аксессуары и предметы интерьера.",
+      "additional_info": "Бренд предлагает изысканные решения для дома и подарков, сочетающие функциональность и стиль."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 8,
+    "fields": {
+      "name": "Bobber",
+      "slug": "bobber",
+      "logo": "brands/bobber.png",
+      "description": "Bobber - стильные и практичные аксессуары для современных людей.",
+      "additional_info": "Ассортимент Bobber включает сумки, кошельки и другие аксессуары с оригинальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 9,
+    "fields": {
+      "name": "Bric's",
+      "slug": "brics",
+      "logo": "brands/brics.png",
+      "description": "Bric's - итальянский бренд роскошных дорожных аксессуаров и сумок.",
+      "additional_info": "Основанный в 1952 году, бренд Bric's славится своими элегантными чемоданами и аксессуарами для путешествий."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 10,
+    "fields": {
+      "name": "Bugatti",
+      "slug": "bugatti",
+      "logo": "brands/bugatti.png",
+      "description": "Bugatti - эксклюзивные аксессуары и подарки от легендарного бренда.",
+      "additional_info": "Bugatti предлагает стильные аксессуары, вдохновленные дизайном их знаменитых автомобилей."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 11,
+    "fields": {
+      "name": "Burst",
+      "slug": "burst",
+      "logo": "brands/burst.png",
+      "description": "Burst - современные гаджеты и аксессуары для технологичного образа жизни.",
+      "additional_info": "Бренд Burst специализируется на инновационных продуктах, которые делают жизнь удобнее."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 12,
+    "fields": {
+      "name": "Careon",
+      "slug": "careon",
+      "logo": "brands/careon.png",
+      "description": "Careon - качественные товары для ухода за домом и офисом.",
+      "additional_info": "Ассортимент Careon включает практичные решения для организации пространства и уборки."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 13,
+    "fields": {
+      "name": "Colop",
+      "slug": "colop",
+      "logo": "brands/colop.png",
+      "description": "Colop - австрийский производитель печатей и штампов премиум-класса.",
+      "additional_info": "Основанная в 1925 году, компания Colop является мировым лидером в производстве печатей и штампов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 14,
+    "fields": {
+      "name": "CoolColor",
+      "slug": "coolcolor",
+      "logo": "brands/coolcolor.png",
+      "description": "CoolColor - яркие и стильные канцелярские товары и аксессуары.",
+      "additional_info": "Бренд CoolColor предлагает креативные решения для офиса и творчества с необычным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 15,
+    "fields": {
+      "name": "Coreflect",
+      "slug": "coreflect",
+      "logo": "brands/coreflect.png",
+      "description": "Coreflect - инновационные решения для организации рабочего пространства.",
+      "additional_info": "Продукция Coreflect помогает эффективно организовать рабочее место и хранить документы."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 16,
+    "fields": {
+      "name": "Delsey",
+      "slug": "delsey",
+      "logo": "brands/delsey.png",
+      "description": "Delsey - французский бренд чемоданов и дорожных аксессуаров.",
+      "additional_info": "Основанный в 1946 году, Delsey сочетает французский шик с инновационными технологиями в производстве чемоданов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 17,
+    "fields": {
+      "name": "Digma",
+      "slug": "digma",
+      "logo": "brands/digma.png",
+      "description": "Digma - российский производитель электроники и гаджетов.",
+      "additional_info": "Бренд Digma предлагает доступные и качественные электронные устройства для повседневного использования."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 18,
+    "fields": {
+      "name": "Doppler",
+      "slug": "doppler",
+      "logo": "brands/doppler.png",
+      "description": "Doppler - стильные и функциональные аксессуары для современного образа жизни.",
+      "additional_info": "Ассортимент Doppler включает сумки, кошельки и другие аксессуары с современным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 19,
+    "fields": {
+      "name": "Echolac",
+      "slug": "echolac",
+      "logo": "brands/echolac.png",
+      "description": "Echolac - японский бренд чемоданов и дорожных аксессуаров.",
+      "additional_info": "Бренд Echolac сочетает японское качество с инновационными технологиями в производстве дорожных сумок."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 20,
+    "fields": {
+      "name": "Ermenrich",
+      "slug": "ermenrich",
+      "logo": "brands/ermenrich.png",
+      "description": "Ermenrich - элегантные аксессуары и подарки премиум-класса.",
+      "additional_info": "Продукция Ermenrich отличается изысканным дизайном и высоким качеством исполнения."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 21,
+    "fields": {
+      "name": "Escalada",
+      "slug": "escalada",
+      "logo": "brands/escalada.png",
+      "description": "Escalada - спортивные сумки и аксессуары для активного образа жизни.",
+      "additional_info": "Бренд Escalada предлагает прочные и функциональные сумки для спорта и путешествий."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 22,
+    "fields": {
+      "name": "Fare",
+      "slug": "fare",
+      "logo": "brands/fare.png",
+      "description": "Fare - минималистичные и стильные аксессуары для повседневного использования.",
+      "additional_info": "Ассортимент Fare включает кошельки, визитницы и другие аксессуары с лаконичным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 23,
+    "fields": {
+      "name": "Ganzo",
+      "slug": "ganzo",
+      "logo": "brands/ganzo.png",
+      "description": "Ganzo - качественные ножи и мультитулы для работы и отдыха.",
+      "additional_info": "Бренд Ganzo предлагает надежные инструменты для различных задач по доступным ценам."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 24,
+    "fields": {
+      "name": "GoGadget",
+      "slug": "gogadget",
+      "logo": "brands/gogadget.png",
+      "description": "GoGadget - инновационные гаджеты и аксессуары для технологичного образа жизни.",
+      "additional_info": "Ассортимент GoGadget включает умные устройства и аксессуары, которые делают жизнь удобнее."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 25,
+    "fields": {
+      "name": "Hard Work",
+      "slug": "hard-work",
+      "logo": "brands/hard-work.png",
+      "description": "Hard Work - прочные и надежные товары для работы и активного отдыха.",
+      "additional_info": "Бренд Hard Work предлагает качественные инструменты и снаряжение для различных задач."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 26,
+    "fields": {
+      "name": "Huzzle. Головоломки",
+      "slug": "huzzle",
+      "logo": "brands/huzzle.png",
+      "description": "Huzzle - развивающие головоломки и интеллектуальные игры.",
+      "additional_info": "Головоломки Huzzle помогают развивать логическое мышление и когнитивные способности."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 27,
+    "fields": {
+      "name": "Ideus",
+      "slug": "ideus",
+      "logo": "brands/ideus.png",
+      "description": "Ideus - стильные и функциональные аксессуары для современного человека.",
+      "additional_info": "Ассортимент Ideus включает сумки, кошельки и другие аксессуары с оригинальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 28,
+    "fields": {
+      "name": "Indivo",
+      "slug": "indivo",
+      "logo": "brands/indivo.png",
+      "description": "Indivo - элегантные аксессуары и подарки для деловых людей.",
+      "additional_info": "Бренд Indivo предлагает изысканные решения для бизнес-подарков и аксессуаров."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 29,
+    "fields": {
+      "name": "Inspire",
+      "slug": "inspire",
+      "logo": "brands/inspire.png",
+      "description": "Inspire - мотивирующие подарки и аксессуары для творческих людей.",
+      "additional_info": "Продукция Inspire создана для вдохновения и поддержания творческого настроения."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 30,
+    "fields": {
+      "name": "IQ Puzzle",
+      "slug": "iq-puzzle",
+      "logo": "brands/iq-puzzle.png",
+      "description": "IQ Puzzle - интеллектуальные игры и головоломки для развития мышления.",
+      "additional_info": "Головоломки IQ Puzzle помогают развивать логику, память и пространственное мышление."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 31,
+    "fields": {
+      "name": "James Harvest",
+      "slug": "james-harvest",
+      "logo": "brands/james-harvest.png",
+      "description": "James Harvest - классические кожаные аксессуары ручной работы.",
+      "additional_info": "Бренд James Harvest предлагает изделия из натуральной кожи, выполненные в традиционном стиле."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 32,
+    "fields": {
+      "name": "Klymit",
+      "slug": "klymit",
+      "logo": "brands/klymit.png",
+      "description": "Klymit - инновационное снаряжение для туризма и активного отдыха.",
+      "additional_info": "Продукция Klymit отличается уникальными технологиями, обеспечивающими комфорт в любых условиях."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 33,
+    "fields": {
+      "name": "Knirps",
+      "slug": "knirps",
+      "logo": "brands/knirps.png",
+      "description": "Knirps - немецкий бренд зонтов и аксессуаров премиум-класса.",
+      "additional_info": "Основанный в 1928 году, Knirps является синонимом качества и надежности в производстве зонтов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 34,
+    "fields": {
+      "name": "Lamark",
+      "slug": "lamark",
+      "logo": "brands/lamark.png",
+      "description": "Lamark - экологичные товары для дома и офиса.",
+      "additional_info": "Бренд Lamark предлагает продукты из натуральных и перерабатываемых материалов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 35,
+    "fields": {
+      "name": "Leatherman",
+      "slug": "leatherman",
+      "logo": "brands/leatherman.png",
+      "description": "Leatherman - американский производитель мультитулов и инструментов.",
+      "additional_info": "Основанная в 1983 году, компания Leatherman является лидером в производстве многофункциональных инструментов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 36,
+    "fields": {
+      "name": "Levenhuk",
+      "slug": "levenhuk",
+      "logo": "brands/levenhuk.png",
+      "description": "Levenhuk - оптические приборы и научные игрушки для детей и взрослых.",
+      "additional_info": "Бренд Levenhuk предлагает микроскопы, телескопы и другие оптические приборы для обучения и развлечения."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 37,
+    "fields": {
+      "name": "Luva",
+      "slug": "luva",
+      "logo": "brands/luva.png",
+      "description": "Luva - стильные и практичные аксессуары для повседневного использования.",
+      "additional_info": "Ассортимент Luva включает сумки, кошельки и другие аксессуары с современным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 38,
+    "fields": {
+      "name": "Magellan",
+      "slug": "magellan",
+      "logo": "brands/magellan.png",
+      "description": "Magellan - туристическое снаряжение и аксессуары для путешествий.",
+      "additional_info": "Бренд Magellan предлагает качественное снаряжение для комфортных путешествий."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 39,
+    "fields": {
+      "name": "Mandarina Duck",
+      "slug": "mandarina-duck",
+      "logo": "brands/mandarina-duck.png",
+      "description": "Mandarina Duck - итальянский бренд сумок и аксессуаров премиум-класса.",
+      "additional_info": "Основанный в 1977 году, бренд Mandarina Duck известен своими инновационными дизайнами и качественными материалами."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 40,
+    "fields": {
+      "name": "Manevr",
+      "slug": "manevr",
+      "logo": "brands/manevr.png",
+      "description": "Manevr - тактическое снаряжение и аксессуары для активного отдыха.",
+      "additional_info": "Продукция Manevr разработана для экстремальных условий и отличается повышенной прочностью."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 41,
+    "fields": {
+      "name": "Marzotto",
+      "slug": "marzotto",
+      "logo": "brands/marzotto.png",
+      "description": "Marzotto - итальянские текстильные изделия и аксессуары.",
+      "additional_info": "Бренд Marzotto предлагает изделия из высококачественных тканей с изысканным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 42,
+    "fields": {
+      "name": "Matteo Tantini",
+      "slug": "matteo-tantini",
+      "logo": "brands/matteo-tantini.png",
+      "description": "Matteo Tantini - роскошные кожаные аксессуары ручной работы.",
+      "additional_info": "Изделия Matteo Tantini создаются вручную из отборных сортов кожи с вниманием к деталям."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 43,
+    "fields": {
+      "name": "Molti",
+      "slug": "molti",
+      "logo": "brands/molti.png",
+      "description": "Molti - стильные и функциональные товары для дома и офиса.",
+      "additional_info": "Ассортимент Molti включает практичные решения для организации пространства с современным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 44,
+    "fields": {
+      "name": "Newonce",
+      "slug": "newonce",
+      "logo": "brands/newonce.png",
+      "description": "Newonce - модные аксессуары и подарки для современной молодежи.",
+      "additional_info": "Бренд Newonce отражает актуальные тренды и предлагает стильные решения для повседневного использования."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 45,
+    "fields": {
+      "name": "Ninebot",
+      "slug": "ninebot",
+      "logo": "brands/ninebot.png",
+      "description": "Ninebot - инновационные средства персонального транспорта и гаджеты.",
+      "additional_info": "Бренд Ninebot предлагает электросамокаты, гироскутеры и другие устройства для мобильного образа жизни."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 46,
+    "fields": {
+      "name": "oPen",
+      "slug": "open",
+      "logo": "brands/open.png",
+      "description": "oPen - стильные и функциональные письменные принадлежности.",
+      "additional_info": "Ассортимент oPen включает ручки, карандаши и другие канцелярские товары с оригинальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 47,
+    "fields": {
+      "name": "Parker",
+      "slug": "parker",
+      "logo": "brands/parker.png",
+      "description": "Parker - легендарный бренд пишущих инструментов премиум-класса.",
+      "additional_info": "Основанная в 1888 году, компания Parker является символом качества и элегантности в мире пишущих инструментов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 48,
+    "fields": {
+      "name": "Pasabahce",
+      "slug": "pasabahce",
+      "logo": "brands/pasabahce.png",
+      "description": "Pasabahce - турецкий бренд стеклянной посуды и предметов сервировки.",
+      "additional_info": "Бренд Pasabahce предлагает широкий ассортимент стеклянных изделий для дома и ресторанов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 49,
+    "fields": {
+      "name": "Philippi",
+      "slug": "philippi",
+      "logo": "brands/philippi.png",
+      "description": "Philippi - немецкий бренд дизайнерских предметов для дома и подарков.",
+      "additional_info": "Продукция Philippi отличается минималистичным дизайном и высоким качеством материалов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 50,
+    "fields": {
+      "name": "Pininfarina",
+      "slug": "pininfarina",
+      "logo": "brands/pininfarina.png",
+      "description": "Pininfarina - итальянский дизайнерский дом, создающий эксклюзивные аксессуары.",
+      "additional_info": "Бренд Pininfarina известен своими элегантными дизайнами, вдохновленными миром автомобилей."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 51,
+    "fields": {
+      "name": "Piquadro",
+      "slug": "piquadro",
+      "logo": "brands/piquadro.png",
+      "description": "Piquadro - итальянские кожаные аксессуары для деловых людей.",
+      "additional_info": "Бренд Piquadro предлагает портфели, сумки и другие аксессуары из высококачественной кожи."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 52,
+    "fields": {
+      "name": "Pleep",
+      "slug": "pleep",
+      "logo": "brands/pleep.png",
+      "description": "Pleep - оригинальные подарки и аксессуары с креативным дизайном.",
+      "additional_info": "Ассортимент Pleep включает необычные подарки и аксессуары, которые удивят и порадуют."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 53,
+    "fields": {
+      "name": "Prodir",
+      "slug": "prodir",
+      "logo": "brands/prodir.png",
+      "description": "Prodir - швейцарский производитель пишущих инструментов и промо-продукции.",
+      "additional_info": "Бренд Prodir предлагает широкий выбор ручек и других пишущих инструментов для бизнес-подарков."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 54,
+    "fields": {
+      "name": "Regent inox",
+      "slug": "regent-inox",
+      "logo": "brands/regent-inox.png",
+      "description": "Regent inox - нержавеющая сталь и кухонные аксессуары.",
+      "additional_info": "Продукция Regent inox отличается высоким качеством и долговечностью."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 55,
+    "fields": {
+      "name": "Reisenthel",
+      "slug": "reisenthel",
+      "logo": "brands/reisenthel.png",
+      "description": "Reisenthel - немецкий бренд складных сумок и аксессуаров.",
+      "additional_info": "Бренд Reisenthel предлагает практичные и компактные решения для покупок и путешествий."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 56,
+    "fields": {
+      "name": "Relaxika",
+      "slug": "relaxika",
+      "logo": "brands/relaxika.png",
+      "description": "Relaxika - товары для релаксации и комфортного отдыха.",
+      "additional_info": "Ассортимент Relaxika включает подушки, пледы и другие аксессуары для создания уюта."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 57,
+    "fields": {
+      "name": "Rene Royal",
+      "slug": "rene-royal",
+      "logo": "brands/rene-royal.png",
+      "description": "Rene Royal - роскошные подарки и аксессуары премиум-класса.",
+      "additional_info": "Бренд Rene Royal предлагает эксклюзивные изделия для взыскательных клиентов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 58,
+    "fields": {
+      "name": "Rezolution",
+      "slug": "rezolution",
+      "logo": "brands/rezolution.png",
+      "description": "Rezolution - современные аксессуары и гаджеты для активного образа жизни.",
+      "additional_info": "Продукция Rezolution сочетает стильный дизайн с функциональностью."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 59,
+    "fields": {
+      "name": "Ritter-Pen",
+      "slug": "ritter-pen",
+      "logo": "brands/ritter-pen.png",
+      "description": "Ritter-Pen - немецкие пишущие инструменты премиум-класса.",
+      "additional_info": "Бренд Ritter-Pen известен своими высококачественными ручками с элегантным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 60,
+    "fields": {
+      "name": "Roncato",
+      "slug": "roncato",
+      "logo": "brands/roncato.png",
+      "description": "Roncato - итальянские чемоданы и дорожные аксессуары.",
+      "additional_info": "Бренд Roncato предлагает легкие и прочные чемоданы с современными технологиями."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 61,
+    "fields": {
+      "name": "Roxon. Мультитулы",
+      "slug": "roxon",
+      "logo": "brands/roxon.png",
+      "description": "Roxon - многофункциональные инструменты и ножи для работы и отдыха.",
+      "additional_info": "Мультитулы Roxon отличаются надежностью и удобством в использовании."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 62,
+    "fields": {
+      "name": "Sber",
+      "slug": "sber",
+      "logo": "brands/sber.png",
+      "description": "Sber - официальная продукция Сбербанка: подарки и аксессуары.",
+      "additional_info": "Бренд Sber предлагает корпоративные подарки и аксессуары с фирменной символикой."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 63,
+    "fields": {
+      "name": "Senator",
+      "slug": "senator",
+      "logo": "brands/senator.png",
+      "description": "Senator - британский бренд пишущих инструментов и аксессуаров.",
+      "additional_info": "Бренд Senator предлагает классические пишущие инструменты с традиционным британским стилем."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 64,
+    "fields": {
+      "name": "Sherst",
+      "slug": "sherst",
+      "logo": "brands/sherst.png",
+      "description": "Sherst - уютные шерстяные изделия и аксессуары.",
+      "additional_info": "Ассортимент Sherst включает теплые и мягкие изделия из натуральной шерсти."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 65,
+    "fields": {
+      "name": "Sol's",
+      "slug": "sols",
+      "logo": "brands/sols.png",
+      "description": "Sol's - стильные и удобные аксессуары для повседневного использования.",
+      "additional_info": "Бренд Sol's предлагает практичные решения с оригинальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 66,
+    "fields": {
+      "name": "Stanley",
+      "slug": "stanley",
+      "logo": "brands/stanley.png",
+      "description": "Stanley - американский бренд прочных термосов и товаров для активного отдыха.",
+      "additional_info": "Основанная в 1913 году, компания Stanley является синонимом надежности и долговечности."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 67,
+    "fields": {
+      "name": "Stilolinea",
+      "slug": "stilolinea",
+      "logo": "brands/stilolinea.png",
+      "description": "Stilolinea - итальянские кожаные аксессуары и подарки.",
+      "additional_info": "Бренд Stilolinea предлагает изделия из натуральной кожи с изысканным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 68,
+    "fields": {
+      "name": "Stormtech",
+      "slug": "stormtech",
+      "logo": "brands/stormtech.png",
+      "description": "Stormtech - канадский бренд непромокаемой одежды и аксессуаров.",
+      "additional_info": "Продукция Stormtech разработана для защиты от непогоды и отличается высоким качеством."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 69,
+    "fields": {
+      "name": "Stride",
+      "slug": "stride",
+      "logo": "brands/stride.png",
+      "description": "Stride - стильные и функциональные аксессуары для современного человека.",
+      "additional_info": "Ассортимент Stride включает сумки, кошельки и другие аксессуары с оригинальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 70,
+    "fields": {
+      "name": "T-Bolka",
+      "slug": "t-bolka",
+      "logo": "brands/t-bolka.png",
+      "description": "T-Bolka - оригинальные подарки и сувениры с креативным дизайном.",
+      "additional_info": "Бренд T-Bolka предлагает необычные подарки, которые удивят и порадуют."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 71,
+    "fields": {
+      "name": "teplo",
+      "slug": "teplo",
+      "logo": "brands/teplo.png",
+      "description": "teplo - уютные аксессуары и подарки для создания теплой атмосферы.",
+      "additional_info": "Ассортимент teplo включает пледы, подушки и другие аксессуары для комфортного отдыха."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 72,
+    "fields": {
+      "name": "TH Clothes",
+      "slug": "th-clothes",
+      "logo": "brands/th-clothes.png",
+      "description": "TH Clothes - стильная одежда и аксессуары для повседневного ношения.",
+      "additional_info": "Бренд TH Clothes предлагает модные решения с акцентом на комфорт и качество."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 73,
+    "fields": {
+      "name": "Thermalli",
+      "slug": "thermalli",
+      "logo": "brands/thermalli.png",
+      "description": "Thermalli - термопосуда и аксессуары для сохранения температуры напитков.",
+      "additional_info": "Продукция Thermalli помогает сохранять напитки горячими или холодными в течение длительного времени."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 74,
+    "fields": {
+      "name": "Thermos",
+      "slug": "thermos",
+      "logo": "brands/thermos.png",
+      "description": "Thermos - легендарные термосы и термокружки премиум-класса.",
+      "additional_info": "Основанная в 1904 году, компания Thermos является мировым лидером в производстве термосов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 75,
+    "fields": {
+      "name": "Tony Perotti",
+      "slug": "tony-perotti",
+      "logo": "brands/tony-perotti.png",
+      "description": "Tony Perotti - итальянские кожаные аксессуары и подарки.",
+      "additional_info": "Бренд Tony Perotti предлагает изделия из высококачественной кожи с элегантным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 76,
+    "fields": {
+      "name": "TP-Link",
+      "slug": "tp-link",
+      "logo": "brands/tp-link.png",
+      "description": "TP-Link - сетевые устройства и гаджеты для дома и офиса.",
+      "additional_info": "Бренд TP-Link предлагает широкий ассортимент сетевого оборудования и аксессуаров."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 77,
+    "fields": {
+      "name": "Tribe",
+      "slug": "tribe",
+      "logo": "brands/tribe.png",
+      "description": "Tribe - стильные аксессуары и подарки для активного образа жизни.",
+      "additional_info": "Ассортимент Tribe включает практичные решения с современным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 78,
+    "fields": {
+      "name": "Troika",
+      "slug": "troika",
+      "logo": "brands/troika.png",
+      "description": "Troika - немецкие пишущие инструменты и аксессуары премиум-класса.",
+      "additional_info": "Бренд Troika предлагает элегантные пишущие инструменты с уникальным дизайном."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 79,
+    "fields": {
+      "name": "Uniscend",
+      "slug": "uniscend",
+      "logo": "brands/uniscend.png",
+      "description": "Uniscend - инновационные гаджеты и аксессуары для технологичного образа жизни.",
+      "additional_info": "Продукция Uniscend включает умные устройства и аксессуары, которые делают жизнь удобнее."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 80,
+    "fields": {
+      "name": "Unit",
+      "slug": "unit",
+      "logo": "brands/unit.png",
+      "description": "Unit - минималистичные и функциональные аксессуары для повседневного использования.",
+      "additional_info": "Бренд Unit предлагает лаконичные решения с акцентом на функциональность."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 81,
+    "fields": {
+      "name": "Very Marque",
+      "slug": "very-marque",
+      "logo": "brands/very-marque.png",
+      "description": "Very Marque - роскошные подарки и аксессуары премиум-класса.",
+      "additional_info": "Ассортимент Very Marque включает эксклюзивные изделия для взыскательных клиентов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 82,
+    "fields": {
+      "name": "Victorinox",
+      "slug": "victorinox",
+      "logo": "brands/victorinox.png",
+      "description": "Victorinox - швейцарские ножи и мультитулы легендарного качества.",
+      "additional_info": "Основанная в 1884 году, компания Victorinox является символом швейцарского качества и надежности."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 83,
+    "fields": {
+      "name": "Wenger",
+      "slug": "wenger",
+      "logo": "brands/wenger.png",
+      "description": "Wenger - швейцарские ножи и аксессуары с традиционным качеством.",
+      "additional_info": "Бренд Wenger предлагает надежные инструменты и аксессуары, изготовленные с соблюдением высоких стандартов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 84,
+    "fields": {
+      "name": "Xiaomi",
+      "slug": "xiaomi",
+      "logo": "brands/xiaomi.png",
+      "description": "Xiaomi - инновационные гаджеты и электроника от китайского технологического гиганта.",
+      "additional_info": "Компания Xiaomi предлагает широкий ассортимент электронных устройств и аксессуаров по доступным ценам."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 85,
+    "fields": {
+      "name": "Zippo",
+      "slug": "zippo",
+      "logo": "brands/zippo.png",
+      "description": "Zippo - легендарные зажигалки и аксессуары из США.",
+      "additional_info": "Основанная в 1932 году, компания Zippo известна своими надежными зажигалками с пожизненной гарантией."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 86,
+    "fields": {
+      "name": "Арктика",
+      "slug": "arktika",
+      "logo": "brands/arktika.png",
+      "description": "Арктика - теплая одежда и аксессуары для холодного климата.",
+      "additional_info": "Бренд Арктика предлагает качественные изделия для защиты от экстремально низких температур."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 87,
+    "fields": {
+      "name": "Башкирский фарфоровый завод",
+      "slug": "bashkir-porcelain",
+      "logo": "brands/bashkir-porcelain.png",
+      "description": "Башкирский фарфоровый завод - традиционная фарфоровая посуда и сувениры.",
+      "additional_info": "Предприятие сохраняет традиции русского фарфора и предлагает широкий ассортимент изделий."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 88,
+    "fields": {
+      "name": "БЗРП",
+      "slug": "bzrp",
+      "logo": "brands/bzrp.png",
+      "description": "БЗРП - белорусские текстильные изделия и подарки.",
+      "additional_info": "Бренд БЗРП предлагает качественные текстильные изделия, изготовленные в Беларуси."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 89,
+    "fields": {
+      "name": "Адъютант",
+      "slug": "adyutant",
+      "logo": "brands/adyutant.png",
+      "description": "Адъютант - стильные аксессуары и подарки для деловых людей.",
+      "additional_info": "Бренд Адъютант предлагает элегантные решения для бизнес-подарков и аксессуаров."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 90,
+    "fields": {
+      "name": "Контекст",
+      "slug": "kontekst",
+      "logo": "brands/kontekst.png",
+      "description": "Контекст - интеллектуальные подарки и аксессуары для творческих людей.",
+      "additional_info": "Ассортимент Контекст включает оригинальные подарки, вдохновленные искусством и литературой."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 91,
+    "fields": {
+      "name": "Арт-проект Принтэссенция",
+      "slug": "printessentsiya",
+      "logo": "brands/printessentsiya.png",
+      "description": "Арт-проект Принтэссенция - авторские художественные изделия и подарки.",
+      "additional_info": "Бренд предлагает уникальные изделия, созданные художниками вручную."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 92,
+    "fields": {
+      "name": "Соль",
+      "slug": "sol",
+      "logo": "brands/sol.png",
+      "description": "Соль - экологичные товары для дома с натуральными ингредиентами.",
+      "additional_info": "Ассортимент Соль включает продукты для дома, изготовленные из натуральных и безопасных материалов."
+    }
+  },
+  {
+    "model": "main.brand",
+    "pk": 93,
+    "fields": {
+      "name": "Яндекс",
+      "slug": "yandex",
+      "logo": "brands/yandex.png",
+      "description": "Яндекс - официальная продукция технологической компании: подарки и аксессуары.",
+      "additional_info": "Бренд Яндекс предлагает фирменные подарки и аксессуары с узнаваемым дизайном."
+    }
+  }
+]

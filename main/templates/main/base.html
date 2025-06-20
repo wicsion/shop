@@ -82,7 +82,7 @@
 }
 #main-header {
     z-index: 1020;
-    top: 50px;
+    top: 40px;
     transition: top 0.4s cubic-bezier(0.25, 0.8, 0.5, 1); /* Добавьте эту строку */
 }
 .header.scrolled {
@@ -232,7 +232,7 @@
             box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
 
-        .btn-outline-primary {
+       .btn-outline-primary {
             color: var(--primary);
             border-color: var(--primary);
         }
@@ -383,6 +383,132 @@
     margin-right: -110px;
 }
 
+
+.navbar-brand {
+    margin-right: 40px;
+    padding-left: 20px ;
+    margin-left: -120px; /
+}
+
+/* Для мобильной версии можно добавить */
+@media (max-width: 991.98px) {
+    .navbar-brand {
+        margin-left: 0;
+    }
+}
+.search-form {
+    position: relative;
+}
+
+#search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: var(--bg);
+    padding: 0;
+    margin-top: -1px;
+}
+
+#search-suggestions .dropdown-header {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: var(--bg-dark);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#search-suggestions .dropdown-item {
+    padding: 0.5rem 1rem;
+    white-space: normal;
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--border);
+}
+
+#search-suggestions .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+#search-suggestions .dropdown-item:hover {
+    background-color: rgba(var(--primary-rgb), 0.05);
+    color: var(--primary);
+}
+
+#search-suggestions .dropdown-item img {
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+#search-suggestions .dropdown-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+#search-suggestions .dropdown-item small {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#search-suggestions strong {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+#search-suggestions .dropdown-divider {
+    margin: 0;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    #search-suggestions {
+        max-height: 50vh;
+    }
+}
+        .cart-container {
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cart-container.scrolled {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .cart-container {
+    background: var(--bg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.btn-login {
+    margin-right: 1px; /* Уменьшаем отступ между кнопками */
+}
+
+.btn-register {
+    padding: 0.4rem 0.8rem !important;
+    margin-left: 0; /* Убираем отступ слева, так как он теперь у кнопки "Войти" */
+    min-width: auto;
+    border-width: 1px !important;
+}
 </style>
 </head>
 
@@ -391,43 +517,56 @@
 
 <!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
 <nav class="top-navbar bg-white fixed-top" id="top-navbar" style="border-bottom: 3px solid var(--primary) !important;">
-    <div class="container d-flex justify-content-center">
-        <ul class="nav nav-pills gap-4">
-            <li class="nav-item">
-                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#application">  <!-- Увеличили px-3 на px-4 -->
-                    <i class></i>{% trans "Нанесение" %}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#design">  <!-- Увеличили px-3 на px-4 -->
-                    <i class></i>{% trans "Дизайн" %}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#stands">  <!-- Увеличили px-3 на px-4 -->
-                    <i class></i>{% trans "Стенды" %}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link px-5 py-2 fw-bold text-primary" href="#contacts">  <!-- Увеличили px-3 на px-4 -->
-                    <i class></i>{% trans "Контакты" %}
-                </a>
-            </li>
-<div class="d-flex align-items-center gap-3">
-            {% include 'includes/language_switcher.html' %}
+    <div class="container-fluid d-flex justify-content-between align-items-center px-4">
+        <!-- Контакты слева (прижаты к краю) -->
+        <div class="me-auto">
+            <ul class="nav">
+                <li class="nav-item">
+                   <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:home' %}#contacts">
+    <i class></i>{% trans "Контакты" %}
+</a>
+                </li>
+            </ul>
         </div>
-        </ul>
+
+         <!-- Центральная группа -->
+        <div class="d-flex justify-content-center flex-grow-1">
+            <ul class="nav nav-pills gap-4">
+                <li class="nav-item">
+                   <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#application">
+    <i class></i>{% trans "Нанесение" %}
+</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#design">
+    <i class></i>{% trans "Дизайн" %}
+</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#stands">
+    <i class></i>{% trans "Стенды" %}
+</a>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- Язык справа (с отступом от края) -->
+        <div class="ps-3"> <!-- Заменил ms-auto на ps-3 (padding-start) -->
+            <div class="d-flex align-items-center gap-2"> <!-- Уменьшил gap с 3 до 2 -->
+                {% include 'includes/language_switcher.html' %}
+            </div>
+        </div>
     </div>
 </nav>
-
-
 <!-- Фиксированный хедер (остается на месте) -->
 <header class="header bg-white fixed-top" id="main-header" style="top: 60px; border-bottom: none !important;">
     <nav class="navbar navbar-expand-lg container py-2">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="{% static ""  %}" alt="УКСУС" width="140">
-            </a>
+           <a class="navbar-brand" href="/">
+    <img src="{% static 'images/logo_ukus.jpg' %}" alt="УКСУС" width="85">
+</a>
+                    <!-- Добавляем кнопку корзины здесь -->
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
@@ -435,7 +574,6 @@
 
             <div class="collapse navbar-collapse" id="navbarContent">
                 <div class="d-flex align-items-center flex-grow-1">
-    <!-- Кнопка Каталог -->
     <!-- Кнопка Каталог -->
 <div class="dropdown me-3">
     <button class="btn btn-outline-primary dropdown-toggle" type="button"
@@ -450,16 +588,16 @@
                     <div class="mb-4">
                         <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
                         <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="#">Одежда</a>
-                            <a class="dropdown-item py-2" href="#">Сумки, портфели, рюкзаки</a>
-                            <a class="dropdown-item py-2" href="#">Ручки</a>
-                            <a class="dropdown-item py-2" href="#">Спорт, отдых, туризм</a>
-                            <a class="dropdown-item py-2" href="#">Флешки</a>
-                            <a class="dropdown-item py-2" href="#">Ежедневники</a>
-                            <a class="dropdown-item py-2" href="#">Зонты</a>
-                            <a class="dropdown-item py-2" href="#">Бизнес и офис</a>
-                            <a class="dropdown-item py-2" href="#">Брелоки</a>
-                            <a class="dropdown-item py-2" href="#">Съедобные подарки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odezhda' %}">Одежда</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sumki-portfeli-ryukzaki' %}">Сумки, портфели, рюкзаки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sport-otdyh-turizm' %}">Спорт, отдых, туризм</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ezhednevniki' %}">Ежедневники</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='zonty' %}">Зонты</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='biznes-i-ofis' %}">Бизнес и офис</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='breloki' %}">Брелоки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='syedobnye-podarki' %}">Съедобные подарки</a>
                         </div>
                     </div>
                 </div>
@@ -469,15 +607,15 @@
                     <div class="mb-4">
                         <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
                         <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="#">Часы и погодные станции</a>
-                            <a class="dropdown-item py-2" href="#">Дом и быт</a>
-                            <a class="dropdown-item py-2" href="#">Кухня и бар</a>
-                            <a class="dropdown-item py-2" href="#">Гаджеты</a>
-                            <a class="dropdown-item py-2" href="#">Личные вещи и аксессуары</a>
-                            <a class="dropdown-item py-2" href="#">Сад и инструменты</a>
-                            <a class="dropdown-item py-2" href="#">Антистрессы</a>
-                            <a class="dropdown-item py-2" href="#">Подарочная упаковка</a>
-                            <a class="dropdown-item py-2" href="#">Полиграфия</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='chasy-i-pogodnye-stantsii' %}">Часы и погодные станции</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='dom-i-byt' %}">Дом и быт</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='kuhnya-i-bar' %}">Кухня и бар</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='gadzhety' %}">Гаджеты</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='lichnye-veshchi-i-aksessuary' %}">Личные вещи и аксессуары</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sad-i-instrumenty' %}">Сад и инструменты</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='antistressy' %}">Антистрессы</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='podarochnaya-upakovka' %}">Подарочная упаковка</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='poligrafiya' %}">Полиграфия</a>
                         </div>
                     </div>
                 </div>
@@ -487,17 +625,16 @@
                     <div class="mb-4">
                         <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
                         <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="#">Футболки</a>
-                            <a class="dropdown-item py-2" href="#">Бейсболки, козырьки, панамы</a>
-                            <a class="dropdown-item py-2" href="#">Галстуки и платки</a>
-                            <a class="dropdown-item py-2" href="#">Водолазки, джемперы</a>
-                            <a class="dropdown-item py-2" href="#">Плащи и дождевики</a>
-                            <a class="dropdown-item py-2" href="#">Куртки, ветровки и жилеты</a>
-                            <a class="dropdown-item py-2" href="#">Майки</a>
-                            <a class="dropdown-item py-2" href="#">Рубашки</a>
-                            <a class="dropdown-item py-2" href="#">Рубашки-поло</a>
-                            <a class="dropdown-item py-2" href="#">Толстовки</a>
-
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='beysbolki-kozyrki-panamy' %}">Бейсболки, козырьки, панамы</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='galstuki-i-platki' %}">Галстуки и платки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='vodolazki-dzhempery' %}">Водолазки, джемперы</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='plashi-i-dozhdeviki' %}">Плащи и дождевики</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='kurtki-vetrovki-i-zhilety' %}">Куртки, ветровки и жилеты</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='mayki' %}">Майки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='rubashki' %}">Рубашки</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='rubashki-polo' %}">Рубашки-поло</a>
+                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='tolstovki' %}">Толстовки</a>
                         </div>
                     </div>
                 </div>
@@ -505,16 +642,38 @@
         </div>
     </div>
 </div>
-                           <form class="search-form flex-grow-1 me-3" action="{% url 'search' %}" method="GET">
-        <div class="input-group">
-            <input type="text" class="form-control" name="q" placeholder="{% trans 'Поиск ...' %}">
-            <button class="btn btn-primary" type="submit">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-    </form>
+                <!-- Добавьте эту кнопку корзины сразу после блока с каталогом -->
+
+<form class="search-form flex-grow-1 me-3 position-relative" action="{% url 'main:search' %}" method="GET">
+    <div class="input-group">
+        <input type="text"
+               class="form-control"
+               name="q"
+               id="search-input"
+               placeholder="{% trans 'Поиск товаров и категорий...' %}"
+               autocomplete="off"
+               aria-label="Search"
+               aria-describedby="search-button">
+        <button class="btn btn-primary" type="submit" id="search-button">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <div class="dropdown-menu w-100" id="search-suggestions" style="display: none;"></div>
+</form>
+
                  <!-- Блок с кнопками пользователя, смещенный вправо -->
-         <div class="d-flex gap-3 ms-auto">
+        <div class="d-flex gap-3 ms-auto">
+           <div class="me-0 pe-0">
+        <a href="{% url 'main:cart_view' %}" class="btn btn-outline-primary position-relative small">
+    <i class="fas fa-shopping-cart me-2"></i>{% trans "Корзина" %}
+    {% if cart_items_count %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ cart_items_count }}
+            <span class="visually-hidden">товаров в корзине</span>
+        </span>
+    {% endif %}
+</a>
+    </div>
             {% if user.is_authenticated %}
                 <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
                     {% csrf_token %}
@@ -547,12 +706,12 @@
                     </ul>
                 </div>
                  {% else %}
-        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
-            <i class="fas fa-sign-in-alt me-2"></i>Войти
-        </a>
-        <a href="{% url 'accounts:company_register' %}" class="btn btn-primary">
-            <i class="fas fa-user-plus me-2"></i>Регистрация
-        </a>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-login">
+    <i class="fas fa-sign-in-alt me-2"></i>Войти
+</a>
+<a href="{% url 'accounts:company_register' %}" class="btn btn-primary btn-register">
+    <i class="fas fa-user-plus me-2"></i>Регистрация
+</a>
     {% endif %}
 </div>
     </div>
@@ -560,6 +719,7 @@
           </nav>
 
 </header>
+
 
 <!-- Основной контент с динамическим отступом -->
 <main role="main" class="main-content">
@@ -579,8 +739,8 @@
             <div class="col-lg-4">
                 <h3 class="h5">{% trans "Наши услуги" %}</h3>
                 <ul class="list-unstyled">
-                    <li><a href="#catalog" class="text-white">{% trans "Каталог товаров" %}</a></li>
-                    <li><a href="#design" class="text-white">{% trans "Дизайн-проекты" %}</a></li>
+                    <li><a href="{% url 'main:category_list' %}" class="text-white">{% trans "Каталог товаров" %}</a></li>
+                    <li><a href="{% url 'main:home' %}#design" class="text-white">{% trans "Дизайн-проекты" %}</a></li>
                 </ul>
             </div>
 
@@ -600,7 +760,7 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
             const topNavbar = document.getElementById('top-navbar');
             const header = document.getElementById('main-header');
             const mainContent = document.querySelector('.main-content');
@@ -676,7 +836,6 @@
             window.addEventListener('resize', updateLayout);
         });
 
-
         // Инициализация AOS
         if (typeof AOS !== 'undefined') {
             AOS.init({
@@ -713,6 +872,75 @@
                 }
             });
     });
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const suggestionsContainer = document.getElementById('search-suggestions');
+    let timeoutId;
+
+    if (!searchInput || !suggestionsContainer) return;
+
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(timeoutId);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        timeoutId = setTimeout(() => {
+            fetch(`/search/suggestions/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+
+                    if (data.categories.length > 0) {
+                        html += `<div class="dropdown-header">Категории</div>`;
+                        data.categories.forEach(cat => {
+                            html += `<a class="dropdown-item" href="${cat.url}">${cat.name}</a>`;
+                        });
+                    }
+
+                    if (data.products.length > 0) {
+                        if (data.categories.length > 0) {
+                            html += `<div class="dropdown-divider"></div>`;
+                        }
+                        html += `<div class="dropdown-header">Товары</div>`;
+                        data.products.forEach(prod => {
+                            html += `
+                                <a class="dropdown-item" href="${prod.url}">
+                                    <div class="d-flex align-items-center">
+                                        ${prod.image ? `<img src="${prod.image}" width="40" height="40" class="me-2">` : ''}
+                                        <div>
+                                            <div>${prod.name}</div>
+                                            <small class="text-muted">${prod.price} ₽</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    }
+
+                    suggestionsContainer.innerHTML = html;
+                    suggestionsContainer.style.display = html ? 'block' : 'none';
+                });
+        }, 300);
+    });
+
+    // Скрываем подсказки при клике вне поля поиска
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    // Обработка выбора подсказки
+    suggestionsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('dropdown-item')) {
+            window.location.href = e.target.getAttribute('href');
+        }
+    });
+});
 </script>
 {% block extra_js %}{% endblock %}
 </body>

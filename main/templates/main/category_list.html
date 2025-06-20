@@ -1,0 +1,34 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Категории товаров" %}</h1>
+
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if category.icon %}
+                <div class="card-body text-center">
+                    <i class="{{ category.icon }} fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">{{ category.name }}</h3>
+                    <a href="{{ category.get_absolute_url }}" class="btn btn-primary mt-3">
+                        {% trans "Смотреть товары" %}
+                    </a>
+                </div>
+                {% else %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ category.name }}</h3>
+                    <p class="card-text">{{ category.description|truncatewords:20 }}</p>
+                    <a href="{{ category.get_absolute_url }}" class="btn btn-primary">
+                        {% trans "Смотреть товары" %}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

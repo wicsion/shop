@@ -81,10 +81,11 @@
         <div class="mb-4">
             <label class="form-label">Email <span class="text-danger">*</span></label>
             <input type="email"
-                   name="username"
-                   class="custom-input"
-                   placeholder="example@company.com"
-                   required>
+       name="username"
+       class="custom-input"
+       placeholder="example@company.com"
+       value="{{ form.username.value|default:'' }}"
+       required>
             <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
         </div>
 

@@ -1,0 +1,56 @@
+[
+    {
+    "model": "main.category",
+    "pk": null,
+    "fields": {
+      "name": "Футболки",
+      "slug": "futbolki",
+      "parent": null,
+      "icon": "fa-tshirt",
+      "description": "Категория футболок с принтами",
+      "is_featured": true,
+      "order": 1
+    }
+  },
+
+
+  {
+    "model": "main.category",
+    "pk": 1,
+    "fields": {
+      "name": "Электроника",
+      "slug": "electronics",
+      "parent": null,
+      "icon": "fa-laptop",
+      "description": "Техника и электронные устройства",
+      "is_featured": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "main.category",
+    "pk": 2,
+    "fields": {
+      "name": "Ноутбуки",
+      "slug": "laptops",
+      "parent": 1,
+      "icon": "fa-laptop",
+      "description": "Портативные компьютеры",
+      "is_featured": false,
+      "order": 1
+    }
+  },
+  {
+    "model": "main.category",
+    "pk": 3,
+    "fields": {
+      "name": "Сумки и рюкзаки",
+      "slug": "bags",
+      "parent": null,
+      "icon": "fa-briefcase",
+      "description": "Аксессуары для переноски вещей",
+      "is_featured": true,
+      "order": 2
+    }
+  }
+]

@@ -2,68 +2,291 @@
 {% load static i18n %}
 
 {% block content %}
-<section class="py-5">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">{% trans "Главная" %}</a></li>
-                <li class="breadcrumb-item active">{{ category.name }}</li>
-            </ol>
-        </nav>
+<div class="container mx-auto px-4 py-8">
+    <!-- Хлебные крошки -->
+    <nav class="breadcrumbs mb-6">
+        <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
+        <span class="separator">/</span>
+        <a href="{% url 'main:home' %}">{% trans "Категории" %}</a>
+        <span class="separator">/</span>
+        <span>{{ category.name }}</span>
+    </nav>
 
-        <div class="dashboard-section p-6 mb-6">
-            <h1 class="text-2xl lg:text-3xl font-bold mb-6">{{ category.name }}</h1>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid rounded-xl shadow-md w-full h-auto">
-                </div>
-                <div>
-                    <div class="bg-blue-50 p-4 rounded-xl mb-4">
-                        <h3 class="text-xl font-semibold mb-3">{% trans "Описание категории" %}</h3>
-                        <p class="text-gray-700">{% trans "Здесь будет подробное описание категории, ее особенностей и преимуществ. Текст заполняется администратором в панели управления." %}</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="stat-card">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="text-gray-500 text-sm">{% trans "Товаров в категории" %}</p>
-                                    <p class="text-lg font-bold">47</p>
-                                </div>
-                                <div class="stat-icon">
-                                    <i class="fas fa-boxes"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="text-gray-500 text-sm">{% trans "Популярность" %}</p>
-                                    <p class="text-lg font-bold">85%</p>
-                                </div>
-                                <div class="stat-icon">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <a href="#products" class="btn-gradient w-full text-center py-3">
-                        <i class="fas fa-list mr-2"></i> {% trans "Смотреть товары" %}
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-section p-6" id="products">
-            <h2 class="text-xl lg:text-2xl font-bold mb-6">{% trans "Товары категории" %}</h2>
-
-            <div class="bg-gray-50 rounded-xl p-8 text-center">
-                <i class="fas fa-box-open text-gray-300 text-4xl mb-3"></i>
-                <p class="text-gray-400 font-medium">{% trans "Список товаров будет загружен здесь" %}</p>
-                <p class="text-gray-400 text-sm mt-2">{% trans "Здесь будут отображаться все товары, относящиеся к этой категории" %}</p>
-            </div>
+    <!-- Заголовок категории -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">{{ category.name }}</h1>
+        <div class="text-gray-600">
+            {% blocktrans count counter=products.paginator.count %}
+            {{ counter }} товар
+            {% plural %}
+            {{ counter }} товаров
+            {% endblocktrans %}
         </div>
     </div>
-</section>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Боковая панель с фильтрами -->
+        <aside class="w-full lg:w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow p-6 sticky top-4">
+                <!-- Фильтр по цене -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
+                    <div class="flex items-center justify-between mb-2">
+                        <input type="number" id="min_price" placeholder="{% trans 'От' %}"
+                               class="w-24 border rounded px-3 py-2 text-sm">
+                        <span class="mx-2">-</span>
+                        <input type="number" id="max_price" placeholder="{% trans 'До' %}"
+                               class="w-24 border rounded px-3 py-2 text-sm">
+                    </div>
+                    <button id="apply_price_filter"
+                            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+                        {% trans "Применить" %}
+                    </button>
+                </div>
+
+                <!-- Фильтр по брендам -->
+                {% if brands %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Бренды" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for brand in brands %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="brand_{{ brand.id }}"
+                                   class="brand-filter mr-2" value="{{ brand.slug }}">
+                            <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Фильтр по подкатегориям -->
+                {% if subcategories %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Подкатегории" %}</h3>
+                    <div class="space-y-2">
+                        {% for subcat in subcategories %}
+                        <div>
+                            <a href="{{ subcat.get_absolute_url }}"
+                               class="text-blue-600 hover:text-blue-800 hover:underline">
+                                {{ subcat.name }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Кнопка сброса фильтров -->
+                <button id="reset_filters"
+                        class="w-full border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 transition">
+                    {% trans "Сбросить фильтры" %}
+                </button>
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <div class="flex-1">
+            <!-- Сортировка и количество товаров -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
+                <div class="mb-4 sm:mb-0">
+                    {% trans "Сортировать по:" %}
+                    <select id="sort_by" class="ml-2 border rounded px-3 py-2">
+                        <option value="default">{% trans "По умолчанию" %}</option>
+                        <option value="price_asc">{% trans "Цена по возрастанию" %}</option>
+                        <option value="price_desc">{% trans "Цена по убыванию" %}</option>
+                        <option value="name_asc">{% trans "Названию (А-Я)" %}</option>
+                        <option value="name_desc">{% trans "Названию (Я-А)" %}</option>
+                        <option value="newest">{% trans "Новинки" %}</option>
+                    </select>
+                </div>
+                <div>
+                    {% trans "Показывать по:" %}
+                    <select id="per_page" class="ml-2 border rounded px-3 py-2">
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                        <option value="48">48</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Список товаров -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+                    <a href="{{ product.get_absolute_url }}" class="block">
+                        <div class="aspect-w-1 aspect-h-1 bg-gray-100">
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}"
+                                 class="object-cover w-full h-full">
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    {% if product.has_discount %}
+                                    <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
+                                    <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
+                                    {% else %}
+                                    <span class="font-bold">{{ product.price }} ₽</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.is_new %}
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    <div class="px-4 pb-4">
+                        <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                                data-product-id="{{ product.id }}">
+                            {% trans "В корзину" %}
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            {% if products.paginator.num_pages > 1 %}
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    {% if products.has_previous %}
+                    <a href="?page=1" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</a>
+                    <a href="?page={{ products.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&lsaquo;</a>
+                    {% endif %}
+
+                    {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                    <span class="px-3 py-1 border rounded bg-blue-600 text-white">{{ num }}</span>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}" class="px-3 py-1 border rounded hover:bg-gray-100">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&rsaquo;</a>
+                    <a href="?page={{ products.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Применение фильтров
+    function applyFilters() {
+        const params = new URLSearchParams(window.location.search);
+
+        // Цена
+        const minPrice = document.getElementById('min_price').value;
+        const maxPrice = document.getElementById('max_price').value;
+        if (minPrice) params.set('min_price', minPrice);
+        else params.delete('min_price');
+        if (maxPrice) params.set('max_price', maxPrice);
+        else params.delete('max_price');
+
+        // Бренды
+        const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked'))
+            .map(el => el.value)
+            .join(',');
+        if (selectedBrands) params.set('brands', selectedBrands);
+        else params.delete('brands');
+
+        // Сортировка
+        const sortBy = document.getElementById('sort_by').value;
+        if (sortBy !== 'default') params.set('sort', sortBy);
+        else params.delete('sort');
+
+        // Товаров на странице
+        const perPage = document.getElementById('per_page').value;
+        if (perPage !== '12') params.set('per_page', perPage);
+        else params.delete('per_page');
+
+        window.location.search = params.toString();
+    }
+
+    // Установка текущих значений фильтров из URL
+    function setCurrentFilters() {
+        const params = new URLSearchParams(window.location.search);
+
+        // Цена
+        if (params.has('min_price')) {
+            document.getElementById('min_price').value = params.get('min_price');
+        }
+        if (params.has('max_price')) {
+            document.getElementById('max_price').value = params.get('max_price');
+        }
+
+        // Бренды
+        if (params.has('brands')) {
+            const selectedBrands = params.get('brands').split(',');
+            document.querySelectorAll('.brand-filter').forEach(el => {
+                el.checked = selectedBrands.includes(el.value);
+            });
+        }
+
+        // Сортировка
+        if (params.has('sort')) {
+            document.getElementById('sort_by').value = params.get('sort');
+        }
+
+        // Товаров на странице
+        if (params.has('per_page')) {
+            document.getElementById('per_page').value = params.get('per_page');
+        }
+    }
+
+    // Сброс фильтров
+    document.getElementById('reset_filters').addEventListener('click', function() {
+        window.location.search = '';
+    });
+
+    // Применение фильтров при изменении
+    document.getElementById('apply_price_filter').addEventListener('click', applyFilters);
+    document.getElementById('sort_by').addEventListener('change', applyFilters);
+    document.getElementById('per_page').addEventListener('change', applyFilters);
+    document.querySelectorAll('.brand-filter').forEach(el => {
+        el.addEventListener('change', applyFilters);
+    });
+
+    // Добавление в корзину
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.getAttribute('data-product-id');
+
+            fetch(`/ru/add-to-cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData()
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Обновление счетчика корзины в шапке
+                    if (data.cart_total) {
+                        document.getElementById('cart-count').textContent = data.cart_total;
+                    }
+                }
+            });
+        });
+    });
+
+    // Инициализация текущих фильтров
+    setCurrentFilters();
+});
+</script>
 {% endblock %}
