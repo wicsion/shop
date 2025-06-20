@@ -1,7 +1,7 @@
 [
-    {
+  {
     "model": "main.category",
-    "pk": null,
+    "pk": 1,
     "fields": {
       "name": "Футболки",
       "slug": "futbolki",

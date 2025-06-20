@@ -6,21 +6,44 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from gifts_project import settings
-
+from mptt.models import MPTTModel, TreeForeignKey
 
 
 
 User = get_user_model()
 
-class Category(models.Model):
+class Category(MPTTModel):
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                            related_name='children', verbose_name=_('Родительская категория'))
     name = models.CharField(_('Название'), max_length=255)
     slug = models.SlugField(_('URL-адрес'), max_length=255, unique=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                               related_name='children', verbose_name=_('Родительская категория'))
-    icon = models.CharField(_('Иконка FontAwesome'), max_length=50, blank=True)
+
+
+    image = models.URLField(_('Изображение'), blank=True, null=True)
+
     description = models.TextField(_('Описание'), blank=True)
     is_featured = models.BooleanField(_('Популярная категория'), default=False)
     order = models.PositiveIntegerField(_('Порядок'), default=0)
+    xml_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    ICON_CHOICES = [
+        ('fas fa-tshirt', 'Одежда'),
+        ('fas fa-mug-hot', 'Посуда'),
+        ('fas fa-pen', 'Ручки'),
+        ('fas fa-mobile-alt', 'Электроника'),
+        ('fas fa-shopping-bag', 'Сумки'),
+        ('fas fa-book', 'Книги/Блокноты'),
+        ('fas fa-box-open', 'Упаковка'),
+        ('fas fa-gift', 'Подарки'),
+        ('fas fa-building', 'Корпоративные'),
+        ('fas fa-umbrella', 'Зонты'),
+        ('fas fa-running', 'Спорт'),
+        ('fas fa-suitcase', 'Путешествия'),
+        ('fas fa-utensils', 'Пикник'),
+        ('fas fa-hiking', 'Походы'),
+        ('fas fa-umbrella-beach', 'Пляж'),
+    ]
+    icon = models.CharField(_('Иконка'), max_length=50, choices=ICON_CHOICES, blank=True)
+
 
     class Meta:
         verbose_name = _('Категория')
@@ -42,6 +65,7 @@ class Brand(models.Model):
     description = models.TextField(_('Описание'), blank=True)
     additional_info = models.TextField(blank=True)
     products = models.ManyToManyField('Product', related_name='brand_products')
+    is_active = models.BooleanField(default=True, verbose_name="Активный")
 
 
     class Meta:
@@ -98,51 +122,6 @@ class Product(models.Model):
         return int((1 - self.price / self.old_price) * 100)
 
 
-class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                related_name='images', verbose_name=_('Товар'))
-    image = models.ImageField(_('Изображение'), upload_to='products/')
-    alt_text = models.CharField(_('Альтернативный текст'), max_length=255, blank=True)
-    is_main = models.BooleanField(_('Главное изображение'), default=False)
-    order = models.PositiveIntegerField(_('Порядок'), default=0)
-
-    class Meta:
-        verbose_name = _('Изображение товара')
-        verbose_name_plural = _('Изображения товаров')
-        ordering = ['order']
-
-    def __str__(self):
-        return f"Изображение {self.product.name}"
-
-
-class ProductAttribute(models.Model):
-    name = models.CharField(_('Название'), max_length=255)
-    description = models.TextField(_('Описание'), blank=True)
-
-    class Meta:
-        verbose_name = _('Атрибут товара')
-        verbose_name_plural = _('Атрибуты товаров')
-
-    def __str__(self):
-        return self.name
-
-
-class ProductAttributeValue(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                related_name='attribute_values', verbose_name=_('Товар'))
-    attribute = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE,
-                                  verbose_name=_('Атрибут'))
-    value = models.CharField(_('Значение'), max_length=255)
-
-    class Meta:
-        verbose_name = _('Значение атрибута')
-        verbose_name_plural = _('Значения атрибутов')
-        unique_together = ('product', 'attribute')
-
-    def __str__(self):
-        return f"{self.product}: {self.attribute} = {self.value}"
-
-
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True,
                              verbose_name=_('Пользователь'))
@@ -172,7 +151,9 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE,
                              related_name='items', verbose_name=_('Корзина'))
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                verbose_name=_('Товар'))
+                                verbose_name=_('Товар'), null=True, blank=True)
+    xml_product = models.ForeignKey('XMLProduct', on_delete=models.CASCADE,
+                                    verbose_name=_('XML Товар'), null=True, blank=True)
     quantity = models.PositiveIntegerField(_('Количество'), default=1,
                                            validators=[MinValueValidator(1)])
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
@@ -301,6 +282,60 @@ class Wishlist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class XMLProduct(models.Model):
+    brand_model = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='xml_products')
+    product_id = models.CharField(max_length=50, unique=True)
+    group_id = models.CharField(max_length=50, blank=True, null=True)
+    code = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    old_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    small_image = models.URLField(blank=True)
+    big_image = models.URLField(blank=True)
+    super_big_image = models.URLField(blank=True)
+    brand = models.CharField(max_length=255, blank=True)
+    in_stock = models.BooleanField(default=True)
+    quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    xml_data = models.JSONField(null=True, blank=True)
+    categories = models.ManyToManyField('Category', related_name='xml_products')
+    status = models.CharField(max_length=20, choices=[
+        ('new', 'Новинка'),
+        ('regular', 'Обычный'),
+        ('limited', 'До исчерпания')
+    ], default='regular')
+    material = models.CharField(max_length=255, blank=True)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    volume = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    barcode = models.CharField(max_length=50, blank=True)
+    is_featured = models.BooleanField(default=False)
+    is_bestseller = models.BooleanField(default=False)
 
 
+    class Meta:
+        verbose_name = 'XML Товар'
+        verbose_name_plural = 'XML Товары'
+        ordering = ['-created_at']
 
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('main:xml_product_detail', kwargs={'product_id': self.product_id})
+
+    @property
+    def main_image(self):
+        return self.super_big_image or self.big_image or self.small_image
+
+    @property
+    def has_discount(self):
+        return self.old_price is not None and self.old_price > self.price
+
+    @property
+    def discount_percent(self):
+        if not self.has_discount:
+            return 0
+        return int((1 - self.price / self.old_price) * 100)

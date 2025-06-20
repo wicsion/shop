@@ -1,12 +1,12 @@
 from django.http import JsonResponse, Http404
 from django.utils.translation import gettext as _
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, TemplateView
-from django.shortcuts import get_object_or_404, redirect , render
+from django.views.generic import ListView, DetailView, TemplateView
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse
 from django.db.models import Q
-from .models import Product, Category, Cart, CartItem, Order, Wishlist,Brand,  Slider, Partner, OrderItem
-from .forms import AddToCartForm, OrderForm, ProductReviewForm, SearchForm
+from .models import Category, Cart, CartItem, Order, Wishlist, Brand, Slider, Partner, OrderItem, XMLProduct
+from .forms import AddToCartForm, OrderForm, SearchForm
 from django.core.paginator import Paginator
 from django.db.models import Min, Max
 
@@ -28,21 +28,42 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Получаем слайдеры
         context['sliders'] = Slider.objects.filter(is_active=True).order_by('order')
-        context['featured_categories'] = Category.objects.filter(
-            is_featured=True, parent__isnull=True
-        ).order_by('order')[:12]
-        context['featured_products'] = Product.objects.filter(
-            is_featured=True, in_stock=True
-        ).order_by('-created_at')[:8]
-        context['new_products'] = Product.objects.filter(
-            is_new=True, in_stock=True
-        ).order_by('-created_at')[:8]
-        context['bestsellers'] = Product.objects.filter(
-            is_bestseller=True, in_stock=True
-        ).order_by('-created_at')[:8]
+
+        # Получаем основные категории (без родителя)
+        main_categories = Category.objects.filter(parent__isnull=True).order_by('order')
+
+        # Собираем данные для категорий как в шаблоне
+        categories_data = []
+        for category in main_categories:
+            # Получаем первые 3 подкатегории
+            subcategories = category.children.all().order_by('order')[:3]
+
+            # Получаем товары для категории (первые 3)
+            products = XMLProduct.objects.filter(
+                categories=category,
+                in_stock=True
+            ).order_by('-created_at')[:3]
+
+            categories_data.append({
+                'category': category,
+                'subcategories': subcategories,
+                'products': products
+            })
+
+        context['categories_data'] = categories_data
+
+        # Получаем бренды
+        context['brands'] = Brand.objects.filter(is_active=True).order_by('name')
+
+        # Получаем партнеров
         context['partners'] = Partner.objects.filter(is_active=True).order_by('order')
+
+        # Форма поиска
         context['search_form'] = SearchForm()
+
         return context
 
 
@@ -68,81 +89,41 @@ class CategoryDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print("All category slugs:", list(Category.objects.values_list('slug', flat=True)))
         category = self.object
+        print(f"Текущая категория: {category.name}, slug: {category.slug}")
 
-        # Получаем товары с учетом фильтров
-        products = Product.objects.filter(
-            category=category,
+        # Получаем все подкатегории (включая вложенные)
+        subcategories = category.get_descendants(include_self=True)
+
+        # Получаем товары для текущей категории и всех её подкатегорий
+        products = XMLProduct.objects.filter(
+            categories__in=subcategories,
             in_stock=True
-        ).select_related('brand', 'category').prefetch_related('images')
-
-        # Фильтрация по брендам
-        brands = Brand.objects.filter(products__category=category).distinct()
-        context['brands'] = brands
-
-        # Фильтрация по подкатегориям
-        subcategories = category.children.all()
-        context['subcategories'] = subcategories
-
-        # Применение фильтров из GET-параметров
-        brand_slugs = self.request.GET.get('brands', '').split(',')
-        if brand_slugs and brand_slugs[0]:
-            products = products.filter(brand__slug__in=brand_slugs)
-
-        min_price = self.request.GET.get('min_price')
-        if min_price:
-            try:
-                products = products.filter(price__gte=float(min_price))
-            except ValueError:
-                pass
-
-        max_price = self.request.GET.get('max_price')
-        if max_price:
-            try:
-                products = products.filter(price__lte=float(max_price))
-            except ValueError:
-                pass
-
-        # Сортировка
-        sort_by = self.request.GET.get('sort', 'default')
-        if sort_by == 'price_asc':
-            products = products.order_by('price')
-        elif sort_by == 'price_desc':
-            products = products.order_by('-price')
-        elif sort_by == 'name_asc':
-            products = products.order_by('name')
-        elif sort_by == 'name_desc':
-            products = products.order_by('-name')
-        elif sort_by == 'newest':
-            products = products.order_by('-created_at')
+        ).order_by('-created_at').distinct()
+        print(f"Найдено товаров: {products.count()}")
 
         # Пагинация
-        per_page = int(self.request.GET.get('per_page', 12))
-        paginator = Paginator(products, per_page)
-        page_number = self.request.GET.get('page', 1)
+        paginator = Paginator(products, 12)
+        page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        context['products'] = page_obj
-        context['selected_brands'] = brand_slugs
-        context['selected_sort'] = sort_by
-        context['search_form'] = SearchForm()
-
-        # Минимальная и максимальная цена для подсказок
-        price_range = products.aggregate(
-            min_price=Min('price'),
-            max_price=Max('price')
-        )
-        context['min_price'] = price_range['min_price']
-        context['max_price'] = price_range['max_price']
-
+        context.update({
+            'subcategories': category.children.all().order_by('order'),
+            'products': page_obj,
+            'search_form': SearchForm()
+        })
         return context
+
+
 
 
 class BrandListView(ListView):
     model = Brand
     template_name = 'main/brand_list.html'
     context_object_name = 'brands'
+
+    def get_queryset(self):
+        return Brand.objects.filter(is_active=True).order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -159,7 +140,7 @@ class BrandDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         brand = self.object
-        products = Product.objects.filter(brand=brand, in_stock=True)
+        products = XMLProduct.objects.filter(brand=brand.name, in_stock=True)
 
         # Сортировка
         sort_by = self.request.GET.get('sort', 'default')
@@ -180,25 +161,8 @@ class BrandDetailView(DetailView):
         return context
 
 
-class ProductDetailView(DetailView):
-    model = Product
-    template_name = 'main/product_detail.html'
-    context_object_name = 'product'
-    slug_url_kwarg = 'slug'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        product = self.object
-        context['related_products'] = Product.objects.filter(
-            category=product.category
-        ).exclude(id=product.id).order_by('?')[:4]
-        context['add_to_cart_form'] = AddToCartForm()
-        context['search_form'] = SearchForm()
-        return context
-
-
 def add_to_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
+    product = get_object_or_404(XMLProduct, product_id=product_id)
     cart = get_cart(request)
 
     if request.method == 'POST':
@@ -208,7 +172,7 @@ def add_to_cart(request, product_id):
 
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
-                product=product,
+                xml_product=product,
                 defaults={'quantity': quantity}
             )
 
@@ -221,13 +185,13 @@ def add_to_cart(request, product_id):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'cart_total': cart.total_quantity,
-                    'message': str(_('Товар добавлен в корзину'))
+                    'message': str(_('Товар добавлен в корзину')),
+                    'cart_total': cart.total_quantity
                 })
 
             return redirect('main:cart_view')
 
-    return redirect('main:product_detail', slug=product.slug)
+    return redirect(product.get_absolute_url())
 
 
 def remove_from_cart(request, item_id):
@@ -275,7 +239,7 @@ def update_cart(request, item_id):
                 return JsonResponse({
                     'success': True,
                     'cart_total': cart.total_quantity,
-                    'item_total': cart_item.total_price,
+                    'item_total': cart_item.quantity * cart_item.xml_product.price,
                     'cart_subtotal': cart.total_price,
                     'message': str(_('Количество товара обновлено'))
                 })
@@ -287,8 +251,20 @@ def cart_view(request):
     cart = get_cart(request)
     order_form = OrderForm()
 
+    # Prepare cart items with product data
+    cart_items = []
+    for item in cart.items.all():
+        if item.xml_product:
+            cart_items.append({
+                'item': item,
+                'product': item.xml_product,
+                'image': item.xml_product.main_image,
+                'total_price': item.quantity * item.xml_product.price
+            })
+
     context = {
         'cart': cart,
+        'cart_items': cart_items,
         'order_form': order_form,
         'search_form': SearchForm(),
     }
@@ -316,12 +292,14 @@ def checkout(request):
 
             # Переносим товары из корзины в заказ
             for cart_item in cart.items.all():
-                OrderItem.objects.create(
-                    order=order,
-                    product=cart_item.product,
-                    quantity=cart_item.quantity,
-                    price=cart_item.product.price
-                )
+                if cart_item.xml_product:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=None,
+                        xml_product=cart_item.xml_product,
+                        quantity=cart_item.quantity,
+                        price=cart_item.xml_product.price
+                    )
 
             # Очищаем корзину
             cart.items.all().delete()
@@ -370,7 +348,7 @@ def search(request):
     results = []
 
     if query:
-        # Пробуем найти категорию по slug или названию без учета регистра
+        # Поиск по категориям
         categories = Category.objects.filter(
             Q(slug__iexact=query) |
             Q(name__iexact=query) |
@@ -382,11 +360,10 @@ def search(request):
             return redirect('main:category_detail', slug=categories.first().slug)
 
         # Ищем товары, если категорий нет
-        results = Product.objects.filter(
+        results = XMLProduct.objects.filter(
             Q(name__icontains=query) |
             Q(description__icontains=query) |
-            Q(short_description__icontains=query) |
-            Q(sku__icontains=query),
+            Q(code__icontains=query),
             in_stock=True
         ).distinct()
 
@@ -403,120 +380,6 @@ def search(request):
     return render(request, 'main/search_results.html', context)
 
 
-
-class CheckoutView(CreateView):
-    model = Order
-    form_class = OrderForm
-    template_name = 'main/checkout.html'
-    success_url = reverse_lazy('main:order_success')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        cart = Cart.objects.get_or_create_for_request(self.request)
-        context['cart'] = cart
-        return context
-
-    def form_valid(self, form):
-        cart = Cart.objects.get_or_create_for_request(self.request)
-        order = form.save(commit=False)
-        order.user = self.request.user if self.request.user.is_authenticated else None
-        order.save()
-
-        for item in cart.items.all():
-            order.items.create(
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price
-            )
-
-        cart.items.all().delete()
-        messages.success(self.request, 'Ваш заказ успешно оформлен!')
-        return super().form_valid(form)
-
-
-def add_to_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    cart = Cart.objects.get_or_create_for_request(request)
-
-    if request.method == 'POST':
-        form = AddToCartForm(request.POST)
-        if form.is_valid():
-            quantity = form.cleaned_data['quantity']
-            cart_item, created = CartItem.objects.get_or_create(
-                cart=cart,
-                product=product,
-                defaults={'quantity': quantity}
-            )
-            if not created:
-                cart_item.quantity += quantity
-                cart_item.save()
-
-            messages.success(request, 'Товар добавлен в корзину')
-            return redirect('main:cart')
-
-    return redirect('main:product_detail', slug=product.slug)
-
-
-def remove_from_cart(request, item_id):
-    cart_item = get_object_or_404(CartItem, id=item_id)
-    cart_item.delete()
-    messages.success(request, 'Товар удален из корзины')
-    return redirect('main:cart')
-
-
-def add_to_wishlist(request, product_id):
-    if not request.user.is_authenticated:
-        messages.warning(request, 'Для добавления в избранное необходимо авторизоваться')
-        return redirect('accounts:login')
-
-    product = get_object_or_404(Product, id=product_id)
-    wishlist, created = Wishlist.objects.get_or_create(user=request.user)
-    wishlist.products.add(product)
-    messages.success(request, 'Товар добавлен в избранное')
-    return redirect('main:product_detail', slug=product.slug)
-
-
-class ProductListView(ListView):
-    model = Product
-    template_name = 'main/product_list.html'
-    paginate_by = 12
-    context_object_name = 'products'
-
-    def get_queryset(self):
-        queryset = super().get_queryset().filter(in_stock=True)
-        category_slug = self.kwargs.get('category_slug')
-        if category_slug:
-            category = get_object_or_404(Category, slug=category_slug)
-            queryset = queryset.filter(category=category)
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.filter(parent__isnull=True)
-        return context
-
-
-
-class CartView(DetailView):
-    model = Cart
-    template_name = 'main/cart.html'
-
-    def get_object(self, queryset=None):
-        cart, created = Cart.objects.get_or_create_for_request(self.request)
-        return cart
-
-
-class WishlistView(DetailView):
-    model = Wishlist
-    template_name = 'main/wishlist.html'
-
-    def get_object(self, queryset=None):
-        if not self.request.user.is_authenticated:
-            raise Http404("Wishlist is available only for authenticated users")
-        wishlist, created = Wishlist.objects.get_or_create(user=self.request.user)
-        return wishlist
-
-
 def search_suggestions(request):
     query = request.GET.get('q', '').strip().lower()
     results = {
@@ -525,7 +388,7 @@ def search_suggestions(request):
     }
 
     if len(query) >= 2:
-        # Поиск по категориям (и точные, и частичные совпадения)
+        # Поиск по категориям
         categories = Category.objects.filter(
             Q(name__iexact=query) |
             Q(name__icontains=query) |
@@ -542,25 +405,100 @@ def search_suggestions(request):
         ]
 
         # Поиск по товарам
-        products = Product.objects.filter(
+        products = XMLProduct.objects.filter(
             Q(name__icontains=query) |
             Q(description__icontains=query) |
-            Q(short_description__icontains=query) |
-            Q(sku__icontains=query),
+            Q(code__icontains=query),
             in_stock=True
-        ).select_related('category')[:5]
+        )[:5]
 
         results['products'] = [
             {
                 'name': prod.name,
-                'url': reverse('main:product_detail', kwargs={'slug': prod.slug}),
+                'url': reverse('main:xml_product_detail', kwargs={'product_id': prod.product_id}),
                 'price': str(prod.price),
-                'image': prod.images.filter(is_main=True).first().image.url if prod.images.filter(
-                    is_main=True).exists() else '',
-                'category': prod.category.name,
+                'image': prod.main_image,
                 'type': 'product'
             }
             for prod in products
         ]
 
     return JsonResponse(results)
+
+
+class XMLProductListView(ListView):
+    model = XMLProduct
+    template_name = 'main/xml_product_list.html'
+    context_object_name = 'products'
+    paginate_by = 24
+
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(in_stock=True)
+
+        # Filter by brand
+        brand_slug = self.request.GET.get('brand')
+        if brand_slug:
+            brand = get_object_or_404(Brand, slug=brand_slug)
+            queryset = queryset.filter(brand__iexact=brand.name)
+
+        # Filter by category
+        category_slug = self.request.GET.get('category')
+        if category_slug:
+            category = get_object_or_404(Category, slug=category_slug)
+            queryset = queryset.filter(categories=category)
+
+        # Filter by status
+        status = self.request.GET.get('status')
+        if status in ['new', 'regular', 'limited']:
+            queryset = queryset.filter(status=status)
+
+        # Sorting
+        sort_by = self.request.GET.get('sort', 'default')
+        if sort_by == 'price_asc':
+            queryset = queryset.order_by('price')
+        elif sort_by == 'price_desc':
+            queryset = queryset.order_by('-price')
+        elif sort_by == 'name_asc':
+            queryset = queryset.order_by('name')
+        elif sort_by == 'name_desc':
+            queryset = queryset.order_by('-name')
+        elif sort_by == 'newest':
+            queryset = queryset.order_by('-created_at')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = Brand.objects.filter(xmlproduct__isnull=False).distinct()
+        context['categories'] = Category.objects.filter(parent__isnull=True)
+        context['status_choices'] = [
+            ('new', 'Новинки'),
+            ('limited', 'Ограниченный тираж'),
+        ]
+        return context
+
+
+class XMLProductDetailView(DetailView):
+    model = XMLProduct
+    template_name = 'main/xml_product_detail.html'
+    context_object_name = 'product'
+    slug_url_kwarg = 'product_id'
+    slug_field = 'product_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.object
+
+        # Related products
+        context['related_products'] = XMLProduct.objects.filter(
+            brand=product.brand
+        ).exclude(product_id=product.product_id).order_by('?')[:4]
+
+        # Brand info if available
+        if product.brand:
+            try:
+                context['brand'] = Brand.objects.get(name=product.brand)
+            except Brand.DoesNotExist:
+                pass
+
+        return context

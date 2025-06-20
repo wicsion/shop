@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-26&%&zv^7j_=s288j)0k)vf2j*kbhqv-h0ge$1=rkklhm5$g1#
 DEBUG = True
 SECURE_SSL_REDIRECT = False
 ALLOWED_HOSTS = ['*']
-
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
 INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'django.contrib.admin',
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'rest_framework',
     'django.contrib.humanize',
+    'mptt',
 ]
 
 MIDDLEWARE = [
