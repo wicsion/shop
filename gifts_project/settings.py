@@ -10,6 +10,8 @@ SECRET_KEY = 'django-insecure-26&%&zv^7j_=s288j)0k)vf2j*kbhqv-h0ge$1=rkklhm5$g1#
 
 
 DEBUG = True
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
 SECURE_SSL_REDIRECT = False
 ALLOWED_HOSTS = ['*']
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
