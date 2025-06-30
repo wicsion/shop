@@ -32,37 +32,30 @@ class Command(BaseCommand):
         product_id = product.find('product_id').text
         group_id = product.find('group').text if product.find('group') is not None else None
 
-        # Basic product info
         code = product.find('code').text
         name = product.find('name').text
         description = product.find('content').text if product.find('content') is not None else ''
 
-        # Price handling
         price_element = product.find('price/price')
         price = float(price_element.text) if price_element is not None else 0
 
-        # Images
         small_image = self.get_image_url(product.find('small_image'))
         big_image = self.get_image_url(product.find('big_image'))
         super_big_image = self.get_image_url(product.find('super_big_image'))
 
-        # Brand handling
         brand_element = product.find('brand')
         brand_name = brand_element.text if brand_element is not None else ''
 
-        # Status
         status_element = product.find('status')
         status_id = status_element.get('id') if status_element is not None else '1'
         status_map = {'0': 'new', '1': 'regular', '2': 'limited'}
         status = status_map.get(status_id, 'regular')
 
-        # Additional fields
         material = product.find('material').text if product.find('material') is not None else ''
         weight = float(product.find('weight').text) if product.find('weight') is not None else None
         volume = float(product.find('volume').text) if product.find('volume') is not None else None
         barcode = product.find('barcode').text if product.find('barcode') is not None else ''
 
-        # XML data for all product info
         xml_data = {
             'product_id': product_id,
             'group_id': group_id,
@@ -85,7 +78,6 @@ class Command(BaseCommand):
             'created_at': datetime.now().isoformat()
         }
 
-        # Create or update product
         xml_product, created = XMLProduct.objects.update_or_create(
             product_id=product_id,
             defaults={
@@ -104,35 +96,43 @@ class Command(BaseCommand):
                 'volume': volume,
                 'barcode': barcode,
                 'xml_data': xml_data,
-                'in_stock': True,  # Will be updated by stock import
+                'in_stock': True,
                 'is_featured': status == 'new',
-                'is_bestseller': False  # Can be set manually or by logic
+                'is_bestseller': False
             }
         )
 
-        # Handle brand relationship
+        # Запускаем задачу загрузки изображений
+        from main.tasks import download_product_images
+        download_product_images.delay(xml_product.id)
+
+        # Связь с брендом
         if brand_name:
-            # Сначала пытаемся найти бренд по имени
             brand = Brand.objects.filter(name=brand_name).first()
 
             if not brand:
-                # Если бренда нет, создаем новый с уникальным slug
                 base_slug = slugify(brand_name)
                 slug = base_slug
                 counter = 1
 
-                # Проверяем уникальность slug
                 while Brand.objects.filter(slug=slug).exists():
                     slug = f"{base_slug}-{counter}"
                     counter += 1
 
-                brand = Brand.objects.create(
-                    name=brand_name,
-                    slug=slug
-                )
+                brand = Brand.objects.create(name=brand_name, slug=slug)
 
             xml_product.brand_model = brand
             xml_product.save()
+
+        # Привязка к категории
+        if group_id:
+            try:
+                category = Category.objects.get(xml_id=group_id)
+                xml_product.categories.set([category])
+            except Category.DoesNotExist:
+                self.stdout.write(self.style.WARNING(
+                    f'Category with xml_id={group_id} not found for product {product_id}'
+                ))
 
         return xml_product
 
@@ -145,21 +145,17 @@ class Command(BaseCommand):
     def get_product_attributes(self, product):
         attributes = {}
 
-        # Size
         if product.find('product_size') is not None:
             attributes['size'] = product.find('product_size').text
 
-        # Filters
         filters = []
         for filter_element in product.findall('filters/filter'):
-            filter_type = filter_element.find('filtertypeid').text if filter_element.find(
-                'filtertypeid') is not None else ''
+            filter_type = filter_element.find('filtertypeid').text if filter_element.find('filtertypeid') is not None else ''
             filter_id = filter_element.find('filterid').text if filter_element.find('filterid') is not None else ''
             filters.append({'type': filter_type, 'id': filter_id})
         if filters:
             attributes['filters'] = filters
 
-        # Prints
         prints = []
         for print_element in product.findall('print'):
             print_name = print_element.find('name').text if print_element.find('name') is not None else ''
@@ -168,7 +164,6 @@ class Command(BaseCommand):
         if prints:
             attributes['prints'] = prints
 
-        # Attachments
         attachments = []
         for attachment in product.findall('product_attachment'):
             attachment_type = 'image' if attachment.find('meaning').text == '1' else 'file'

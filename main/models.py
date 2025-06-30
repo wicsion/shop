@@ -315,6 +315,13 @@ class XMLProduct(models.Model):
     is_bestseller = models.BooleanField(default=False)
 
 
+
+    small_image_local = models.ImageField(upload_to='products/small/', blank=True, null=True)
+    big_image_local = models.ImageField(upload_to='products/big/', blank=True, null=True)
+    super_big_image_local = models.ImageField(upload_to='products/super_big/', blank=True, null=True)
+    attachments_local = models.JSONField(null=True, blank=True)
+
+
     class Meta:
         verbose_name = 'XML Товар'
         verbose_name_plural = 'XML Товары'

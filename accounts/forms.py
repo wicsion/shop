@@ -1,7 +1,7 @@
 # forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Company, CustomUser, Document, Order
+from .models import Company, CustomUser, Document, Order, CartItem
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 
@@ -62,14 +62,26 @@ class DocumentUploadForm(forms.ModelForm):
         fields = ['doc_type', 'file']
 
 
+class CartItemForm(forms.ModelForm):
+    quantity = forms.IntegerField(
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'style': 'width: 70px'})
+    )
+
+    class Meta:
+        model = CartItem
+        fields = ['quantity']
+
 class OrderCreateForm(forms.ModelForm):
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        label='Примечания к заказу'
+    )
+
     class Meta:
         model = Order
-        fields = ['excel_file']
-        widgets = {
-            'excel_file': forms.FileInput(attrs={'accept': '.xlsx,.xls'})
-        }
-
+        fields = ['notes']
 
 
 
@@ -97,3 +109,5 @@ class EmailAuthenticationForm(AuthenticationForm):
                     "Аккаунт не активирован. Проверьте вашу почту."
                 )
         return self.cleaned_data
+
+

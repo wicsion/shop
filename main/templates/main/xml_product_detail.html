@@ -1,54 +1,237 @@
 {% extends "main/base.html" %}
 {% load static i18n %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+<style>
+  .swiper-container {
+        width: 100%;
+        height: 400px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .swiper-wrapper {
+        display: flex;
+        width: auto !important;
+    }
+    .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f8f9fa;
+        width: 100% !important;
+        flex-shrink: 0;
+    }
+    .swiper-slide img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .swiper-thumbs {
+        height: 100px;
+        box-sizing: border-box;
+        padding: 10px 0;
+        overflow: hidden;
+    }
+    .swiper-thumbs .swiper-slide {
+        width: 25%;
+        height: 100%;
+        opacity: 0.4;
+        border: 1px solid #ddd;
+        cursor: pointer;
+    }
+    .swiper-thumbs .swiper-slide-thumb-active {
+        opacity: 1;
+        border-color: #3b82f6;
+    }
+    .swiper-button-next,
+    .swiper-button-prev {
+        color: #3b82f6;
+        background: rgba(255, 255, 255, 0.8);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .swiper-button-next::after,
+    .swiper-button-prev::after {
+        font-size: 20px;
+    }
+
+    /* Стили для вкладок */
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 1rem;
+    }
+    .tab {
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-bottom: none;
+        margin-right: 0.5rem;
+        border-radius: 0.25rem 0.25rem 0 0;
+    }
+    .tab.active {
+        border-color: #ddd;
+        border-bottom-color: white;
+        background: white;
+        color: #3b82f6;
+        font-weight: 500;
+    }
+    .tab-content {
+        display: none;
+        padding: 1rem;
+        background: white;
+        border-radius: 0 0.25rem 0.25rem 0.25rem;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Стили для таблицы размеров */
+    .size-variants {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .size-variants th, .size-variants td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+    }
+    .size-variants th {
+        background-color: #f8f9fa;
+    }
+    .size-variants tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* Стили для таблиц размеров */
+    .size-chart img {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 1rem;
+    }
+    .size-chart table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    .size-chart table, .size-chart th, .size-chart td {
+        border: 1px solid #ddd;
+    }
+    .size-chart th, .size-chart td {
+        padding: 0.5rem;
+        text-align: center;
+    }
+    .size-chart-note {
+        font-style: italic;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-8">
     <!-- Хлебные крошки -->
     <nav class="breadcrumbs mb-6">
-    <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
-    <span class="separator">/</span>
-    {% if brand and brand.slug %}  <!-- Проверяем и бренд и его slug -->
-        <a href="{% url 'main:brand_detail' slug=brand.slug %}">{{ brand.name }}</a>
+        <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
         <span class="separator">/</span>
-    {% endif %}
-    <span>{{ product.name }}</span>
-</nav>
+        {% if brand and brand.slug %}
+            <a href="{% url 'main:brand_detail' slug=brand.slug %}">{{ brand.name }}</a>
+            <span class="separator">/</span>
+        {% endif %}
+        <span>{{ product.name }}</span>
+    </nav>
+
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Изображения товара -->
         <div class="lg:w-1/2">
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="aspect-w-1 aspect-h-1">
-                    <img src="{{ product.main_image }}" alt="{{ product.name }}"
-                         class="object-cover w-full h-full">
+                <!-- Основной свайпер -->
+                <div class="swiper-container main-swiper">
+                    <div class="swiper-wrapper">
+                        <!-- Основное изображение -->
+                        <div class="swiper-slide">
+                            {% if product.super_big_image_local %}
+                                <img src="{{ product.super_big_image_local.url }}" alt="{{ product.name }}">
+                            {% elif product.super_big_image %}
+                                <img src="{{ product.super_big_image }}" alt="{{ product.name }}">
+                            {% endif %}
+                        </div>
+
+                        <!-- Дополнительные изображения из attachments -->
+                        {% if product.attachments %}
+                            {% for attachment in product.attachments %}
+                                {% if attachment.type == 'image' %}
+                                <div class="swiper-slide">
+                                    {% if attachment.local_path %}
+                                        <img src="{{ attachment.local_path }}" alt="{{ attachment.name|default:product.name }}">
+                                    {% elif attachment.url %}
+                                        <img src="{{ attachment.url }}" alt="{{ attachment.name|default:product.name }}">
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <!-- Добавляем навигацию (стрелки) -->
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
                 </div>
-                {% if product.small_image and product.small_image != product.main_image %}
-                <div class="grid grid-cols-4 gap-2 p-4">
-                    <div class="border rounded overflow-hidden">
-                        <img src="{{ product.small_image }}" alt="{{ product.name }}"
-                             class="object-cover w-full h-full">
+
+                <!-- Миниатюры (только если есть более одного изображения) -->
+                {% if product.attachments and product.attachments|length > 0 %}
+                <div class="swiper-container thumbs-swiper">
+                    <div class="swiper-wrapper">
+                        <!-- Миниатюра основного изображения -->
+                        <div class="swiper-slide">
+                            {% if product.super_big_image_local %}
+                                <img src="{{ product.super_big_image_local.url }}" alt="{{ product.name }}">
+                            {% elif product.super_big_image %}
+                                <img src="{{ product.super_big_image }}" alt="{{ product.name }}">
+                            {% endif %}
+                        </div>
+
+                        <!-- Миниатюры дополнительных изображений -->
+                        {% for attachment in product.attachments %}
+                            {% if attachment.type == 'image' %}
+                            <div class="swiper-slide">
+                                {% if attachment.local_path %}
+                                    <img src="{{ attachment.local_path }}" alt="{{ attachment.name|default:product.name }}">
+                                {% elif attachment.url %}
+                                    <img src="{{ attachment.url }}" alt="{{ attachment.name|default:product.name }}">
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                    {% if product.big_image and product.big_image != product.main_image %}
-                    <div class="border rounded overflow-hidden">
-                        <img src="{{ product.big_image }}" alt="{{ product.name }}"
-                             class="object-cover w-full h-full">
-                    </div>
-                    {% endif %}
-                    {% if product.super_big_image and product.super_big_image != product.main_image %}
-                    <div class="border rounded overflow-hidden">
-                        <img src="{{ product.super_big_image }}" alt="{{ product.name }}"
-                             class="object-cover w-full h-full">
-                    </div>
-                    {% endif %}
                 </div>
                 {% endif %}
             </div>
+
+            <!-- Области нанесения, если есть -->
+            {% if product.print_areas %}
+            <div class="bg-white rounded-lg shadow p-6 mt-6">
+                <h3 class="font-semibold text-lg mb-4">{% trans "Области нанесения" %}</h3>
+                <ul class="space-y-2">
+                    {% for area, description in product.print_areas.items %}
+                    <li>
+                        <strong>{{ area }}:</strong> {{ description }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Информация о товаре -->
         <div class="lg:w-1/2">
             <div class="bg-white rounded-lg shadow p-6">
                 <h1 class="text-2xl font-bold mb-2">{{ product.name }}</h1>
-                
+
                 <!-- Артикул и статус -->
                 <div class="flex items-center mb-4">
                     <span class="text-gray-600 mr-4">Артикул: {{ product.code }}</span>
@@ -56,6 +239,12 @@
                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
                     {% elif product.status == 'limited' %}
                     <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
+                    {% endif %}
+                    {% if product.is_featured %}
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
+                    {% endif %}
+                    {% if product.is_bestseller %}
+                    <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded ml-2">{% trans "Хит продаж" %}</span>
                     {% endif %}
                 </div>
 
@@ -79,7 +268,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        <span>{% trans "В наличии" %}</span>
+                        <span>{% trans "В наличии" %} ({{ product.quantity }} шт.)</span>
                     </div>
                     {% else %}
                     <div class="flex items-center text-red-600">
@@ -91,62 +280,196 @@
                     {% endif %}
                 </div>
 
+                <!-- Варианты размеров, если есть -->
+                {% if product.size_variants.exists %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-2">{% trans "Доступные размеры" %}</h3>
+                    <table class="size-variants">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Размер" %}</th>
+                                <th>{% trans "Цена" %}</th>
+                                <th>{% trans "Наличие" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for variant in product.size_variants.all %}
+                            <tr>
+                                <td>{{ variant.size }}</td>
+                                <td>
+                                    {% if variant.old_price and variant.old_price > variant.price %}
+                                    <span class="text-red-600">{{ variant.price }} ₽</span>
+                                    <span class="text-gray-500 line-through ml-2">{{ variant.old_price }} ₽</span>
+                                    {% else %}
+                                    {{ variant.price }} ₽
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if variant.in_stock %}
+                                    <span class="text-green-600">{% trans "В наличии" %} ({{ variant.quantity }} шт.)</span>
+                                    {% else %}
+                                    <span class="text-red-600">{% trans "Нет в наличии" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
                 <!-- Кнопка добавления в корзину -->
                 <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
                     {% csrf_token %}
                     <input type="hidden" name="product_type" value="xml">
                     <div class="flex items-center">
-                        <input type="number" name="quantity" value="1" min="1" 
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
                                class="border rounded px-3 py-2 w-20 mr-4">
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
-                            {% trans "Добавить в корзину" %}
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
+                            {% if product.in_stock %}{% trans "Добавить в корзину" %}{% else %}{% trans "Нет в наличии" %}{% endif %}
                         </button>
                     </div>
+                    {% if product.min_order_quantity > 1 %}
+                    <p class="text-sm text-gray-500 mt-2">{% trans "Минимальный заказ:" %} {{ product.min_order_quantity }} шт.</p>
+                    {% endif %}
                 </form>
 
-                <!-- Описание -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-2">{% trans "Описание" %}</h3>
-                    <div class="prose max-w-none">
-                        {{ product.description|safe|linebreaks }}
+                <!-- Вкладки с дополнительной информацией -->
+                <div class="tabs-container mt-6">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="description">{% trans "Описание" %}</div>
+                        <div class="tab" data-tab="specs">{% trans "Характеристики" %}</div>
+                        {% if product.size_charts.exists %}
+                        <div class="tab" data-tab="sizes">{% trans "Таблица размеров" %}</div>
+                        {% endif %}
+                        {% if product.care_instructions %}
+                        <div class="tab" data-tab="care">{% trans "Уход" %}</div>
+                        {% endif %}
+                        {% if product.delivery_time or product.production_time %}
+                        <div class="tab" data-tab="delivery">{% trans "Доставка" %}</div>
+                        {% endif %}
                     </div>
-                </div>
 
-                <!-- Характеристики -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-2">{% trans "Характеристики" %}</h3>
-                    <div class="space-y-2">
-                        {% if product.brand %}
-                        <div class="flex">
-                            <span class="text-gray-600 w-32">{% trans "Бренд" %}</span>
-                            <span>{{ product.brand }}</span>
+                    <!-- Содержимое вкладок -->
+                    <div class="tab-content active" id="description">
+                        <div class="prose max-w-none">
+                            {{ product.description|safe }}
                         </div>
-                        {% endif %}
-                        {% if product.material %}
-                        <div class="flex">
-                            <span class="text-gray-600 w-32">{% trans "Материал" %}</span>
-                            <span>{{ product.material }}</span>
-                        </div>
-                        {% endif %}
-                        {% if product.weight %}
-                        <div class="flex">
-                            <span class="text-gray-600 w-32">{% trans "Вес" %}</span>
-                            <span>{{ product.weight }} г</span>
-                        </div>
-                        {% endif %}
-                        {% if product.volume %}
-                        <div class="flex">
-                            <span class="text-gray-600 w-32">{% trans "Объем" %}</span>
-                            <span>{{ product.volume }} см³</span>
-                        </div>
-                        {% endif %}
-                        {% if product.barcode %}
-                        <div class="flex">
-                            <span class="text-gray-600 w-32">{% trans "Штрих-код" %}</span>
-                            <span>{{ product.barcode }}</span>
-                        </div>
-                        {% endif %}
                     </div>
+
+                    <div class="tab-content" id="specs">
+                        <div class="space-y-4">
+                            {% if product.brand %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Бренд" %}</span>
+                                <span>{{ product.brand }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.material %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Материал" %}</span>
+                                <span>{{ product.material }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.composition %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Состав" %}</span>
+                                <span>{{ product.composition }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.weight %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Вес" %}</span>
+                                <span>{{ product.weight }} г</span>
+                            </div>
+                            {% endif %}
+                            {% if product.volume %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Объем" %}</span>
+                                <span>{{ product.volume }} см³</span>
+                            </div>
+                            {% endif %}
+                            {% if product.density %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Плотность" %}</span>
+                                <span>{{ product.density }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.size_type %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Тип размера" %}</span>
+                                <span>{{ product.size_type }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.packaging %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Упаковка" %}</span>
+                                <span>{{ product.packaging }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.barcode %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Штрих-код" %}</span>
+                                <span>{{ product.barcode }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.group_id %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Группа товаров" %}</span>
+                                <span>{{ product.group_id }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if product.size_charts.exists %}
+                    <div class="tab-content" id="sizes">
+                        {% for chart in product.size_charts.all %}
+                        <div class="size-chart mb-8">
+                            {% if chart.image_url %}
+                            <img src="{{ chart.image_url }}" alt="Таблица размеров {{ product.name }}">
+                            {% endif %}
+                            {{ chart.table_html|safe }}
+                            {% if chart.note %}
+                            <p class="size-chart-note">{{ chart.note }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if product.care_instructions %}
+                    <div class="tab-content" id="care">
+                        <div class="prose max-w-none">
+                            {{ product.care_instructions|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if product.delivery_time or product.production_time %}
+                    <div class="tab-content" id="delivery">
+                        <div class="space-y-4">
+                            {% if product.production_time %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Срок производства" %}</span>
+                                <span>{{ product.production_time }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.delivery_time %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Срок доставки" %}</span>
+                                <span>{{ product.delivery_time }}</span>
+                            </div>
+                            {% endif %}
+                            {% if product.min_order_quantity > 1 %}
+                            <div class="flex">
+                                <span class="text-gray-600 w-48">{% trans "Минимальный заказ" %}</span>
+                                <span>{{ product.min_order_quantity }} шт.</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -187,4 +510,72 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем, есть ли более одного слайда
+    var slidesCount = document.querySelectorAll('.main-swiper .swiper-slide').length;
+
+    if (slidesCount > 1) {
+        // Инициализация основного свайпера
+        var mainSwiper = new Swiper('.main-swiper', {
+            direction: 'horizontal',
+            loop: false,
+            spaceBetween: 10,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+
+        // Инициализация свайпера миниатюр, если он есть
+        var thumbsSwiperEl = document.querySelector('.thumbs-swiper');
+        if (thumbsSwiperEl) {
+            var thumbsSwiper = new Swiper('.thumbs-swiper', {
+                direction: 'horizontal',
+                loop: false,
+                spaceBetween: 10,
+                slidesPerView: 4,
+                freeMode: true,
+                watchSlidesVisibility: true,
+                watchSlidesProgress: true,
+            });
+
+            // Связываем основной свайпер и миниатюры
+            mainSwiper.controller.control = thumbsSwiper;
+            thumbsSwiper.controller.control = mainSwiper;
+
+            // Обработка клика по миниатюре
+            document.querySelectorAll('.thumbs-swiper .swiper-slide').forEach(function(thumb, index) {
+                thumb.addEventListener('click', function() {
+                    mainSwiper.slideTo(index);
+                });
+            });
+        }
+    } else {
+        // Скрываем навигацию, если только одно изображение
+        document.querySelectorAll('.swiper-button-next, .swiper-button-prev').forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }
+
+    // Обработка вкладок
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Удаляем активный класс у всех вкладок и содержимого
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Добавляем активный класс к выбранной вкладке и соответствующему содержимому
+            tab.classList.add('active');
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -100,7 +100,6 @@ class CategoryDetailView(DetailView):
             categories__in=subcategories,
             in_stock=True
         ).order_by('-created_at').distinct()
-        print(f"Найдено товаров: {products.count()}")
 
         # Пагинация
         paginator = Paginator(products, 12)

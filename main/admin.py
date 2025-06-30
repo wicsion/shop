@@ -8,6 +8,7 @@ from .models import (
 )
 
 
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'parent', 'is_featured', 'order']
@@ -35,8 +36,8 @@ class BrandAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'category', 'brand', 'price', 'old_price',
-        'in_stock', 'quantity', 'is_featured', 'is_new', 'is_bestseller'
+        'name', 'category', 'brand', 'price', 'old_price', 'discount_percent',
+        'in_stock', 'quantity', 'is_featured', 'is_new', 'is_bestseller', 'sku'
     ]
     list_filter = [
         'category', 'brand', 'is_featured', 'is_new',
@@ -44,16 +45,16 @@ class ProductAdmin(admin.ModelAdmin):
     ]
     search_fields = ['name', 'sku', 'description']
     prepopulated_fields = {'slug': ['name']}
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'discount_percent', 'main_image_preview']
     fieldsets = (
         (None, {
-            'fields': ('name', 'slug', 'category', 'brand', 'sku')
+            'fields': ('name', 'slug', 'category', 'brand', 'sku', 'main_image_preview')
         }),
         (_('Описание'), {
             'fields': ('short_description', 'description')
         }),
         (_('Цены и наличие'), {
-            'fields': ('price', 'old_price', 'in_stock', 'quantity')
+            'fields': ('price', 'old_price', 'discount_percent', 'in_stock', 'quantity')
         }),
         (_('Флаги'), {
             'fields': ('is_featured', 'is_new', 'is_bestseller')
@@ -64,12 +65,23 @@ class ProductAdmin(admin.ModelAdmin):
         }),
     )
 
+    def discount_percent(self, obj):
+        if obj.has_discount:
+            return f"{obj.discount_percent}%"
+        return "0%"
+    discount_percent.short_description = _('Скидка')
+
+    def main_image_preview(self, obj):
+        # Здесь можно добавить превью главного изображения, если оно есть в модели
+        return "-"
+    main_image_preview.short_description = _('Главное изображение')
+
 
 @admin.register(XMLProduct)
 class XMLProductAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'brand', 'price', 'old_price', 'in_stock',
-        'quantity', 'status', 'is_featured', 'is_bestseller'
+        'name', 'brand', 'price', 'old_price', 'discount_percent',
+        'in_stock', 'quantity', 'status', 'is_featured', 'is_bestseller', 'code'
     ]
     list_filter = [
         'status', 'is_featured', 'is_bestseller', 'in_stock',
@@ -77,7 +89,12 @@ class XMLProductAdmin(admin.ModelAdmin):
     ]
     search_fields = ['name', 'product_id', 'code', 'description']
     filter_horizontal = ['categories']
-    readonly_fields = ['created_at', 'updated_at', 'main_image_preview']
+    readonly_fields = [
+        'created_at', 'updated_at', 'main_image_preview',
+        'small_image_preview', 'big_image_preview',
+        'super_big_image_preview', 'discount_percent',
+        'attachments_preview'
+    ]
     fieldsets = (
         (None, {
             'fields': ('product_id', 'group_id', 'code', 'name', 'categories')
@@ -86,19 +103,28 @@ class XMLProductAdmin(admin.ModelAdmin):
             'fields': ('description', 'material')
         }),
         (_('Цены и наличие'), {
-            'fields': ('price', 'old_price', 'in_stock', 'quantity')
+            'fields': ('price', 'old_price', 'discount_percent', 'in_stock', 'quantity', 'min_order_quantity')
         }),
         (_('Изображения'), {
-            'fields': ('small_image', 'big_image', 'super_big_image', 'main_image_preview')
+            'fields': (
+                'small_image', 'small_image_preview',
+                'big_image', 'big_image_preview',
+                'super_big_image', 'super_big_image_preview',
+                'main_image_preview'
+            )
+        }),
+        (_('Дополнительные фото'), {
+            'fields': ('attachments_preview',),
+            'classes': ('collapse',)
         }),
         (_('Характеристики'), {
-            'fields': ('brand', 'status', 'weight', 'volume', 'barcode')
+            'fields': ('brand', 'status', 'weight', 'volume', 'barcode', 'size_type', 'composition')
         }),
         (_('Флаги'), {
             'fields': ('is_featured', 'is_bestseller')
         }),
         (_('Дополнительно'), {
-            'fields': ('xml_data',),
+            'fields': ('xml_data', 'attachments'),
             'classes': ('collapse',)
         }),
         (_('Даты'), {
@@ -107,11 +133,65 @@ class XMLProductAdmin(admin.ModelAdmin):
         }),
     )
 
+    def discount_percent(self, obj):
+        if obj.has_discount:
+            return f"{obj.discount_percent}%"
+        return "0%"
+
+    discount_percent.short_description = _('Скидка')
+
     def main_image_preview(self, obj):
         if obj.main_image:
             return format_html('<img src="{}" width="200" />', obj.main_image)
         return '-'
+
     main_image_preview.short_description = _('Основное изображение')
+
+    def small_image_preview(self, obj):
+        if obj.small_image:
+            return format_html('<img src="{}" width="100" />', obj.small_image)
+        return '-'
+
+    small_image_preview.short_description = _('Маленькое изображение')
+
+    def big_image_preview(self, obj):
+        if obj.big_image:
+            return format_html('<img src="{}" width="150" />', obj.big_image)
+        return '-'
+
+    big_image_preview.short_description = _('Большое изображение')
+
+    def super_big_image_preview(self, obj):
+        if obj.super_big_image:
+            return format_html('<img src="{}" width="200" />', obj.super_big_image)
+        return '-'
+
+    super_big_image_preview.short_description = _('Очень большое изображение')
+
+    def attachments_preview(self, obj):
+        if not obj.attachments:
+            return '-'
+
+        previews = []
+        for attachment in obj.attachments:
+            if attachment.get('type') == 'image' and attachment.get('image'):
+                previews.append(
+                    format_html(
+                        '<div style="float: left; margin-right: 10px; margin-bottom: 10px;">'
+                        '<img src="{}" width="150" /><br>'
+                        '<small>{}</small>'
+                        '</div>',
+                        attachment['image'],
+                        attachment.get('name', '')
+                    )
+                )
+
+        if not previews:
+            return '-'
+
+        return format_html(''.join(previews))
+
+    attachments_preview.short_description = _('Дополнительные фото')
 
 
 class CartItemInline(admin.TabularInline):
@@ -236,3 +316,5 @@ class WishlistAdmin(admin.ModelAdmin):
     def products_count(self, obj):
         return obj.products.count()
     products_count.short_description = _('Количество товаров')
+
+

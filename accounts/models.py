@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.template.context_processors import static
 from django.contrib.auth.models import BaseUserManager
+from django.core.validators import MinValueValidator
 
 import uuid
 
@@ -152,22 +153,6 @@ class Document(models.Model):
     signed = models.BooleanField('Подписано', default=False)
     signature = models.TextField('ЭЦП', null=True, blank=True)
 
-
-class Order(models.Model):
-    ORDER_STATUSES = (
-        ('new', 'Новый'),
-        ('processing', 'В обработке'),
-        ('completed', 'Завершен'),
-    )
-
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    order_number = models.UUIDField('Номер заказа', default=uuid.uuid4, editable=False)
-    excel_file = models.FileField('Excel-файл', upload_to='orders/')
-    status = models.CharField('Статус', max_length=20, choices=ORDER_STATUSES, default='new')
-    created_at = models.DateTimeField(auto_now_add=True)
-    total_amount = models.DecimalField('Сумма', max_digits=12, decimal_places=2, default=0)
-
-
 class SupportTicket(models.Model):
     TICKET_TYPES = (
         ('general', 'Общий вопрос'),
@@ -180,3 +165,80 @@ class SupportTicket(models.Model):
     message = models.TextField('Сообщение')
     created_at = models.DateTimeField(auto_now_add=True)
     resolved = models.BooleanField('Решено', default=False)
+
+class Cart(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,related_name='accounts_cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Корзина пользователя {self.user.email}"
+
+    @property
+    def total_price(self):
+        return sum(item.total_price for item in self.items.all())
+
+    @property
+    def items_count(self):
+        return self.items.count()
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=100)  # ID из XML или другой системы
+    product_name = models.CharField(max_length=255)
+    product_image = models.URLField(blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product_name} ({self.quantity})"
+
+    @property
+    def total_price(self):
+        return self.price * self.quantity
+
+class Order(models.Model):
+    ORDER_STATUSES = (
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('completed', 'Завершен'),
+        ('canceled', 'Отменен'),
+    )
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    order_number = models.UUIDField('Номер заказа', default=uuid.uuid4, editable=False)
+    status = models.CharField('Статус', max_length=20, choices=ORDER_STATUSES, default='new')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    total_amount = models.DecimalField('Сумма', max_digits=12, decimal_places=2, default=0)
+    notes = models.TextField('Примечания', blank=True, null=True)
+
+    def __str__(self):
+        return f"Заказ #{self.order_number}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=100)
+    product_name = models.CharField(max_length=255)
+    product_image = models.URLField(blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.product_name} ({self.quantity})"
+
+class Invoice(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    invoice_number = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    pdf_file = models.FileField(upload_to='invoices/', blank=True, null=True)
+    excel_file = models.FileField(upload_to='invoices/', blank=True, null=True)
+    sent = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Счет {self.invoice_number} для заказа #{self.order.order_number}"

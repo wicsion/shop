@@ -1,0 +1,45 @@
+{% extends "accounts/emails/base.html" %}
+
+{% block content %}
+<h1 style="color: #1e40af; font-size: 24px; margin-bottom: 20px;">Подтверждение заказа #{{ order.id }}</h1>
+
+<p style="margin-bottom: 15px;">Уважаемый(ая) {{ user.get_full_name }},</p>
+
+<p style="margin-bottom: 15px;">Благодарим вас за заказ в нашем магазине! Ваш заказ успешно оформлен и передан в обработку.</p>
+
+<div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">Детали заказа</h2>
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+        <tr>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><strong>Номер заказа:</strong></td>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">#{{ order.order_number }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><strong>Дата:</strong></td>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><strong>Статус:</strong></td>
+            <td style="padding: 5px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">{{ order.get_status_display }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 0;"><strong>Сумма:</strong></td>
+            <td style="padding: 5px 0; text-align: right;">{{ order.total_amount }} ₽</td>
+        </tr>
+    </table>
+</div>
+
+{% if order.notes %}
+<div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">Ваши примечания</h2>
+    <p style="margin: 0;">{{ order.notes }}</p>
+</div>
+{% endif %}
+
+<p style="margin-bottom: 15px;">Вы можете отслеживать статус вашего заказа в <a href="{{ site_url }}{% url 'accounts:order_detail' order.id %}" style="color: #1e40af; text-decoration: underline;">личном кабинете</a>.</p>
+
+<p style="margin-bottom: 15px;">Если у вас возникли вопросы, пожалуйста, свяжитесь с нашей службой поддержки.</p>
+
+<p style="margin-bottom: 0;">С уважением,<br>Команда УКСУС</p>
+{% endblock %}

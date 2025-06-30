@@ -348,6 +348,28 @@
         .breadcrumbs span {
             margin: 0 0.5rem;
         }
+        .product-image-container {
+    height: 240px;
+    background: var(--gradient-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-placeholder {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    opacity: 0.8;
+}
     </style>
 </head>
 <body>
@@ -365,13 +387,48 @@
     <!-- Шапка бренда -->
     <section class="brand-header animate-fadeIn">
         <div class="container mx-auto px-4 text-center">
-            <div class="brand-logo-container animate-float">
-                {% if brand.logo %}
-                    <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="brand-logo">
-                {% else %}
-                    <i class="fas fa-tag text-4xl" style="color: var(--primary-blue);"></i>
-                {% endif %}
+            <!-- На этот (аналог xml_product_detail.html) -->
+<div class="swiper-container main-swiper">
+    <div class="swiper-wrapper">
+        {% if brand.logo %}
+            <div class="swiper-slide">
+                <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="object-cover w-full h-full">
             </div>
+        {% else %}
+            <div class="swiper-slide">
+                <img src="{% static 'images/brand-placeholder.svg' %}" alt="{{ brand.name }}" class="product-placeholder">
+            </div>
+        {% endif %}
+
+        <!-- Дополнительные изображения, если есть -->
+        {% if brand.additional_images %}
+            {% for image in brand.additional_images %}
+                <div class="swiper-slide">
+                    <img src="{{ image.url }}" alt="{{ brand.name }} - дополнительное фото {{ forloop.counter }}">
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <!-- Стрелки навигации -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+</div>
+
+<!-- Миниатюры (если изображений больше одного) -->
+{% if brand.logo and brand.additional_images %}
+    <div class="swiper-container thumbs-swiper mt-4">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide">
+                <img src="{{ brand.logo.url }}" alt="{{ brand.name }} - миниатюра">
+            </div>
+            {% for image in brand.additional_images %}
+                <div class="swiper-slide">
+                    <img src="{{ image.url }}" alt="{{ brand.name }} - миниатюра {{ forloop.counter }}">
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
             <h1 class="brand-title">{{ brand.name }}</h1>
             {% if brand.description %}
                 <p class="brand-description">{{ brand.description }}</p>
@@ -405,9 +462,11 @@
             {% for product in products %}
             <div class="product-card animate-fadeIn" style="animation-delay: {{ forloop.counter|add:"0.1" }}s">
                 <div class="product-image-container">
-                    <img src="{% static 'images/product-placeholder.svg' %}"
-                         alt="{{ product.name }}"
-                         class="product-placeholder">
+    {% if product.main_image %}
+        <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="object-cover w-full h-full">
+    {% else %}
+        <img src="{% static 'images/product-placeholder.svg' %}" alt="{{ product.name }}" class="product-placeholder">
+    {% endif %}
 
                     <div class="absolute top-4 right-4 flex flex-col gap-2">
                         {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}

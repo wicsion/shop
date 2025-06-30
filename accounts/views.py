@@ -1,21 +1,29 @@
 # views.py
 from django.views.generic import CreateView, UpdateView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Company, Document, Order, AuditLog, CustomUser, SupportTicket
-from .forms import CompanyRegistrationForm, DocumentUploadForm, OrderCreateForm
+from .models import Company, Document,  AuditLog, CustomUser, SupportTicket
+from .forms import CompanyRegistrationForm, DocumentUploadForm
 import random
 import string
 from django.core.mail import send_mail
-from django.conf import settings
 from django.contrib.auth import login
-from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from django.conf import settings
+#from xhtml2pdf import pisa
+from openpyxl import Workbook
+from io import BytesIO
+import datetime
+from .models import Cart, CartItem, Order, OrderItem, Invoice
+from .forms import CartItemForm, OrderCreateForm
 
 
 class CompanyRegisterView(CreateView):
@@ -181,6 +189,270 @@ class OrderCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+def get_user_cart(request):
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        return cart
+    return None
+
+
+def cart_view(request):
+    cart = get_user_cart(request)
+    if not cart:
+        return redirect('accounts:login')
+
+    if request.method == 'POST':
+        form = CartItemForm(request.POST)
+        if form.is_valid():
+            item_id = request.POST.get('item_id')
+            try:
+                item = CartItem.objects.get(id=item_id, cart=cart)
+                item.quantity = form.cleaned_data['quantity']
+                item.save()
+                messages.success(request, 'Количество товара обновлено')
+            except CartItem.DoesNotExist:
+                messages.error(request, 'Товар не найден в корзине')
+        return redirect('accounts:cart_view')
+
+    return render(request, 'accounts/cart.html', {
+        'cart': cart,
+        'cart_items': cart.items.all() if cart else []
+    })
+
+
+def add_to_cart(request, product_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Требуется авторизация'}, status=403)
+
+    # Здесь должна быть логика получения данных о товаре из вашей системы
+    # Это пример - замените на реальное получение данных о товаре
+    product_data = {
+        'id': product_id,
+        'name': request.POST.get('product_name', 'Тестовый товар'),
+        'price': float(request.POST.get('price', 1000)),
+        'image': request.POST.get('image', '')
+    }
+
+    cart = get_user_cart(request)
+    if not cart:
+        return JsonResponse({'status': 'error', 'message': 'Ошибка корзины'}, status=400)
+
+    # Проверяем, есть ли уже такой товар в корзине
+    item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        product_id=product_data['id'],
+        defaults={
+            'product_name': product_data['name'],
+            'product_image': product_data['image'],
+            'price': product_data['price'],
+            'quantity': 1
+        }
+    )
+
+    if not created:
+        item.quantity += 1
+        item.save()
+
+    messages.success(request, 'Товар добавлен в корзину')
+    return JsonResponse({
+        'status': 'success',
+        'cart_items_count': cart.items_count,
+        'cart_total': cart.total_price
+    })
+
+
+def remove_from_cart(request, item_id):
+    cart = get_user_cart(request)
+    if not cart:
+        return redirect('accounts:login')
+
+    try:
+        item = CartItem.objects.get(id=item_id, cart=cart)
+        item.delete()
+        messages.success(request, 'Товар удален из корзины')
+    except CartItem.DoesNotExist:
+        messages.error(request, 'Товар не найден в корзине')
+
+    return redirect('accounts:cart_view')
+
+
+def checkout(request):
+    cart = get_user_cart(request)
+    if not cart or cart.items_count == 0:
+        return redirect('accounts:cart_view')
+
+    if request.method == 'POST':
+        form = OrderCreateForm(request.POST)
+        if form.is_valid():
+            # Создаем заказ
+            order = Order.objects.create(
+                company=request.user.company,
+                total_amount=cart.total_price,
+                notes=form.cleaned_data['notes']
+            )
+
+            # Переносим товары из корзины в заказ
+            for cart_item in cart.items.all():
+                OrderItem.objects.create(
+                    order=order,
+                    product_id=cart_item.product_id,
+                    product_name=cart_item.product_name,
+                    product_image=cart_item.product_image,
+                    price=cart_item.price,
+                    quantity=cart_item.quantity,
+                    total_price=cart_item.total_price
+                )
+
+            # Очищаем корзину
+            cart.items.all().delete()
+
+            # Создаем счет
+            invoice = create_invoice(order)
+
+            # Отправляем письмо с подтверждением
+            send_order_confirmation(request, order, invoice)
+
+            messages.success(request, 'Ваш заказ успешно оформлен!')
+            return redirect('accounts:order_detail', order_id=order.id)
+    else:
+        form = OrderCreateForm()
+
+    return render(request, 'accounts/checkout.html', {
+        'cart': cart,
+        'form': form,
+        'company': request.user.company
+    })
+
+
+def create_invoice(order):
+    # Генерация номера счета (можно использовать более сложную логику)
+    invoice_number = f"INV-{order.id}-{datetime.datetime.now().strftime('%Y%m%d')}"
+
+    # Расчет даты оплаты (например, +7 дней от текущей даты)
+    due_date = datetime.datetime.now() + datetime.timedelta(days=7)
+
+    invoice = Invoice.objects.create(
+        order=order,
+        invoice_number=invoice_number,
+        due_date=due_date,
+        amount=order.total_amount
+    )
+
+    # Генерация PDF и Excel
+    generate_invoice_pdf(invoice)
+    generate_invoice_excel(invoice)
+
+    return invoice
+
+
+#def generate_invoice_pdf(invoice):
+   # context = {
+        #'invoice': invoice,
+        #'company': invoice.order.company,
+        #'order': invoice.order,
+       #'items': invoice.order.items.all()
+   # }
+#html = render_to_string('accounts/invoice_pdf.html', context)
+#result = BytesIO()
+
+    #if not pdf.err:
+        #invoice.pdf_file.save(
+            #f'invoice_{invoice.invoice_number}.pdf',
+            #result
+       # )
+        #invoice.save()
+
+
+def generate_invoice_excel(invoice):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Счет"
+
+    # Заголовок
+    ws['A1'] = f"Счет № {invoice.invoice_number}"
+    ws['A2'] = f"Дата: {invoice.created_at.strftime('%d.%m.%Y')}"
+    ws['A3'] = f"Срок оплаты: {invoice.due_date.strftime('%d.%m.%Y')}"
+    ws['A4'] = f"Заказчик: {invoice.order.company.legal_name}"
+    ws['A5'] = f"ИНН: {invoice.order.company.inn}"
+
+    # Заголовки таблицы
+    ws['A7'] = "№"
+    ws['B7'] = "Наименование товара"
+    ws['C7'] = "Количество"
+    ws['D7'] = "Цена"
+    ws['E7'] = "Сумма"
+
+    # Данные товаров
+    for i, item in enumerate(invoice.order.items.all(), start=1):
+        ws[f'A{7 + i}'] = i
+        ws[f'B{7 + i}'] = item.product_name
+        ws[f'C{7 + i}'] = item.quantity
+        ws[f'D{7 + i}'] = float(item.price)
+        ws[f'E{7 + i}'] = float(item.total_price)
+
+    # Итого
+    last_row = 7 + invoice.order.items.count()
+    ws[f'D{last_row + 1}'] = "Итого:"
+    ws[f'E{last_row + 1}'] = float(invoice.amount)
+
+    # Сохранение в BytesIO
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    invoice.excel_file.save(
+        f'invoice_{invoice.invoice_number}.xlsx',
+        excel_file
+    )
+    invoice.save()
+
+
+def send_order_confirmation(request, order, invoice):
+    subject = f"Подтверждение заказа #{order.id}"
+    context = {
+        'order': order,
+        'invoice': invoice,
+        'company': request.user.company,
+        'user': request.user,
+        'site_url': request.build_absolute_uri('/')
+    }
+
+    html_message = render_to_string('accounts/emails/order_confirmation.html', context)
+    text_message = render_to_string('accounts/emails/order_confirmation.txt', context)
+
+    email = EmailMessage(
+        subject,
+        text_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [request.user.email, order.company.email],
+        reply_to=[settings.DEFAULT_FROM_EMAIL]
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    # Прикрепляем PDF счета
+    if invoice.pdf_file:
+        email.attach_file(invoice.pdf_file.path)
+
+    # Прикрепляем Excel счета
+    if invoice.excel_file:
+        email.attach_file(invoice.excel_file.path)
+
+    email.send()
+
+
+def order_list(request):
+    orders = Order.objects.filter(company=request.user.company).order_by('-created_at')
+    return render(request, 'accounts/orders_list.html', {
+        'orders': orders
+    })
+
+
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, company=request.user.company)
+    return render(request, 'accounts/order_detail.html', {
+        'order': order,
+        'invoice': getattr(order, 'invoice', None)
+    })
 class CompanyProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Company
     fields = ['legal_address', 'bank_account', 'bank_bik']

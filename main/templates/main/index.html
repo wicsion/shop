@@ -1401,10 +1401,11 @@
 </div>
 
         <!-- Остальной код секции категорий остается без изменений -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2">
+       <!-- Одежда -->
+ <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2">
             <!-- Одежда -->
               <div class="category-card group p-6">
-            <a href="{% url 'main:category_detail' slug='odezhda' %}" class="absolute inset-0 z-10"></a>
+              <a href="{% url 'main:category_detail' slug='odezhda' %}" class="absolute inset-0 z-10"></a>
     <div class="flex items-center mb-4">
         <div class="category-icon-wrapper mr-4">
             <i class="fas fa-tshirt text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
@@ -1414,58 +1415,119 @@
         </h3>
     </div>
 
-                <div class="subcategory-list">
-                    <ul class="space-y-2 pl-2">
-                        <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                       <a href="{% url 'main:category_detail' slug='futbolki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки" %}</a>
-                        <span class="tag bg-blue-100 text-blue-800"></span>
-                    </a>
-                </li>
-                         <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='panamy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Панамы" %}</a>
-                </li>
-                        <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='kepki-i-beysbolki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
-                        <span>{% trans "Кепки и бейсболки" %}</span>
-                        <span class="tag bg-green-100 text-green-800"></span>
-                    </a>
-                </li>
-
-                      <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='rubashki-polo' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Рубашки поло" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='longslivy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Лонгсливы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='futbolki-dlya-promo' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки для промо" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='vetrovki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ветровки" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='tolstovki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Толстовки" %}</a>
-                </li>
-                    </ul>
-                    <div class="show-more-indicator"></div>
-                </div>
-                <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
-                        <i class="fas fa-shopping-cart text-blue-600"></i>
-                    </button>
-                </div>
-            </div>
+    <div class="subcategory-list">
+        <ul class="space-y-2 pl-2">
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='futbolki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kepki-i-beysbolki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кепки и бейсболки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='panamy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Панамы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='rubashki-polo' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Рубашки поло" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='longslivy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Лонгсливы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='futbolki-dlya-promo' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Футболки для промо" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='vetrovki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ветровки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='tolstovki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Толстовки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='svitshoty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Свитшоты" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='hudi' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Худи" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kurtki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Куртки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kofty-iz-flisa' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофты из флиса" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='sharfy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Шарфы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='shapki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Шапки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='perchatki-i-varezhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Перчатки и варежки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='vyazanye-komplekty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Вязаные комплекты" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='dzhempery' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Джемперы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='zilety' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Жилеты" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='ofisnye-rubashki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Офисные рубашки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='fartuki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Фартуки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='sportivnaya-odezhda' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Спортивная одежда" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='bryuki-i-shorty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Брюки и шорты" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='detskaya-odezhda' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Детская одежда" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='aksessuary-dlya-odezhdy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Аксессуары" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='vyazalnoe-proizvodstvo' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Вязальное производство" %}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
+            <i class="fas fa-shopping-cart text-blue-600"></i>
+        </button>
+    </div>
+</div>
 
               <!-- Посуда -->
-           <div class="category-card group p-6">
+         <div class="category-card group p-6">
     <a href="{% url 'main:category_detail' slug='posuda' %}" class="absolute inset-0 z-10"></a>
     <div class="flex items-center mb-4">
         <div class="category-icon-wrapper mr-4">
@@ -1475,46 +1537,102 @@
             {% trans "Посуда" %}
         </h3>
     </div>
-                <div class="subcategory-list">
-                    <ul class="space-y-2 pl-2">
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='kruzhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
-                        <span>{% trans "Кружки" %}</span>
-                    </a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='termokruzhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
-                        <span>{% trans "Термокружки" %}</span>
-                        <span class="tag bg-green-100 text-green-800"></span>
-                    </a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='butylki-dlya-vody' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бутылки для воды" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='chaynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чайные наборы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='kofeynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофейные наборы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='bokaly' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бокалы" %}</a>
-                </li>
-            </ul>
-                    <div class="show-more-indicator"></div>
-                </div>
-                <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
-                        <i class="fas fa-shopping-cart text-blue-600"></i>
-                    </button>
-                </div>
-            </div>
+    <div class="subcategory-list">
+        <ul class="space-y-2 pl-2">
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kruzhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
+                    <span>{% trans "Кружки" %}</span>
+                </a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='termokruzhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
+                    <span>{% trans "Термокружки" %}</span>
+                    <span class="tag bg-green-100 text-green-800"></span>
+                </a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='butylki-dlya-vody' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бутылки для воды" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='chaynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чайные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kofeynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофейные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='bokaly' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бокалы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='stakany' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Стаканы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='pivnye-bokaly' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Пивные бокалы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='termosy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Термосы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='termosy-dlya-edy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Термосы для еды" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='stakany-s-kryshkoy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Стаканы с крышкой" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='lanchboksy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ланчбоксы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kuhonnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кухонные аксессуары" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='melnicy-dlya-speciy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мельницы для специй" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='razdelochnye-doski' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Разделочные доски" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='barnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Барные аксессуары" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='flyazhki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Фляжки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='predmety-servirovki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Предметы сервировки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kostery' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Костеры" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='zavarochnye-chayniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Заварочные чайники" %}</a>
+            </li>
+        </ul>
+        <div class="show-more-indicator"></div>
+    </div>
+    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
+            <i class="fas fa-shopping-cart text-blue-600"></i>
+        </button>
+    </div>
+</div>
 
             <!-- Ручки -->
             <div class="category-card group p-6">
@@ -1566,54 +1684,65 @@
 
             <!-- Электроника -->
             <div class="category-card group p-6">
-                <a href="{% url 'main:category_detail' slug='elektronika' %}" class="absolute inset-0 z-10"></a>
-
-                <div class="flex items-center mb-4">
-                    <div class="category-icon-wrapper mr-4">
-                        <i class="fas fa-mobile-alt text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
-                    </div>
-                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                        {% trans "Электроника" %}
-                    </h3>
-                </div>
-                <div class="subcategory-list">
-                    <ul class="space-y-2 pl-2">
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='akkumulyatory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
-                        <span>{% trans "Аккумуляторы" %}</span>
-                        <span class="tag bg-green-100 text-green-800"></span>
-                    </a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='fleshki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Флешки" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='uvlazhniteli' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Увлажнители" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='kolonki-i-naushniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Колонки и наушники" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='zaryadnye-ustroystva' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Зарядные устройства" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='mobilnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мобильные аксессуары" %}</a>
-                </li>
-            </ul>
-                    <div class="show-more-indicator"></div>
-                </div>
-                <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
-                        <i class="fas fa-shopping-cart text-blue-600"></i>
-                    </button>
-                </div>
-            </div>
+    <a href="{% url 'main:category_detail' slug='elektronika' %}" class="absolute inset-0 z-10"></a>
+    <div class="flex items-center mb-4">
+        <div class="category-icon-wrapper mr-4">
+            <i class="fas fa-mobile-alt text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+        </div>
+        <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            {% trans "Электроника" %}
+        </h3>
+    </div>
+    <div class="subcategory-list">
+        <ul class="space-y-2 pl-2">
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='akkumulyatory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 flex justify-between w-full">
+                    <span>{% trans "Аккумуляторы" %}</span>
+                    <span class="tag bg-green-100 text-green-800"></span>
+                </a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='zaryadnye-ustroystva' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Зарядные устройства" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='mobilnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мобильные аксессуары" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kolonki-i-naushniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Колонки и наушники" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='fleshki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Флешки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='uvlazhniteli' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Увлажнители" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='lampy-i-svetilniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Лампы и светильники" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='bytovaya-tehnika' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бытовая техника" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='umnyy-dom' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Умный дом" %}</a>
+            </li>
+        </ul>
+        <div class="show-more-indicator"></div>
+    </div>
+    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
+            <i class="fas fa-shopping-cart text-blue-600"></i>
+        </button>
+    </div>
+</div>
 
             <!-- Сумки -->
             <div class="category-card group p-6">
@@ -1658,44 +1787,50 @@
                 </div>
             </div>
 
-            <!-- Ежедневники и блокноты -->
-            <div class="category-card group p-6">
-                 <a href="{% url 'main:category_detail' slug='ezhednevniki-i-bloknoty' %}" class="absolute inset-0 z-10"></a>
-                <div class="flex items-center mb-4">
-                    <div class="category-icon-wrapper mr-4">
-                        <i class="fas fa-book text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
-                    </div>
-                    <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                        {% trans "Ежедневники и блокноты" %}
-                    </h3>
-                </div>
-                <div class="subcategory-list">
-                    <ul class="space-y-2 pl-2">
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='bloknoty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Блокноты" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='ezhednevniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ежедневники" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='kalkulyator-ezhednevnika' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Калькулятор ежедневника" %}</a>
-                </li>
-            </ul>
-                    <div class="show-more-indicator"></div>
-                </div>
-                <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
-                        <i class="fas fa-shopping-cart text-blue-600"></i>
-                    </button>
-                </div>
-            </div>
+          <div class="category-card group p-6">
+    <a href="{% url 'main:category_detail' slug='ezhednevniki-i-bloknoty' %}" class="absolute inset-0 z-10"></a>
+    <div class="flex items-center mb-4">
+        <div class="category-icon-wrapper mr-4">
+            <i class="fas fa-book text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
+        </div>
+        <h3 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            {% trans "Ежедневники и блокноты" %}
+        </h3>
+    </div>
+    <div class="subcategory-list">
+        <ul class="space-y-2 pl-2">
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='ezhednevniki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ежедневники" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='bloknoty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Блокноты" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kalkulyator-ezhednevnika' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Калькулятор ежедневника" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-ezhednevnikami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с ежедневниками" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='upakovka-dlya-ezhednevnikov' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Упаковка для ежедневников" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='ezhednevniki-na-zakaz' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ежедневники на заказ" %}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
+            <i class="fas fa-shopping-cart text-blue-600"></i>
+        </button>
+    </div>
+</div>
 
            <!-- Упаковка (раскрывается вниз) -->
 <div class="category-card group p-6">
@@ -1740,6 +1875,7 @@
 </div>
 
 <!-- Подарочные наборы (раскрывается вниз) -->
+<!-- Подарочные наборы (раскрывается вниз) -->
 <div class="category-card group p-6">
      <a href="{% url 'main:category_detail' slug='podarochnye-nabory' %}" class="absolute inset-0 z-10"></a>
     <div class="flex items-center mb-4">
@@ -1752,27 +1888,119 @@
     </div>
     <div class="subcategory-list">
          <ul class="space-y-2 pl-2">
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='biznes-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бизнес наборы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='nabory-iz-kozhi' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы из кожи" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='nabory-velkom-pak' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы велком-пак" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='dorozhnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Дорожные наборы" %}</a>
-                </li>
-                <li class="subcategory-item flex items-center">
-                    <span class="subcategory-bullet"></span>
-                    <a href="{% url 'main:category_detail' slug='nabory-s-termokruzhkami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с термокружками" %}</a>
-                </li>
-            </ul>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='biznes-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бизнес наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-iz-kozhi' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы из кожи" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-velkom-pak' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы велком-пак" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='dorozhnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Дорожные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-termokruzhkami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с термокружками" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-kruzhkami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с кружками" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-butylkami-dlya-vody' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с бутылками для воды" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-akkumulyatorami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с аккумуляторами" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-fleshkami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с флешками" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-pledami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с пледами" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-multitulami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с мультитулами" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='vinnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Винные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-syra' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для сыра" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-viski' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для виски" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kuhonnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кухонные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='sportivnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Спортивные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-vyrashchivaniya' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для выращивания" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-muzhchin' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для мужчин" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-zhenshchin' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для женщин" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-detey' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для детей" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='novogodnie-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Новогодние наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-s-ezhednevnikami' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы с ежедневниками" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-ruchek' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы ручек" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='produktovye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Продуктовые наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='chaynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чайные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kofeynye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофейные наборы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nabory-dlya-piknika' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы для пикника" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='bannye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Банные наборы" %}</a>
+            </li>
+        </ul>
     </div>
     <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
@@ -1783,7 +2011,7 @@
 
 <!-- Корпоративные подарки (раскрывается вниз) -->
 <div class="category-card group p-6">
-      <a href="{% url 'main:category_detail' slug='korporativnye-podarki' %}" class="absolute inset-0 z-10"></a>
+    <a href="{% url 'main:category_detail' slug='korporativnye-podarki' %}" class="absolute inset-0 z-10"></a>
     <div class="flex items-center mb-4">
         <div class="category-icon-wrapper mr-4">
             <i class="fas fa-building text-4xl text-blue-600 group-hover:text-purple-600 transition-colors duration-300"></i>
@@ -1793,10 +2021,10 @@
         </h3>
     </div>
     <div class="subcategory-list">
-         <ul class="space-y-2 pl-2">
+        <ul class="space-y-2 pl-2">
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='nagrady' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Награды" %}</a>
+                <a href="{% url 'main:category_detail' slug='nastolnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Настольные аксессуары" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
@@ -1808,11 +2036,55 @@
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='chehly-dlya-kart' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чехлы для карт" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='chehly-dlya-propuska' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чехлы для пропуска" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
                 <a href="{% url 'main:category_detail' slug='beydzhi-i-lenty' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Бейджи и ленты" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='nastolnye-aksessuary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Настольные аксессуары" %}</a>
+                <a href="{% url 'main:category_detail' slug='dorozhnye-organajzery' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Дорожные органайзеры" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='oblozhki-dlya-dokumentov' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Обложки для документов" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='papki-portfeli' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Папки, портфели" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='nagrady' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Награды" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='knigi' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Книги" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='flikery' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Фликеры" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='antistressy' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Антистрессы" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='brelki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Брелки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='kantstovary' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Канцтовары" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='zazhigalki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Зажигалки" %}</a>
             </li>
         </ul>
     </div>
@@ -2195,6 +2467,7 @@
 </div>
 
 <!-- Вкусные подарки -->
+<!-- Вкусные подарки -->
 <div class="category-card group p-6">
     <a href="{% url 'main:category_detail' slug='vkusnye-podarki' %}" class="absolute inset-0 z-10"></a>
     <div class="flex items-center mb-4">
@@ -2209,30 +2482,41 @@
         <ul class="space-y-2 pl-2">
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='chajnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чайные наборы" %}</a>
+                <a href="{% url 'main:category_detail' slug='produktovye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Продуктовые наборы" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='kofejnye-nabory' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофейные наборы" %}</a>
+                <a href="{% url 'main:category_detail' slug='med' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Мед" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='sladosti' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Сладости" %}</a>
+                <a href="{% url 'main:category_detail' slug='varene' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Варенье" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='nabory-meda' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Наборы меда" %}</a>
+                <a href="{% url 'main:category_detail' slug='chaj' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Чай" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='orehovye-assorti' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Ореховые ассорти" %}</a>
+                <a href="{% url 'main:category_detail' slug='kofe' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Кофе" %}</a>
             </li>
             <li class="subcategory-item flex items-center">
                 <span class="subcategory-bullet"></span>
-                <a href="{% url 'main:category_detail' slug='fruktovye-korziny' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Фруктовые корзины" %}</a>
+                <a href="{% url 'main:category_detail' slug='shokolad' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Шоколад" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='konfety-i-sladosti' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Конфеты и сладости" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='sneki' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Снеки" %}</a>
+            </li>
+            <li class="subcategory-item flex items-center">
+                <span class="subcategory-bullet"></span>
+                <a href="{% url 'main:category_detail' slug='specii' %}" class="text-gray-700 hover:text-blue-600 transition-colors duration-200">{% trans "Специи" %}</a>
             </li>
         </ul>
-        <div class="show-more-indicator"></div>
     </div>
     <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <button class="quick-order-btn bg-white p-2 rounded-full shadow-md hover:bg-blue-50">

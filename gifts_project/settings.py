@@ -14,7 +14,7 @@ CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 SECURE_SSL_REDIRECT = False
 ALLOWED_HOSTS = ['*']
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
+
 INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'django.contrib.admin',
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'rest_framework',
     'django.contrib.humanize',
+    'django_celery_results',
     'mptt',
 ]
 
@@ -44,6 +45,13 @@ MIDDLEWARE = [
 FIELD_ENCRYPTION_KEY = 's_I6txG2JEwhQjHHHTmYyCpu530RRUlXWt8ABfast1w='
 ROOT_URLCONF = 'gifts_project.urls'
 
+IMG_SRC_DOMAINS = [
+    'api2.gifts.ru',
+    'files.giftsoffer.ru',
+    # другие домены с изображениями
+]
+
+# Обновите TEMPLATES, добавив контекстный процессор
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -58,6 +66,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
+                'main.context_processors.img_src_domains',  # Добавлено
             ],
         },
     },
@@ -67,9 +76,53 @@ WSGI_APPLICATION = 'gifts_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'IbincmaWxMnrGhkUDoZQUadWzMyzcFYx',
+        'HOST': 'caboose.proxy.rlwy.net',  # внешний URL (DATABASE_PUBLIC_URL)
+        'PORT': '37857',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=30000 -c lock_timeout=10000',
+            'application_name': 'gifts_importer',
+        },
+        'CONN_MAX_AGE': 300,
     }
+}
+
+# Увеличиваем лимиты для bulk операций
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# Настройки логирования
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -86,6 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+
 
 LANGUAGE_CODE = 'ru'
 
@@ -129,7 +185,8 @@ if not STATICFILES_DIRS:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -187,5 +244,34 @@ LOGGING = {
         },
     },
 }
+BULK_IMPORT_SETTINGS = {
+    'BATCH_SIZE': 1000,  # Размер пакета для bulk_create
+    'IMAGE_PROCESSING_THREADS': 4,  # Потоки для обработки изображений
+    'MAX_RETRIES': 3,  # Количество попыток при ошибках
+}
+IMPORT_OPTIMIZATIONS = {
+    'DISABLE_AUTOCOMMIT': True,
+    'SKIP_VALIDATION': True,
+    'USE_FAST_UPSERT': True,
+}
+LOGGING['loggers']['import'] = {
+    'handlers': ['console'],
+    'level': 'DEBUG',
+    'propagate': False,
+}
+# Добавим в конец settings.py
+SITE_URL = 'https://ваш-сайт.ru'  # Замените на реальный URL вашего сайта
+SERVER_IP = 'ваш-ip'  # IP сервера, где будет работать импорт
 
 SITE_ID = 1
+
+# Настройки Celery
+# Стало (используем публичный URL):
+CELERY_BROKER_URL = 'redis://default:fnnMrTFyFWnSDJIJXSCUFIRYeelnLgOq@tramway.proxy.rlwy.net:25846/0'
+CELERY_RESULT_BACKEND = 'redis://default:fnnMrTFyFWnSDJIJXSCUFIRYeelnLgOq@tramway.proxy.rlwy.net:25846/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 минут
