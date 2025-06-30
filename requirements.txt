@@ -7,3 +7,4 @@ Pillow==10.3.0
 gunicorn==23.0.0
 whitenoise==6.9.0
 django-mptt==0.17.0
+celery==5.3.6
