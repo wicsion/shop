@@ -1,66 +1,181 @@
-{% extends "main/base.html" %}
-{% load static i18n %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+{% extends "main/base.html"  %}
+{% load custom_filters %}
+{% block title %}{{ product.name }} | RealEstatePro{% endblock %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
 <style>
-  .swiper-container {
+    /* Анимация для секций */
+    .animate-block {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .animate-block.reveal {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Стили карусели */
+    .swiper {
         width: 100%;
-        height: 400px;
-        margin-bottom: 10px;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        border-radius: 1rem;
         overflow: hidden;
+        background-color: #f5f5f5;
     }
-    .swiper-wrapper {
-        display: flex;
-        width: auto !important;
+
+    @media (min-width: 768px) {
+        .swiper {
+            height: 500px;
+        }
     }
+
     .swiper-slide {
+        position: relative;
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: #f8f9fa;
-        width: 100% !important;
-        flex-shrink: 0;
+        cursor: zoom-in;
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        overflow: hidden;
     }
+
     .swiper-slide img {
         max-width: 100%;
         max-height: 100%;
+        width: auto;
+        height: auto;
         object-fit: contain;
-    }
-    .swiper-thumbs {
-        height: 100px;
-        box-sizing: border-box;
-        padding: 10px 0;
-        overflow: hidden;
-    }
-    .swiper-thumbs .swiper-slide {
-        width: 25%;
-        height: 100%;
-        opacity: 0.4;
-        border: 1px solid #ddd;
-        cursor: pointer;
-    }
-    .swiper-thumbs .swiper-slide-thumb-active {
-        opacity: 1;
-        border-color: #3b82f6;
-    }
-    .swiper-button-next,
-    .swiper-button-prev {
-        color: #3b82f6;
-        background: rgba(255, 255, 255, 0.8);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .swiper-button-next::after,
-    .swiper-button-prev::after {
-        font-size: 20px;
+        background-color: white;
+        margin: 0 auto;
+        display: block;
     }
 
-    /* Стили для вкладок */
+    .swiper-button-next,
+    .swiper-button-prev {
+        color: white;
+        background: none;
+        backdrop-filter: none;
+        width: auto;
+        height: auto;
+    }
+
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    @media (min-width: 768px) {
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+            font-size: 32px;
+        }
+    }
+
+    /* Модальное окно */
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: white;
+        font-size: 30px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    @media (min-width: 768px) {
+        .close-modal {
+            top: 25px;
+            right: 35px;
+            font-size: 40px;
+        }
+    }
+
+    @keyframes zoomIn {
+        from {transform: scale(0.9); opacity: 0;}
+        to {transform: scale(1); opacity: 1;}
+    }
+
+    .modal-opened { animation: zoomIn 0.3s ease-out; }
+
+    .scrollable-description {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-sidebar {
+        height: fit-content;
+        max-height: 500px;
+        position: sticky;
+        top: 20px;
+        padding: 1rem;
+    }
+
+    @media (max-width: 767px) {
+        .contact-sidebar {
+            margin-top: 2rem;
+            position: static;
+        }
+    }
+
+    .btn-primary {
+        border-radius: 9999px;
+        background: #0060f4;
+        color: #ffffff;
+        border: 2px solid transparent;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline {
+        border-radius: 9999px;
+        border: 2px solid #0a0202;
+        color: #34495e;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Вкладки */
     .tabs {
         display: flex;
         border-bottom: 1px solid #ddd;
@@ -91,53 +206,27 @@
         display: block;
     }
 
-    /* Стили для таблицы размеров */
-    .size-variants {
-        width: 100%;
-        border-collapse: collapse;
+    /* Хлебные крошки */
+    .breadcrumbs {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 14px;
     }
-    .size-variants th, .size-variants td {
-        border: 1px solid #ddd;
-        padding: 0.5rem;
-        text-align: left;
+    .breadcrumbs a {
+        color: #3b82f6;
+        text-decoration: none;
     }
-    .size-variants th {
-        background-color: #f8f9fa;
-    }
-    .size-variants tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-
-    /* Стили для таблиц размеров */
-    .size-chart img {
-        max-width: 100%;
-        height: auto;
-        margin-bottom: 1rem;
-    }
-    .size-chart table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-    }
-    .size-chart table, .size-chart th, .size-chart td {
-        border: 1px solid #ddd;
-    }
-    .size-chart th, .size-chart td {
-        padding: 0.5rem;
-        text-align: center;
-    }
-    .size-chart-note {
-        font-style: italic;
-        color: #666;
+    .breadcrumbs .separator {
+        margin: 0 8px;
+        color: #6b7280;
     }
 </style>
-{% endblock %}
 
-{% block content %}
 <div class="container py-8">
     <!-- Хлебные крошки -->
-    <nav class="breadcrumbs mb-6">
-        <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
+    <nav class="breadcrumbs">
+        <a href="{% url 'main:home' %}">Главная</a>
         <span class="separator">/</span>
         {% if brand and brand.slug %}
             <a href="{% url 'main:brand_detail' slug=brand.slug %}">{{ brand.name }}</a>
@@ -146,213 +235,147 @@
         <span>{{ product.name }}</span>
     </nav>
 
-    <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Изображения товара -->
-        <div class="lg:w-1/2">
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <!-- Основной свайпер -->
-                <div class="swiper-container main-swiper">
-                    <div class="swiper-wrapper">
-                        <!-- Основное изображение -->
-                        <div class="swiper-slide">
-                            {% if product.super_big_image_local %}
-                                <img src="{{ product.super_big_image_local.url }}" alt="{{ product.name }}">
-                            {% elif product.super_big_image %}
-                                <img src="{{ product.super_big_image }}" alt="{{ product.name }}">
-                            {% endif %}
-                        </div>
-
-                        <!-- Дополнительные изображения из attachments -->
-                        {% if product.attachments %}
-                            {% for attachment in product.attachments %}
-                                {% if attachment.type == 'image' %}
-                                <div class="swiper-slide">
-                                    {% if attachment.local_path %}
-                                        <img src="{{ attachment.local_path }}" alt="{{ attachment.name|default:product.name }}">
-                                    {% elif attachment.url %}
-                                        <img src="{{ attachment.url }}" alt="{{ attachment.name|default:product.name }}">
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
+    <div class="bg-white rounded-xl shadow-sm p-4 md:p-8 border-2 border-gray-100">
+        <!-- Карусель с анимацией -->
+        <div class="animate-block swiper mb-6 md:mb-8">
+            <div class="swiper-wrapper">
+                {% for attachment in product.xml_data.attributes.attachments %}
+                    {% if forloop.counter <= 5 and attachment.type == 'image' and attachment.image %}
+                    <div class="swiper-slide">
+                        <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=200&height=200"
+                             alt="{{ attachment.name|default:product.name }}"
+                             onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
                     </div>
-                    <!-- Добавляем навигацию (стрелки) -->
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
-                </div>
-
-                <!-- Миниатюры (только если есть более одного изображения) -->
-                {% if product.attachments and product.attachments|length > 0 %}
-                <div class="swiper-container thumbs-swiper">
-                    <div class="swiper-wrapper">
-                        <!-- Миниатюра основного изображения -->
-                        <div class="swiper-slide">
-                            {% if product.super_big_image_local %}
-                                <img src="{{ product.super_big_image_local.url }}" alt="{{ product.name }}">
-                            {% elif product.super_big_image %}
-                                <img src="{{ product.super_big_image }}" alt="{{ product.name }}">
-                            {% endif %}
-                        </div>
-
-                        <!-- Миниатюры дополнительных изображений -->
-                        {% for attachment in product.attachments %}
-                            {% if attachment.type == 'image' %}
-                            <div class="swiper-slide">
-                                {% if attachment.local_path %}
-                                    <img src="{{ attachment.local_path }}" alt="{{ attachment.name|default:product.name }}">
-                                {% elif attachment.url %}
-                                    <img src="{{ attachment.url }}" alt="{{ attachment.name|default:product.name }}">
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+                    {% endif %}
+                {% endfor %}
             </div>
-
-            <!-- Области нанесения, если есть -->
-            {% if product.print_areas %}
-            <div class="bg-white rounded-lg shadow p-6 mt-6">
-                <h3 class="font-semibold text-lg mb-4">{% trans "Области нанесения" %}</h3>
-                <ul class="space-y-2">
-                    {% for area, description in product.print_areas.items %}
-                    <li>
-                        <strong>{{ area }}:</strong> {{ description }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
         </div>
 
-        <!-- Информация о товаре -->
-        <div class="lg:w-1/2">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h1 class="text-2xl font-bold mb-2">{{ product.name }}</h1>
+        <!-- Модальное окно -->
+        <div id="imageModal" class="image-modal">
+            <span class="close-modal">&times;</span>
+            <img class="modal-content" id="expandedImg">
+        </div>
 
-                <!-- Артикул и статус -->
-                <div class="flex items-center mb-4">
-                    <span class="text-gray-600 mr-4">Артикул: {{ product.code }}</span>
-                    {% if product.status == 'new' %}
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
-                    {% elif product.status == 'limited' %}
-                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
-                    {% endif %}
-                    {% if product.is_featured %}
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
-                    {% endif %}
-                    {% if product.is_bestseller %}
-                    <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded ml-2">{% trans "Хит продаж" %}</span>
-                    {% endif %}
+        <!-- Основная информация -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <!-- Левая колонка -->
+            <div class="lg:col-span-2">
+                <!-- Заголовок и цена -->
+                <div class="animate-block">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">{{ product.name }}</h1>
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mb-4 md:mb-6">
+                        <span class="text-2xl font-bold text-blue-600">
+                            {% if product.has_discount %}
+                                <span class="text-red-600">{{ product.price }} ₽</span>
+                                <span class="text-xl text-gray-500 line-through ml-3">{{ product.old_price }} ₽</span>
+                                <span class="bg-red-100 text-red-800 text-sm px-2 py-1 rounded ml-3">-{{ product.discount_percent }}%</span>
+                            {% else %}
+                                {{ product.price }} ₽
+                            {% endif %}
+                        </span>
+                        {% if product.is_featured %}
+
+
+                        {% endif %}
+                        {% if product.status == 'new' %}
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
+                        {% elif product.status == 'limited' %}
+                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Ограниченный тираж</span>
+                        {% endif %}
+                        {% if product.is_bestseller %}
+                        <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded ml-2">Хит продаж</span>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <!-- Цена -->
-                <div class="mb-6">
-                    {% if product.has_discount %}
-                    <div class="flex items-center">
-                        <span class="text-3xl font-bold text-red-600">{{ product.price }} ₽</span>
-                        <span class="text-xl text-gray-500 line-through ml-3">{{ product.old_price }} ₽</span>
-                        <span class="bg-red-100 text-red-800 text-sm px-2 py-1 rounded ml-3">-{{ product.discount_percent }}%</span>
+                <!-- Параметры -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-8">
+                    <!-- Артикул -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Артикул</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
                     </div>
-                    {% else %}
-                    <span class="text-3xl font-bold">{{ product.price }} ₽</span>
-                    {% endif %}
-                </div>
 
-                <!-- Наличие -->
-                <div class="mb-6">
-                    {% if product.in_stock %}
-                    <div class="flex items-center text-green-600">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span>{% trans "В наличии" %} ({{ product.quantity }} шт.)</span>
+                    <!-- Наличие -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Наличие</div>
+                        <div class="text-lg md:text-xl font-bold">
+                            {% if product.in_stock %}
+                                В наличии ({{ product.quantity }} шт.)
+                            {% else %}
+                                Нет в наличии
+                            {% endif %}
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="flex items-center text-red-600">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        <span>{% trans "Нет в наличии" %}</span>
+
+                    <!-- Бренд -->
+                    {% if product.brand %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Бренд</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.brand }}</div>
                     </div>
                     {% endif %}
-                </div>
 
-                <!-- Варианты размеров, если есть -->
-                {% if product.size_variants.exists %}
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-2">{% trans "Доступные размеры" %}</h3>
-                    <table class="size-variants">
-                        <thead>
-                            <tr>
-                                <th>{% trans "Размер" %}</th>
-                                <th>{% trans "Цена" %}</th>
-                                <th>{% trans "Наличие" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for variant in product.size_variants.all %}
-                            <tr>
-                                <td>{{ variant.size }}</td>
-                                <td>
-                                    {% if variant.old_price and variant.old_price > variant.price %}
-                                    <span class="text-red-600">{{ variant.price }} ₽</span>
-                                    <span class="text-gray-500 line-through ml-2">{{ variant.old_price }} ₽</span>
-                                    {% else %}
-                                    {{ variant.price }} ₽
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if variant.in_stock %}
-                                    <span class="text-green-600">{% trans "В наличии" %} ({{ variant.quantity }} шт.)</span>
-                                    {% else %}
-                                    <span class="text-red-600">{% trans "Нет в наличии" %}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-
-                <!-- Кнопка добавления в корзину -->
-                <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
-                    {% csrf_token %}
-                    <input type="hidden" name="product_type" value="xml">
-                    <div class="flex items-center">
-                        <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
-                               class="border rounded px-3 py-2 w-20 mr-4">
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
-                            {% if product.in_stock %}{% trans "Добавить в корзину" %}{% else %}{% trans "Нет в наличии" %}{% endif %}
-                        </button>
+                    <!-- Материал -->
+                    {% if product.material %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Материал</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.material }}</div>
                     </div>
-                    {% if product.min_order_quantity > 1 %}
-                    <p class="text-sm text-gray-500 mt-2">{% trans "Минимальный заказ:" %} {{ product.min_order_quantity }} шт.</p>
                     {% endif %}
-                </form>
+
+                    <!-- Состав -->
+                    {% if product.xml_data.material_composition %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Состав</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.xml_data.material_composition }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Вес -->
+                    {% if product.weight %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Вес</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Объем -->
+                    {% if product.volume %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Объем</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.volume }} см³</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Размеры -->
+                    {% if product.xml_data.attributes.size %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Размер</div>
+                        <div class="text-lg md:text-xl font-bold">{{ product.xml_data.attributes.size }}</div>
+                    </div>
+                    {% endif %}
+                </div>
 
                 <!-- Вкладки с дополнительной информацией -->
                 <div class="tabs-container mt-6">
                     <div class="tabs">
-                        <div class="tab active" data-tab="description">{% trans "Описание" %}</div>
-                        <div class="tab" data-tab="specs">{% trans "Характеристики" %}</div>
-                        {% if product.size_charts.exists %}
-                        <div class="tab" data-tab="sizes">{% trans "Таблица размеров" %}</div>
+                        <div class="tab active" data-tab="description">Описание</div>
+                        <div class="tab" data-tab="specs">Характеристики</div>
+                        {% if product.xml_data.sizes_available %}
+                        <div class="tab" data-tab="sizes">Размеры</div>
                         {% endif %}
-                        {% if product.care_instructions %}
-                        <div class="tab" data-tab="care">{% trans "Уход" %}</div>
-                        {% endif %}
-                        {% if product.delivery_time or product.production_time %}
-                        <div class="tab" data-tab="delivery">{% trans "Доставка" %}</div>
+                        {% if product.xml_data.material_composition or product.xml_data.material_density %}
+                        <div class="tab" data-tab="materials">Материалы</div>
                         {% endif %}
                     </div>
 
                     <!-- Содержимое вкладок -->
                     <div class="tab-content active" id="description">
-                        <div class="prose max-w-none">
+                        <div class="scrollable-description prose max-w-none">
                             {{ product.description|safe }}
                         </div>
                     </div>
@@ -361,114 +384,142 @@
                         <div class="space-y-4">
                             {% if product.brand %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Бренд" %}</span>
+                                <span class="text-gray-600 w-48">Бренд</span>
                                 <span>{{ product.brand }}</span>
                             </div>
                             {% endif %}
+
                             {% if product.material %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Материал" %}</span>
+                                <span class="text-gray-600 w-48">Материал</span>
                                 <span>{{ product.material }}</span>
                             </div>
                             {% endif %}
-                            {% if product.composition %}
+
+                            {% if product.xml_data.material_composition %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Состав" %}</span>
-                                <span>{{ product.composition }}</span>
+                                <span class="text-gray-600 w-48">Состав</span>
+                                <span>{{ product.xml_data.material_composition }}</span>
                             </div>
                             {% endif %}
+
                             {% if product.weight %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Вес" %}</span>
+                                <span class="text-gray-600 w-48">Вес</span>
                                 <span>{{ product.weight }} г</span>
                             </div>
                             {% endif %}
+
                             {% if product.volume %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Объем" %}</span>
+                                <span class="text-gray-600 w-48">Объем</span>
                                 <span>{{ product.volume }} см³</span>
                             </div>
                             {% endif %}
-                            {% if product.density %}
+
+                            {% if product.xml_data.material_density %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Плотность" %}</span>
-                                <span>{{ product.density }}</span>
+                                <span class="text-gray-600 w-48">Плотность</span>
+                                <span>{{ product.xml_data.material_density }}</span>
                             </div>
                             {% endif %}
-                            {% if product.size_type %}
+
+                            {% if product.xml_data.sizes_available %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Тип размера" %}</span>
-                                <span>{{ product.size_type }}</span>
+                                <span class="text-gray-600 w-48">Доступные размеры</span>
+                                <span>{{ product.xml_data.sizes_available }}</span>
                             </div>
                             {% endif %}
-                            {% if product.packaging %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Упаковка" %}</span>
-                                <span>{{ product.packaging }}</span>
-                            </div>
-                            {% endif %}
+
                             {% if product.barcode %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Штрих-код" %}</span>
+                                <span class="text-gray-600 w-48">Штрих-код</span>
                                 <span>{{ product.barcode }}</span>
                             </div>
                             {% endif %}
-                            {% if product.group_id %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Группа товаров" %}</span>
-                                <span>{{ product.group_id }}</span>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
 
-                    {% if product.size_charts.exists %}
+                    {% if product.xml_data.sizes_available %}
                     <div class="tab-content" id="sizes">
-                        {% for chart in product.size_charts.all %}
-                        <div class="size-chart mb-8">
-                            {% if chart.image_url %}
-                            <img src="{{ chart.image_url }}" alt="Таблица размеров {{ product.name }}">
-                            {% endif %}
-                            {{ chart.table_html|safe }}
-                            {% if chart.note %}
-                            <p class="size-chart-note">{{ chart.note }}</p>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    {% if product.care_instructions %}
-                    <div class="tab-content" id="care">
-                        <div class="prose max-w-none">
-                            {{ product.care_instructions|linebreaks }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if product.delivery_time or product.production_time %}
-                    <div class="tab-content" id="delivery">
                         <div class="space-y-4">
-                            {% if product.production_time %}
+                            <h4 class="font-semibold">Доступные размеры</h4>
+                            <p>{{ product.xml_data.sizes_available }}</p>
+
+                            {% if product.xml_data.attributes.size %}
+                            <h4 class="font-semibold">Размер товара</h4>
+                            <p>{{ product.xml_data.attributes.size }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if product.xml_data.material_composition or product.xml_data.material_density %}
+                    <div class="tab-content" id="materials">
+                        <div class="space-y-4">
+                            {% if product.material %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Срок производства" %}</span>
-                                <span>{{ product.production_time }}</span>
+                                <span class="text-gray-600 w-48">Материал</span>
+                                <span>{{ product.material }}</span>
                             </div>
                             {% endif %}
-                            {% if product.delivery_time %}
+
+                            {% if product.xml_data.material_composition %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Срок доставки" %}</span>
-                                <span>{{ product.delivery_time }}</span>
+                                <span class="text-gray-600 w-48">Состав</span>
+                                <span>{{ product.xml_data.material_composition }}</span>
                             </div>
                             {% endif %}
-                            {% if product.min_order_quantity > 1 %}
+
+                            {% if product.xml_data.material_density %}
                             <div class="flex">
-                                <span class="text-gray-600 w-48">{% trans "Минимальный заказ" %}</span>
-                                <span>{{ product.min_order_quantity }} шт.</span>
+                                <span class="text-gray-600 w-48">Плотность</span>
+                                <span>{{ product.xml_data.material_density }}</span>
                             </div>
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Правая колонка -->
+            <div class="animate-block contact-sidebar bg-gray-50 p-4 md:p-6 rounded-xl mt-6 md:mt-0">
+                <div class="contact-content">
+                    <div class="mb-4 md:mb-6">
+                        <h3 class="text-lg md:text-xl font-bold">Контактная информация</h3>
+                    </div>
+
+                    <!-- Кнопка добавления в корзину -->
+                    <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_type" value="xml">
+                        <div class="flex items-center">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                                   class="border rounded px-3 py-2 w-20 mr-4">
+                            <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
+                                {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
+                            </button>
+                        </div>
+                        {% if product.xml_data.min_order_quantity > 1 %}
+                        <p class="text-sm text-gray-500 mt-2">Минимальный заказ: {{ product.xml_data.min_order_quantity }} шт.</p>
+                        {% endif %}
+                    </form>
+
+                    {% if not user.is_broker %}
+                    <form method="POST"  class="w-full">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline hover:border-blue-600 hover:text-blue-600 w-full text-center">
+                            <i class="bi bi-heart{% if is_favorite %}-fill text-red-500{% endif %} mr-2"></i>
+                            <span>
+                                {% if is_favorite %}
+                                    Удалить из избранного
+                                {% else %}
+                                    Добавить в избранное
+                                {% endif %}
+                            </span>
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
             </div>
@@ -478,14 +529,18 @@
     <!-- Похожие товары -->
     {% if related_products %}
     <div class="mt-12">
-        <h2 class="text-xl font-bold mb-6">{% trans "Похожие товары" %}</h2>
+        <h2 class="text-xl font-bold mb-6">Похожие товары</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for product in related_products %}
             <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
                 <a href="{{ product.get_absolute_url }}" class="block">
-                    <div class="aspect-w-1 aspect-h-1 bg-gray-100">
-                        <img src="{{ product.main_image }}" alt="{{ product.name }}"
-                             class="object-cover w-full h-full">
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-100 flex items-center justify-center" style="height: 200px;">
+                        <img src="{% static 'images/placeholder.jpg' %}"
+                             data-src="{{ product.main_image }}"
+                             alt="{{ product.name }}"
+                             class="object-contain w-full h-full p-2 lazy-image"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
                     </div>
                     <div class="p-4">
                         <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
@@ -499,7 +554,7 @@
                                 {% endif %}
                             </div>
                             {% if product.status == 'new' %}
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
                             {% endif %}
                         </div>
                     </div>
@@ -510,72 +565,202 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Проверяем, есть ли более одного слайда
-    var slidesCount = document.querySelectorAll('.main-swiper .swiper-slide').length;
+    // Анимация при скролле
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('reveal');
+            }
+        });
+    }, { threshold: 0.1 });
 
-    if (slidesCount > 1) {
-        // Инициализация основного свайпера
-        var mainSwiper = new Swiper('.main-swiper', {
-            direction: 'horizontal',
-            loop: false,
-            spaceBetween: 10,
+    document.querySelectorAll('.animate-block').forEach(element => {
+        observer.observe(element);
+    });
+
+    // Функция для инициализации свайпера после загрузки изображений
+    function initSwiper() {
+        const swiper = new Swiper('.swiper', {
+            loop: true,
             navigation: {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
+            keyboard: { enabled: true },
+            effect: 'slide',
+            speed: 500,
+            preloadImages: false,
+            lazy: {
+                loadPrevNext: true,
+            },
         });
 
-        // Инициализация свайпера миниатюр, если он есть
-        var thumbsSwiperEl = document.querySelector('.thumbs-swiper');
-        if (thumbsSwiperEl) {
-            var thumbsSwiper = new Swiper('.thumbs-swiper', {
-                direction: 'horizontal',
-                loop: false,
-                spaceBetween: 10,
-                slidesPerView: 4,
-                freeMode: true,
-                watchSlidesVisibility: true,
-                watchSlidesProgress: true,
-            });
+        return swiper;
+    }
 
-            // Связываем основной свайпер и миниатюры
-            mainSwiper.controller.control = thumbsSwiper;
-            thumbsSwiper.controller.control = mainSwiper;
+    // Модальное окно
+    function setupModal() {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('expandedImg');
+        const closeBtn = document.querySelector('.close-modal');
 
-            // Обработка клика по миниатюре
-            document.querySelectorAll('.thumbs-swiper .swiper-slide').forEach(function(thumb, index) {
-                thumb.addEventListener('click', function() {
-                    mainSwiper.slideTo(index);
-                });
+        document.querySelectorAll('.swiper-slide img').forEach(img => {
+            img.addEventListener('click', () => {
+                modal.style.display = 'flex';
+                modalImg.src = img.src;
+                modalImg.classList.add('modal-opened');
             });
-        }
-    } else {
-        // Скрываем навигацию, если только одно изображение
-        document.querySelectorAll('.swiper-button-next, .swiper-button-prev').forEach(function(el) {
-            el.style.display = 'none';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            modalImg.classList.remove('modal-opened');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                modalImg.classList.remove('modal-opened');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                modalImg.classList.remove('modal-opened');
+            }
+        });
+    }
+
+    // Обработка избранного
+    function setupFavorites() {
+        document.querySelectorAll('form[action*="favorite"]').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const icon = form.querySelector('i');
+                const text = form.querySelector('span');
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Accept': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'added') {
+                        icon.classList.add('bi-heart-fill', 'text-red-500');
+                        icon.classList.remove('bi-heart');
+                        text.textContent = 'Удалить из избранного';
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-red-500');
+                        icon.classList.add('bi-heart');
+                        text.textContent = 'Добавить в избранное';
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                }
+            });
         });
     }
 
     // Обработка вкладок
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Удаляем активный класс у всех вкладок и содержимого
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Удаляем активный класс у всех вкладок и содержимого
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-            // Добавляем активный класс к выбранной вкладке и соответствующему содержимому
-            tab.classList.add('active');
-            const tabId = tab.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+                // Добавляем активный класс к выбранной вкладке и соответствующему содержимому
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
         });
+    }
+
+    // Обработка добавления в корзину
+    function setupCart() {
+        document.querySelector('form[action*="add_to_cart"]').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const button = form.querySelector('button[type="submit"]');
+
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span>';
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(new FormData(form))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+
+                    // Обновляем счетчик корзины
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_total;
+                        animateCartCounter(cartCount);
+                    }
+                } else {
+                    showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Произошла ошибка', 'error');
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = button.textContent.trim();
+            });
+        });
+    }
+
+    // Функция для показа уведомлений
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Анимация счетчика корзины
+    function animateCartCounter(element) {
+        element.classList.add('animate-bounce', 'scale-110');
+        setTimeout(() => {
+            element.classList.remove('animate-bounce', 'scale-110');
+        }, 1000);
+    }
+
+    // Основная инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        const swiper = initSwiper();
+        setupModal();
+        setupFavorites();
+        setupTabs();
+        setupCart();
     });
-});
 </script>
 {% endblock %}

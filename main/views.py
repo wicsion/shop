@@ -1,15 +1,71 @@
-from django.http import JsonResponse, Http404
+from django.contrib.sites import requests
+from django.http import JsonResponse,  HttpResponseRedirect,  HttpResponse
 from django.utils.translation import gettext as _
 from django.views.generic import ListView, DetailView, TemplateView
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.urls import reverse
-from django.db.models import Q
-from .models import Category, Cart, CartItem, Order, Wishlist, Brand, Slider, Partner, OrderItem, XMLProduct
+from django.db.models import Q, F
+from .models import Category, Cart, CartItem, Order,  Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm
 from django.core.paginator import Paginator
-from django.db.models import Min, Max
+from django.views.decorators.http import require_GET
+import logging
+import re
+import requests
+from requests.auth import HTTPBasicAuth
+from urllib.parse import unquote
+from django.conf import settings
+from io import BytesIO
+from PIL import Image
+from django.views import View
 
+logger = logging.getLogger(__name__)
+
+
+class ResizeImageView(View):
+    def get(self, request):
+        # Получаем и декодируем URL
+        image_url = unquote(request.GET.get('url', ''))
+        width = int(request.GET.get('width', 200))
+        height = int(request.GET.get('height', 200))
+
+        if not image_url:
+            return self._serve_placeholder()
+
+        try:
+            # Очищаем URL от существующих credentials
+            clean_url = re.sub(r'https?://[^@]+@', 'https://', image_url)
+
+            # Загружаем изображение с базовой авторизацией
+            response = requests.get(
+                clean_url,
+                auth=HTTPBasicAuth('87358_xmlexport', 'MGzXXSgD'),
+                stream=True,
+                timeout=10
+            )
+            response.raise_for_status()
+
+            # Определяем Content-Type
+            content_type = response.headers['Content-Type']
+
+            # Обрабатываем изображение
+            img = Image.open(BytesIO(response.content))
+            img.thumbnail((width, height))
+
+            # Конвертируем в JPEG (универсальный формат)
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=90)
+            output.seek(0)
+
+            return HttpResponse(output.getvalue(), content_type='image/jpeg')
+
+        except Exception as e:
+            print(f"Image processing error: {str(e)}")
+            return self._serve_placeholder()
+
+    def _serve_placeholder(self):
+        return HttpResponseRedirect(settings.STATIC_URL + 'images/no-image.jpg')
 
 def get_cart(request):
     cart = None
@@ -90,25 +146,112 @@ class CategoryDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         category = self.object
-        print(f"Текущая категория: {category.name}, slug: {category.slug}")
 
         # Получаем все подкатегории (включая вложенные)
         subcategories = category.get_descendants(include_self=True)
 
         # Получаем товары для текущей категории и всех её подкатегорий
         products = XMLProduct.objects.filter(
-            categories__in=subcategories,
-            in_stock=True
-        ).order_by('-created_at').distinct()
+            categories__in=subcategories
+        ).distinct()
+
+        # Фильтрация по параметрам
+        min_price = self.request.GET.get('min_price')
+        max_price = self.request.GET.get('max_price')
+        status = self.request.GET.get('status')
+        brands = [b for b in self.request.GET.get('brands', '').split(',') if b] if self.request.GET.get('brands') else []
+        materials = products.exclude(material='').values_list(
+            'material', flat=True
+        ).distinct().order_by('material')
+        sizes = self.request.GET.get('sizes', '').split(',') if self.request.GET.get('sizes') else []
+        is_featured = self.request.GET.get('is_featured') == 'true'
+        is_bestseller = self.request.GET.get('is_bestseller') == 'true'
+        has_discount = self.request.GET.get('has_discount') == 'true'
+        in_stock = self.request.GET.get('in_stock') == 'true'
+        on_order = self.request.GET.get('on_order') == 'true'
+
+        if min_price:
+            products = products.filter(price__gte=float(min_price))
+        if max_price:
+            products = products.filter(price__lte=float(max_price))
+        if status:
+            products = products.filter(status=status)
+        if brands:
+            products = products.filter(brand__in=brands)
+        if materials:
+            # Используем Q-объекты для поиска по частичному совпадению
+            material_query = Q()
+            for material in materials:
+                material_query |= Q(material__icontains=material)
+            products = products.filter(material_query)
+
+        if sizes:
+            # Аналогично для размеров
+            size_query = Q()
+            for size in sizes:
+                size_query |= Q(sizes_available__icontains=size)
+            products = products.filter(size_query)
+        if is_featured:
+            products = products.filter(is_featured=True)
+        if is_bestseller:
+            products = products.filter(is_bestseller=True)
+        if has_discount:
+            products = products.filter(old_price__isnull=False, old_price__gt=F('price'))
+        if in_stock:
+            products = products.filter(in_stock=True, quantity__gt=0)
+        if on_order:
+            products = products.filter(in_stock=False)
+
+        # Сортировка
+        sort_by = self.request.GET.get('sort', 'default')
+        if sort_by == 'price_asc':
+            products = products.order_by('price')
+        elif sort_by == 'price_desc':
+            products = products.order_by('-price')
+        elif sort_by == 'name_asc':
+            products = products.order_by('name')
+        elif sort_by == 'name_desc':
+            products = products.order_by('-name')
+        elif sort_by == 'newest':
+            products = products.order_by('-created_at')
+
+        # Получаем уникальные бренды, материалы и размеры для фильтров
+        brands = products.exclude(brand='').values_list(
+            'brand', flat=True
+        ).distinct().order_by('brand')
+
+        # Get materials list
+        materials = products.exclude(material='').values_list(
+            'material', flat=True
+        ).distinct().order_by('material')
+
+        sizes = products.exclude(sizes_available='').values_list(
+            'sizes_available', flat=True
+        ).distinct().order_by('sizes_available')
 
         # Пагинация
-        paginator = Paginator(products, 12)
+        per_page = int(self.request.GET.get('per_page', 12))
+        paginator = Paginator(products, per_page)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
         context.update({
             'subcategories': category.children.all().order_by('order'),
             'products': page_obj,
+            'brands': brands,
+            'materials': materials,
+            'sizes': sizes,
+            'status_choices': [
+                ('new', 'Новинки'),
+                ('limited', 'Ограниченный тираж'),
+                ('regular', 'Обычные товары')
+            ],
+            'selected_status': status,
+            'selected_brands': self.request.GET.get('brands', '').split(','),
+            'selected_materials': self.request.GET.get('materials', '').split(','),
+            'selected_sizes': self.request.GET.get('sizes', '').split(','),
+            'current_per_page': per_page,
+            'selected_sort': sort_by,
             'search_form': SearchForm()
         })
         return context
@@ -488,16 +631,39 @@ class XMLProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # Related products
-        context['related_products'] = XMLProduct.objects.filter(
-            brand=product.brand
-        ).exclude(product_id=product.product_id).order_by('?')[:4]
+        # Основное изображение
+        # Обработка изображений
+        images = []
+        if product.xml_data and 'attributes' in product.xml_data:
+            for attachment in product.xml_data['attributes'].get('attachments', []):
+                if attachment.get('image'):
+                    images.append({
+                        'url': self.clean_image_url(attachment['image']),
+                        'name': attachment.get('name', '')
+                    })
 
-        # Brand info if available
-        if product.brand:
-            try:
-                context['brand'] = Brand.objects.get(name=product.brand)
-            except Brand.DoesNotExist:
-                pass
-
+        context['images'] = images
         return context
+
+    def clean_image_url(self, url):
+        """Очистка URL от параметров размера"""
+        return re.sub(r'_\d+x\d+', '', url)
+
+@require_GET
+def category_search(request):
+    q = request.GET.get('q', '').strip()
+    logger.debug(f"Search query: {q}")
+    print(f"Request path: {request.path}")
+    print(f"Request GET params: {request.GET}")
+
+    if not q:
+        return JsonResponse({'results': []})
+
+    categories = Category.objects.filter(name__icontains=q)[:20]
+
+    results = [{
+        'id': cat.id,
+        'text': cat.name
+    } for cat in categories]
+
+    return JsonResponse({'results': results})

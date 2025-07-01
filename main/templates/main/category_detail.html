@@ -4,11 +4,11 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <!-- Хлебные крошки -->
-    <nav class="breadcrumbs mb-6">
+        <nav class="breadcrumbs mb-6" aria-label="Хлебные крошки">
         <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
-        <span class="separator">/</span>
+        <span class="separator" aria-hidden="true">/</span>
         <a href="{% url 'main:home' %}">{% trans "Категории" %}</a>
-        <span class="separator">/</span>
+        <span class="separator" aria-hidden="true">/</span>
         <span>{{ category.name }}</span>
     </nav>
 
@@ -34,40 +34,67 @@
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
                     <div class="flex items-center justify-between mb-2">
-    <input type="number" id="min_price" placeholder="{% trans 'От' %}"
-           value="{{ request.GET.min_price|default:'' }}"
-           class="w-24 border rounded px-3 py-2 text-sm"
-           onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()">
-    <span class="mx-2">-</span>
-    <input type="number" id="max_price" placeholder="{% trans 'До' %}"
-           value="{{ request.GET.max_price|default:'' }}"
-           class="w-24 border rounded px-3 py-2 text-sm"
-           onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()">
-</div>
+                        <label for="min_price" class="sr-only">Минимальная цена</label>
+                        <input type="number" id="min_price" placeholder="{% trans 'От' %}"
+                               value="{{ request.GET.min_price|default:'' }}"
+                               class="w-24 border rounded px-3 py-2 text-sm"
+                               onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()"
+                               aria-label="Минимальная цена">
+                        <span class="mx-2" aria-hidden="true">-</span>
+                        <label for="max_price" class="sr-only">Максимальная цена</label>
+                        <input type="number" id="max_price" placeholder="{% trans 'До' %}"
+                               value="{{ request.GET.max_price|default:'' }}"
+                               class="w-24 border rounded px-3 py-2 text-sm"
+                               onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()"
+                               aria-label="Максимальная цена">
+                    </div>
                     <button id="apply_price_filter"
-                            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+                            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                            aria-label="Применить фильтр по цене">
                         {% trans "Применить" %}
                     </button>
+                </div>
+
+                <!-- Фильтр по наличию -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Наличие" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="in_stock" class="availability-filter mr-2" value="true"
+                                   {% if request.GET.in_stock == 'true' %}checked{% endif %}
+                                   aria-labelledby="in_stock_label">
+                            <label for="in_stock" id="in_stock_label">{% trans "В наличии" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="on_order" class="availability-filter mr-2" value="true"
+                                   {% if request.GET.on_order == 'true' %}checked{% endif %}
+                                   aria-labelledby="on_order_label">
+                            <label for="on_order" id="on_order_label">{% trans "Под заказ" %}</label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Фильтр по статусу -->
                 {% if status_choices %}
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Статус" %}</h3>
-                    <div class="space-y-2">
+                    <div class="space-y-2" role="radiogroup" aria-labelledby="status_filter_label">
+                        <span id="status_filter_label" class="sr-only">Фильтр по статусу товара</span>
                         {% for value, label in status_choices %}
                         <div class="flex items-center">
                             <input type="radio" id="status_{{ value }}" name="status"
                                    class="mr-2" value="{{ value }}"
-                                   {% if selected_status == value %}checked{% endif %}>
-                            <label for="status_{{ value }}">{{ label }}</label>
+                                   {% if request.GET.status == value %}checked{% endif %}
+                                   aria-labelledby="status_{{ value }}_label">
+                            <label for="status_{{ value }}" id="status_{{ value }}_label">{{ label }}</label>
                         </div>
                         {% endfor %}
                         <div class="flex items-center">
                             <input type="radio" id="status_all" name="status"
                                    class="mr-2" value=""
-                                   {% if not selected_status %}checked{% endif %}>
-                            <label for="status_all">{% trans "Все" %}</label>
+                                   {% if not request.GET.status %}checked{% endif %}
+                                   aria-labelledby="status_all_label">
+                            <label for="status_all" id="status_all_label">{% trans "Все" %}</label>
                         </div>
                     </div>
                 </div>
@@ -80,17 +107,79 @@
                     <div class="space-y-2 max-h-60 overflow-y-auto">
                         {% for brand in brands %}
                         <div class="flex items-center">
-                            <input type="checkbox" id="brand_{{ brand.id }}"
-                                   class="brand-filter mr-2" value="{{ brand.slug }}"
-                                   {% if brand.slug in selected_brands %}checked{% endif %}>
-                            <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
+                            <input type="checkbox" id="brand_{{ forloop.counter }}"
+                                   class="brand-filter mr-2" value="{{ brand }}"
+                                   {% if brand in selected_brands %}checked{% endif %}
+                                   aria-labelledby="brand_{{ forloop.counter }}_label">
+                            <label for="brand_{{ forloop.counter }}" id="brand_{{ forloop.counter }}_label">{{ brand }}</label>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Фильтр по подкатегориям -->
+                <!-- Фильтр по материалам -->
+                {% if materials %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Материалы" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for material in materials %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="material_{{ forloop.counter }}"
+                                   class="material-filter mr-2" value="{{ material }}"
+                                   {% if material in selected_materials %}checked{% endif %}
+                                   aria-labelledby="material_{{ forloop.counter }}_label">
+                            <label for="material_{{ forloop.counter }}" id="material_{{ forloop.counter }}_label">{{ material }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Фильтр по размерам -->
+                {% if sizes %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Размеры" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for size in sizes %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="size_{{ forloop.counter }}"
+                                   class="size-filter mr-2" value="{{ size }}"
+                                   {% if size in selected_sizes %}checked{% endif %}
+                                   aria-labelledby="size_{{ forloop.counter }}_label">
+                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ size }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Фильтр по типу товара -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип товара" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="is_featured" class="type-filter mr-2" value="true"
+                                   {% if request.GET.is_featured == 'true' %}checked{% endif %}
+                                   aria-labelledby="is_featured_label">
+                            <label for="is_featured" id="is_featured_label">{% trans "Рекомендуемые" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="is_bestseller" class="type-filter mr-2" value="true"
+                                   {% if request.GET.is_bestseller == 'true' %}checked{% endif %}
+                                   aria-labelledby="is_bestseller_label">
+                            <label for="is_bestseller" id="is_bestseller_label">{% trans "Хиты продаж" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="has_discount" class="type-filter mr-2" value="true"
+                                   {% if request.GET.has_discount == 'true' %}checked{% endif %}
+                                   aria-labelledby="has_discount_label">
+                            <label for="has_discount" id="has_discount_label">{% trans "Со скидкой" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Подкатегории -->
                 {% if subcategories %}
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Подкатегории" %}</h3>
@@ -98,7 +187,8 @@
                         {% for subcat in subcategories %}
                         <div>
                             <a href="{{ subcat.get_absolute_url }}"
-                               class="text-blue-600 hover:text-blue-800 hover:underline">
+                               class="text-blue-600 hover:text-blue-800 hover:underline"
+                               aria-label="Перейти в подкатегорию {{ subcat.name }}">
                                 {{ subcat.name }}
                             </a>
                         </div>
@@ -109,7 +199,8 @@
 
                 <!-- Кнопка сброса фильтров -->
                 <button id="reset_filters"
-                        class="w-full border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 transition">
+                        class="w-full border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 transition"
+                        aria-label="Сбросить все фильтры">
                     {% trans "Сбросить фильтры" %}
                 </button>
             </div>
@@ -120,22 +211,22 @@
             <!-- Сортировка и количество товаров -->
             <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
                 <div class="mb-4 sm:mb-0">
-                    {% trans "Сортировать по:" %}
-                    <select id="sort_by" class="ml-2 border rounded px-3 py-2">
-                        <option value="default" {% if selected_sort == 'default' %}selected{% endif %}>{% trans "По умолчанию" %}</option>
-                        <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>{% trans "Цена по возрастанию" %}</option>
-                        <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>{% trans "Цена по убыванию" %}</option>
-                        <option value="name_asc" {% if selected_sort == 'name_asc' %}selected{% endif %}>{% trans "Названию (А-Я)" %}</option>
-                        <option value="name_desc" {% if selected_sort == 'name_desc' %}selected{% endif %}>{% trans "Названию (Я-А)" %}</option>
-                        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>{% trans "Новинки" %}</option>
+                    <label for="sort_by" class="sr-only">{% trans "Сортировать по:" %}</label>
+                    <select id="sort_by" class="ml-2 border rounded px-3 py-2" aria-label="Сортировка товаров">
+                        <option value="default" {% if request.GET.sort == 'default' or not request.GET.sort %}selected{% endif %}>{% trans "По умолчанию" %}</option>
+                        <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>{% trans "Цена по возрастанию" %}</option>
+                        <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>{% trans "Цена по убыванию" %}</option>
+                        <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>{% trans "Названию (А-Я)" %}</option>
+                        <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>{% trans "Названию (Я-А)" %}</option>
+                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>{% trans "Новинки" %}</option>
                     </select>
                 </div>
                 <div>
-                    {% trans "Показывать по:" %}
-                    <select id="per_page" class="ml-2 border rounded px-3 py-2">
-                        <option value="12" {% if current_per_page == 12 %}selected{% endif %}>12</option>
-                        <option value="24" {% if current_per_page == 24 %}selected{% endif %}>24</option>
-                        <option value="48" {% if current_per_page == 48 %}selected{% endif %}>48</option>
+                    <label for="per_page" class="sr-only">{% trans "Показывать по:" %}</label>
+                    <select id="per_page" class="ml-2 border rounded px-3 py-2" aria-label="Количество товаров на странице">
+                        <option value="12" {% if request.GET.per_page == '12' or not request.GET.per_page %}selected{% endif %}>12</option>
+                        <option value="24" {% if request.GET.per_page == '24' %}selected{% endif %}>24</option>
+                        <option value="48" {% if request.GET.per_page == '48' %}selected{% endif %}>48</option>
                     </select>
                 </div>
             </div>
@@ -144,13 +235,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {% for product in products %}
                 <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
-                    <a href="{{ product.get_absolute_url }}" class="block">
-                        <div class="aspect-w-1 aspect-h-1">
-    <img src="{{ product.main_image }}" alt="{{ product.name }}"
-         class="object-cover w-full h-full"
-         onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}';">
-
-                        </div>
+                    <a href="{{ product.get_absolute_url }}" class="block" aria-label="Подробнее о товаре {{ product.name }}">
+                        <img src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200"
+     alt="{{ product.name }}"
+     class="object-contain w-full h-full p-2"
+     onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
                         <div class="p-4">
                             <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
                             <div class="flex items-center justify-between">
@@ -162,15 +251,21 @@
                                     <span class="font-bold">{{ product.price }} ₽</span>
                                     {% endif %}
                                 </div>
-                                {% if product.is_new %}
+                                {% if product.status == 'new' %}
                                 <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
+                                {% elif product.status == 'limited' %}
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
+                                {% endif %}
+                                {% if product.is_featured %}
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
                                 {% endif %}
                             </div>
                         </div>
                     </a>
                     <div class="px-4 pb-4">
                         <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                                data-product-id="{{ product.id }}">
+                                data-product-id="{{ product.product_id }}"
+                                aria-label="Добавить {{ product.name }} в корзину">
                             {% trans "В корзину" %}
                         </button>
                     </div>
@@ -178,33 +273,44 @@
                 {% empty %}
                 <div class="col-span-full text-center py-12">
                     <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
+                    {% if request.GET %}
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}{% endif %}" class="text-blue-600 hover:underline mt-2 inline-block"
+                       aria-label="Сбросить фильтры">
+                        {% trans "Сбросить фильтры" %}
+                    </a>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
 
             <!-- Пагинация -->
             {% if products.paginator.num_pages > 1 %}
-            <div class="mt-8 flex justify-center">
-                <nav class="flex items-center space-x-2">
+            <nav class="mt-8 flex justify-center" aria-label="Навигация по страницам">
+                <div class="flex items-center space-x-2">
                     {% if products.has_previous %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</a>
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&lsaquo;</a>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1" class="px-3 py-1 border rounded hover:bg-gray-100"
+                       aria-label="Первая страница">&laquo;</a>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100"
+                       aria-label="Предыдущая страница">&lsaquo;</a>
                     {% endif %}
 
                     {% for num in products.paginator.page_range %}
                     {% if products.number == num %}
-                    <span class="px-3 py-1 border rounded bg-blue-600 text-white">{{ num }}</span>
+                    <span class="px-3 py-1 border rounded bg-blue-600 text-white" aria-current="page" aria-label="Страница {{ num }}">{{ num }}</span>
                     {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}" class="px-3 py-1 border rounded hover:bg-gray-100">{{ num }}</a>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}" class="px-3 py-1 border rounded hover:bg-gray-100"
+                       aria-label="Страница {{ num }}">{{ num }}</a>
                     {% endif %}
                     {% endfor %}
 
                     {% if products.has_next %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">&rsaquo;</a>
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</a>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100"
+                       aria-label="Следующая страница">&rsaquo;</a>
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100"
+                       aria-label="Последняя страница">&raquo;</a>
                     {% endif %}
-                </nav>
-            </div>
+                </div>
+            </nav>
             {% endif %}
         </div>
     </div>
@@ -233,6 +339,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (maxPrice) params.set('max_price', maxPrice);
         else params.delete('max_price');
 
+        // Фильтр по наличию
+        const inStock = document.getElementById('in_stock').checked;
+        const onOrder = document.getElementById('on_order').checked;
+        if (inStock) params.set('in_stock', 'true');
+        else params.delete('in_stock');
+        if (onOrder) params.set('on_order', 'true');
+        else params.delete('on_order');
+
         // Фильтр по статусу
         const statusFilter = document.querySelector('input[name="status"]:checked');
         if (statusFilter && statusFilter.value) params.set('status', statusFilter.value);
@@ -244,6 +358,28 @@ document.addEventListener('DOMContentLoaded', function() {
             .join(',');
         if (selectedBrands) params.set('brands', selectedBrands);
         else params.delete('brands');
+
+        // Фильтр по материалам
+        const selectedMaterials = Array.from(document.querySelectorAll('.material-filter:checked'))
+            .map(el => el.value)
+            .join(',');
+        if (selectedMaterials) params.set('materials', selectedMaterials);
+        else params.delete('materials');
+
+        // Фильтр по размерам
+        const selectedSizes = Array.from(document.querySelectorAll('.size-filter:checked'))
+            .map(el => el.value)
+            .join(',');
+        if (selectedSizes) params.set('sizes', selectedSizes);
+        else params.delete('sizes');
+
+        // Фильтр по типу товара
+        if (document.getElementById('is_featured').checked) params.set('is_featured', 'true');
+        else params.delete('is_featured');
+        if (document.getElementById('is_bestseller').checked) params.set('is_bestseller', 'true');
+        else params.delete('is_bestseller');
+        if (document.getElementById('has_discount').checked) params.set('has_discount', 'true');
+        else params.delete('has_discount');
 
         // Сортировка
         const sortBy = document.getElementById('sort_by').value;
@@ -270,6 +406,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('max_price').value = params.get('max_price');
         }
 
+        // Наличие
+        document.getElementById('in_stock').checked = params.get('in_stock') === 'true';
+        document.getElementById('on_order').checked = params.get('on_order') === 'true';
+
         // Статус
         if (params.has('status')) {
             const status = params.get('status');
@@ -283,6 +423,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.checked = selectedBrands.includes(el.value);
             });
         }
+
+        // Материалы
+        if (params.has('materials')) {
+            const selectedMaterials = params.get('materials').split(',');
+            document.querySelectorAll('.material-filter').forEach(el => {
+                el.checked = selectedMaterials.includes(el.value);
+            });
+        }
+
+        // Размеры
+        if (params.has('sizes')) {
+            const selectedSizes = params.get('sizes').split(',');
+            document.querySelectorAll('.size-filter').forEach(el => {
+                el.checked = selectedSizes.includes(el.value);
+            });
+        }
+
+        // Тип товара
+        document.getElementById('is_featured').checked = params.get('is_featured') === 'true';
+        document.getElementById('is_bestseller').checked = params.get('is_bestseller') === 'true';
+        document.getElementById('has_discount').checked = params.get('has_discount') === 'true';
 
         // Сортировка
         document.getElementById('sort_by').value = params.get('sort') || 'default';
@@ -301,9 +462,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('sort_by').addEventListener('change', applyFilters);
     document.getElementById('per_page').addEventListener('change', applyFilters);
 
-    // Делегирование событий для чекбоксов брендов и радио-кнопок статуса
+    // Делегирование событий для чекбоксов и радио-кнопок
     document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('brand-filter') || e.target.name === 'status') {
+        if (e.target.classList.contains('brand-filter') ||
+            e.target.classList.contains('material-filter') ||
+            e.target.classList.contains('size-filter') ||
+            e.target.classList.contains('type-filter') ||
+            e.target.classList.contains('availability-filter') ||
+            e.target.name === 'status') {
             applyFilters();
         }
     });
@@ -366,6 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
             type === 'success' ? 'bg-green-500' : 'bg-red-500'
         }`;
         notification.textContent = message;
+        notification.setAttribute('role', 'alert');
         document.body.appendChild(notification);
 
         setTimeout(() => {
@@ -385,6 +552,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация фильтров
     setCurrentFilters();
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryHeader = document.getElementById('category-header');
+
+    if (categoryHeader) {
+        function handleScroll() {
+            if (window.pageYOffset > 10) {
+                categoryHeader.classList.add('scrolled');
+            } else {
+                categoryHeader.classList.remove('scrolled');
+            }
+        }
+
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Инициализация при загрузке
+    }
+});
 </script>
 
 <style>
@@ -400,6 +584,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sticky-header.scrolled {
+    /* Дополнительные стили при скролле, если нужно */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 </style>
 {% endblock %}

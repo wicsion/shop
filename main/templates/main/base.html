@@ -80,19 +80,57 @@
     opacity: 0;
     pointer-events: none;
 }
-#main-header {
+.header {
+    position: sticky;
+    top: 0;
     z-index: 1020;
-    top: 40px;
-    transition: top 0.4s cubic-bezier(0.25, 0.8, 0.5, 1); /* Добавьте эту строку */
+    transition: all 0.3s ease;
+    background-color: white;
 }
+
 .header.scrolled {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transition: box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+
+.main-content {
+    margin-top: 140px; /* Учитываем высоту обоих хедеров */
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-top: 100px !important;
+    }
 }
 
 [data-theme="dark"] .header.scrolled {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
+
+[data-theme="dark"] .header.scrolled {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+   /* Добавить в секцию стилей */
+    .sticky-category-header {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .sticky-category-header.scrolled {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] .sticky-category-header {
+        background-color: var(--bg);
+    }
+
+    [data-theme="dark"] .sticky-category-header.scrolled {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
 /* Mega dropdown menu */
 .mega-dropdown {
     position: static !important;
@@ -560,7 +598,8 @@
     </div>
 </nav>
 <!-- Фиксированный хедер (остается на месте) -->
-<header class="header bg-white fixed-top" id="main-header" style="top: 60px; border-bottom: none !important;">
+<!-- Фиксированный хедер (остается на месте) -->
+<header class="header sticky-header bg-white fixed-top" id="main-header" style="top: 60px; border-bottom: none !important;">
     <nav class="navbar navbar-expand-lg container py-2">
         <div class="container-fluid">
            <a class="navbar-brand" href="/">
@@ -760,81 +799,39 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-            const topNavbar = document.getElementById('top-navbar');
-            const header = document.getElementById('main-header');
-            const mainContent = document.querySelector('.main-content');
+      document.addEventListener('DOMContentLoaded', function() {
+        const topNavbar = document.getElementById('top-navbar');
+        const header = document.getElementById('main-header');
+        const mainContent = document.querySelector('.main-content');
 
-            if (!topNavbar || !header || !mainContent) return;
+        if (!topNavbar || !header || !mainContent) return;
 
-            let lastScroll = 0;
-            const scrollThreshold = 50;
-            let isHidden = false;
-            let scrollTimeout = null;
+        function updateLayout() {
+            const headerHeight = header.offsetHeight;
+            const topNavbarHeight = topNavbar.offsetHeight;
 
-            function updateLayout() {
-                const headerHeight = header.offsetHeight;
-                if (isHidden) {
-                    mainContent.style.marginTop = `${headerHeight + 20}px`;
-                    header.style.top = '0';
-                } else {
-                    mainContent.style.marginTop = `${headerHeight + topNavbar.offsetHeight}px`;
-                    header.style.top = `${topNavbar.offsetHeight}px`;
-                }
+            // Устанавливаем отступ для основного контента
+            mainContent.style.marginTop = `${topNavbarHeight + headerHeight}px`;
+
+            // Устанавливаем позицию для основного хедера
+            header.style.top = `${topNavbarHeight}px`;
+        }
+
+        function handleScroll() {
+            const currentScroll = window.pageYOffset;
+
+            if (currentScroll > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
             }
-
-          function handleScroll() {
-    const currentScroll = window.pageYOffset;
-     // Добавьте этот блок для затенения хедера
-    if (currentScroll > 10) {
-        header.classList.add('scrolled');
-    } else {
-        header.classList.remove('scrolled');
-    }
-
-    if (scrollTimeout) {
-        cancelAnimationFrame(scrollTimeout);
-    }
-
-    if (scrollTimeout) {
-        cancelAnimationFrame(scrollTimeout);
-    }
-
-    if (currentScroll <= 0) {
-        if (isHidden) {
-            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
-            topNavbar.classList.remove('hiding');
-            isHidden = false;
-            updateLayout();
-        }
-        lastScroll = currentScroll;
-        return;
-    }
-
-    scrollTimeout = requestAnimationFrame(() => {
-        if (currentScroll > lastScroll && currentScroll > scrollThreshold && !isHidden) {
-            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
-            topNavbar.classList.add('hiding');
-            isHidden = true;
-            updateLayout();
-        }
-        else if (currentScroll < lastScroll && isHidden) {
-            topNavbar.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.5, 1), opacity 0.4s cubic-bezier(0.25, 0.8, 0.5, 1)';
-            topNavbar.classList.remove('hiding');
-            isHidden = false;
-            updateLayout();
         }
 
-        lastScroll = currentScroll;
+        // Инициализация
+        updateLayout();
+        window.addEventListener('scroll', handleScroll, {passive: true});
+        window.addEventListener('resize', updateLayout);
     });
-}
-
-
-            // Инициализация
-            updateLayout();
-            window.addEventListener('scroll', handleScroll, {passive: true});
-            window.addEventListener('resize', updateLayout);
-        });
 
         // Инициализация AOS
         if (typeof AOS !== 'undefined') {
