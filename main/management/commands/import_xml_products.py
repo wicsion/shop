@@ -1,6 +1,6 @@
 from xml.etree import ElementTree as ET
 from django.core.management.base import BaseCommand
-from main.models import XMLProduct, Category, Brand
+from main.models import XMLProduct, Category, Brand, ProductVariant, ProductFilter, ApplicationType
 from urllib.parse import urljoin
 from django.utils.text import slugify, get_valid_filename
 from datetime import datetime
@@ -388,12 +388,21 @@ class Command(BaseCommand):
                 defaults=defaults
             )
 
+            # Обработка вариантов товара
+            self.process_product_variants(product, xml_product)
+
             # Обработка бренда
             if brand_name:
                 self.process_brand(brand_name, xml_product)
 
             # Привязка к категории
             self.process_category(product, xml_product)
+
+            # Обработка фильтров
+            self.process_product_filters(product, xml_product)
+
+            # Обработка типов нанесения
+            self.process_application_types(product, xml_product)
 
             action = "Создан" if created else "Обновлен"
             self.stdout.write(self.style.SUCCESS(f"{action} товар: {product_id}"))
@@ -403,6 +412,99 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Ошибка обработки товара: {str(e)}"))
             logger.exception(f"Ошибка товара {product_id if 'product_id' in locals() else 'UNKNOWN'}: {str(e)}")
+
+    def process_product_variants(self, product, xml_product):
+        """Обрабатывает варианты товара (размеры, цвета и т.д.)"""
+        # Удаляем старые варианты
+        xml_product.variants.all().delete()
+
+        # Ищем варианты в XML (пример структуры может отличаться)
+        variants = product.findall('variants/variant') or []
+
+        if not variants:
+            # Если нет явных вариантов, создаем один на основе основного товара
+            self.create_variant_from_product(product, xml_product)
+        else:
+            for variant in variants:
+                self.create_product_variant(variant, xml_product)
+
+    def create_variant_from_product(self, product, xml_product):
+        """Создает вариант на основе основного товара"""
+        size = self.get_text_value(product, 'product_size') or 'One Size'
+        barcode = self.get_text_value(product, 'barcode') or ''
+
+        ProductVariant.objects.create(
+            product=xml_product,
+            size=size,
+            price=xml_product.price,
+            old_price=xml_product.old_price,
+            barcode=barcode,
+            quantity=self.get_int_value(product, 'quantity') or 0,
+            sku=xml_product.code
+        )
+
+    def create_product_variant(self, variant, xml_product):
+        """Создает отдельный вариант товара"""
+        size = self.get_text_value(variant, 'size') or 'One Size'
+        price = self.get_float_value(variant, 'price') or xml_product.price
+        old_price = self.get_float_value(variant, 'oldprice') or xml_product.old_price
+        barcode = self.get_text_value(variant, 'barcode') or ''
+        quantity = self.get_int_value(variant, 'quantity') or 0
+        sku = self.get_text_value(variant, 'sku') or xml_product.code
+
+        ProductVariant.objects.create(
+            product=xml_product,
+            size=size,
+            price=price,
+            old_price=old_price,
+            barcode=barcode,
+            quantity=quantity,
+            sku=sku
+        )
+
+    def process_product_filters(self, product, xml_product):
+        """Обрабатывает фильтры товара"""
+        filters = product.findall('filters/filter')
+        for f in filters:
+            filter_type = f.find('filtertypeid')
+            filter_id = f.find('filterid')
+
+            if filter_type is not None and filter_id is not None:
+                filter_type = filter_type.text.strip()
+                filter_id = filter_id.text.strip()
+
+                # Ищем или создаем фильтр
+                pf, created = ProductFilter.objects.get_or_create(
+                    filter_type=filter_type,
+                    filter_id=filter_id,
+                    defaults={'name': f"{filter_type}_{filter_id}"}
+                )
+
+                # Добавляем связь с товаром
+                pf.products.add(xml_product)
+
+    def process_application_types(self, product, xml_product):
+        """Обрабатывает типы нанесения для товара"""
+        prints = product.findall('print')
+        for p in prints:
+            code = p.find('name')
+            description = p.find('description')
+
+            if code is not None:
+                code = code.text.strip()
+                desc = description.text.strip() if description is not None else ''
+
+                # Ищем или создаем тип нанесения
+                app_type, created = ApplicationType.objects.get_or_create(
+                    code=code,
+                    defaults={
+                        'name': code,
+                        'description': desc
+                    }
+                )
+
+                # Добавляем связь с товаром
+                app_type.products.add(xml_product)
 
     def get_text_value(self, product, element_name):
         """Получает текстовое значение из XML элемента"""
@@ -581,10 +683,16 @@ class Command(BaseCommand):
 
             # Фильтры и принты
             'filters': [
-                {'type': f.find('filtertypeid').text, 'id': f.find('filterid').text}
+                {
+                    'type_id': f.find('filtertypeid').text,
+                    'filter_id': f.find('filterid').text,
+                    'type_name': 'Тип фильтра',  # можно добавить из справочника
+                    'filter_name': 'Название фильтра'  # можно добавить из справочника
+                }
                 for f in product.findall('filters/filter')
                 if f.find('filtertypeid') is not None and f.find('filterid') is not None
             ],
+
             'prints': [
                 {'code': p.find('name').text, 'description': p.find('description').text}
                 for p in product.findall('print')
@@ -613,7 +721,7 @@ class Command(BaseCommand):
         return attributes
 
     def parse_size_table(self, description):
-        """Парсит таблицу размеров из описания"""
+        """Парсит таблицу размеров из описания и возвращает структурированные данные"""
         if not description:
             return None
 
@@ -622,16 +730,42 @@ class Command(BaseCommand):
             if not (table := soup.find('table')):
                 return None
 
+            # Извлекаем заголовки
             headers = []
             if header_row := table.find('tr'):
                 headers = [th.get_text(strip=True) for th in header_row.find_all('td')]
+                if not headers:
+                    headers = [th.get_text(strip=True) for th in header_row.find_all('th')]
 
+            # Извлекаем данные
             rows = []
-            for row in table.find_all('tr')[1:]:
-                if row_data := [cell.get_text(strip=True) for cell in row.find_all('td')]:
-                    rows.append(row_data)
+            parameters = []
+            data = {}
 
-            return {'headers': headers, 'rows': rows}
+            for row in table.find_all('tr')[1:]:
+                cells = row.find_all('td')
+                if not cells:
+                    continue
+
+                # Первая ячейка - название параметра (длина, ширина и т.д.)
+                param_name = cells[0].get_text(strip=True)
+                parameters.append(param_name)
+
+                # Остальные ячейки - значения для размеров
+                for idx, cell in enumerate(cells[1:]):
+                    size = headers[idx + 1] if (idx + 1) < len(headers) else str(idx + 1)
+                    value = cell.get_text(strip=True)
+
+                    if size not in data:
+                        data[size] = {}
+                    data[size][param_name] = value
+
+            return {
+                'headers': headers,
+                'parameters': parameters,
+                'data': data,
+                'raw_html': str(table)  # Сохраняем оригинальную HTML таблицу
+            }
 
         except Exception as e:
             self.stdout.write(self.style.WARNING(f"Ошибка парсинга размеров: {str(e)}"))

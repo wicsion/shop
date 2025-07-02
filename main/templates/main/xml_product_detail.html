@@ -1,16 +1,39 @@
-{% extends "main/base.html"  %}
+{% extends "main/base.html" %}
 {% load custom_filters %}
 {% block title %}{{ product.name }} | RealEstatePro{% endblock %}
 {% load static %}
+
 {% block content %}
+
 <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
 <style>
-    /* Анимация для секций */
+:root {
+    --top-navbar-height: 40px; /* Высота верхнего навбара */
+    --main-header-height: 20px; /* Высота основного хедера */
+    --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
+}
+
+.sticky-column {
+    top: calc(var(--total-header-height) + 4.0rem);
+    position: sticky;
+    height: fit-content;
+}
+
+@media (max-width: 767px) {
+    .sticky-column {
+        position: relative;
+        top: auto;
+    }
+}
+
+
+  /* Анимация для секций */
     .animate-block {
         opacity: 0;
         transform: translateY(30px);
         transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
 
     .animate-block.reveal {
         opacity: 1;
@@ -21,7 +44,8 @@
     .swiper {
         width: 100%;
         height: auto;
-        aspect-ratio: 16 / 9;
+        aspect-ratio: 1 / 1;
+        max-height: 500px;
         border-radius: 1rem;
         overflow: hidden;
         background-color: #f5f5f5;
@@ -29,7 +53,7 @@
 
     @media (min-width: 768px) {
         .swiper {
-            height: 500px;
+            height: 400px;
         }
     }
 
@@ -136,15 +160,13 @@
     .contact-sidebar {
         height: fit-content;
         max-height: 500px;
-        position: sticky;
-        top: 20px;
         padding: 1rem;
+        margin-top: 1.5rem;
     }
 
     @media (max-width: 767px) {
         .contact-sidebar {
             margin-top: 2rem;
-            position: static;
         }
     }
 
@@ -221,8 +243,26 @@
         margin: 0 8px;
         color: #6b7280;
     }
+
+    /* Видео контейнер */
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
 </style>
 
+{% with excluded_filters="Спецфильтр,Новинки"  %}
 <div class="container py-8">
     <!-- Хлебные крошки -->
     <nav class="breadcrumbs">
@@ -236,13 +276,20 @@
     </nav>
 
     <div class="bg-white rounded-xl shadow-sm p-4 md:p-8 border-2 border-gray-100">
+        <!-- Новая структура с слайдером слева и контентом справа -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+            <!-- Левая колонка со слайдером и контактной информацией -->
+           <!-- В xml_product_detail.html замените блок левой колонки на следующий код: -->
+<div class="lg:col-span-5">
+    <!-- Обертка для sticky-элементов -->
+    <div class="sticky-column sticky space-y-6">
         <!-- Карусель с анимацией -->
-        <div class="animate-block swiper mb-6 md:mb-8">
+        <div class="animate-block swiper">
             <div class="swiper-wrapper">
                 {% for attachment in product.xml_data.attributes.attachments %}
                     {% if forloop.counter <= 5 and attachment.type == 'image' and attachment.image %}
                     <div class="swiper-slide">
-                        <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=200&height=200"
+                        <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=500&height=500"
                              alt="{{ attachment.name|default:product.name }}"
                              onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
                     </div>
@@ -259,11 +306,36 @@
             <img class="modal-content" id="expandedImg">
         </div>
 
-        <!-- Основная информация -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            <!-- Левая колонка -->
-            <div class="lg:col-span-2">
-                <!-- Заголовок и цена -->
+        <!-- Контактная информация под слайдером -->
+        <div class="animate-block contact-sidebar bg-gray-50 p-4 md:p-6 rounded-xl">
+            <div class="contact-content">
+                <div class="mb-4 md:mb-6">
+                    <h3 class="text-lg md:text-xl font-bold">Оформление заказа</h3>
+                </div>
+
+                <!-- Кнопка добавления в корзину -->
+                <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_type" value="xml">
+                    <div class="flex items-center">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                               class="border rounded px-3 py-2 w-20 mr-4">
+                        <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
+                            {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
+                        </button>
+                    </div>
+                    {% if product.xml_data.min_order_quantity > 1 %}
+                    <p class="text-sm text-gray-500 mt-2">Минимальный заказ: {{ product.xml_data.min_order_quantity }} шт.</p>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Правая колонка с основной информацией о товаре -->
+            <div class="lg:col-span-7">
+                <!-- Верхний блок с заголовком и ценой -->
                 <div class="animate-block">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">{{ product.name }}</h1>
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mb-4 md:mb-6">
@@ -276,10 +348,6 @@
                                 {{ product.price }} ₽
                             {% endif %}
                         </span>
-                        {% if product.is_featured %}
-
-
-                        {% endif %}
                         {% if product.status == 'new' %}
                         <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
                         {% elif product.status == 'limited' %}
@@ -291,8 +359,10 @@
                     </div>
                 </div>
 
-                <!-- Параметры -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-8">
+                <!-- Параметры товара -->
+
+    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                     <!-- Артикул -->
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Артикул</div>
@@ -358,18 +428,38 @@
                         <div class="text-lg md:text-xl font-bold">{{ product.xml_data.attributes.size }}</div>
                     </div>
                     {% endif %}
+
+                    <!-- Фильтры -->
+                    {% if readable_filters %}
+                        {% for filter in readable_filters %}
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-xs md:text-sm text-gray-500">{{ filter.type }}</div>
+                            <div class="text-lg md:text-xl font-bold">{{ filter.value }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Методы нанесения -->
+                    {% if readable_prints %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-xs md:text-sm text-gray-500">Методы нанесения</div>
+                        <div class="text-lg md:text-xl font-bold">
+                            {% for print in readable_prints %}
+                                {{ print.description }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Вкладки с дополнительной информацией -->
                 <div class="tabs-container mt-6">
                     <div class="tabs">
                         <div class="tab active" data-tab="description">Описание</div>
-                        <div class="tab" data-tab="specs">Характеристики</div>
-                        {% if product.xml_data.sizes_available %}
-                        <div class="tab" data-tab="sizes">Размеры</div>
-                        {% endif %}
-                        {% if product.xml_data.material_composition or product.xml_data.material_density %}
-                        <div class="tab" data-tab="materials">Материалы</div>
+
+
+                        {% if product.xml_data.video_link %}
+                        <div class="tab" data-tab="video">Видео</div>
                         {% endif %}
                     </div>
 
@@ -380,148 +470,9 @@
                         </div>
                     </div>
 
-                    <div class="tab-content" id="specs">
-                        <div class="space-y-4">
-                            {% if product.brand %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Бренд</span>
-                                <span>{{ product.brand }}</span>
-                            </div>
-                            {% endif %}
 
-                            {% if product.material %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Материал</span>
-                                <span>{{ product.material }}</span>
-                            </div>
-                            {% endif %}
 
-                            {% if product.xml_data.material_composition %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Состав</span>
-                                <span>{{ product.xml_data.material_composition }}</span>
-                            </div>
-                            {% endif %}
 
-                            {% if product.weight %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Вес</span>
-                                <span>{{ product.weight }} г</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.volume %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Объем</span>
-                                <span>{{ product.volume }} см³</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.xml_data.material_density %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Плотность</span>
-                                <span>{{ product.xml_data.material_density }}</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.xml_data.sizes_available %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Доступные размеры</span>
-                                <span>{{ product.xml_data.sizes_available }}</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.barcode %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Штрих-код</span>
-                                <span>{{ product.barcode }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if product.xml_data.sizes_available %}
-                    <div class="tab-content" id="sizes">
-                        <div class="space-y-4">
-                            <h4 class="font-semibold">Доступные размеры</h4>
-                            <p>{{ product.xml_data.sizes_available }}</p>
-
-                            {% if product.xml_data.attributes.size %}
-                            <h4 class="font-semibold">Размер товара</h4>
-                            <p>{{ product.xml_data.attributes.size }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if product.xml_data.material_composition or product.xml_data.material_density %}
-                    <div class="tab-content" id="materials">
-                        <div class="space-y-4">
-                            {% if product.material %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Материал</span>
-                                <span>{{ product.material }}</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.xml_data.material_composition %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Состав</span>
-                                <span>{{ product.xml_data.material_composition }}</span>
-                            </div>
-                            {% endif %}
-
-                            {% if product.xml_data.material_density %}
-                            <div class="flex">
-                                <span class="text-gray-600 w-48">Плотность</span>
-                                <span>{{ product.xml_data.material_density }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Правая колонка -->
-            <div class="animate-block contact-sidebar bg-gray-50 p-4 md:p-6 rounded-xl mt-6 md:mt-0">
-                <div class="contact-content">
-                    <div class="mb-4 md:mb-6">
-                        <h3 class="text-lg md:text-xl font-bold">Контактная информация</h3>
-                    </div>
-
-                    <!-- Кнопка добавления в корзину -->
-                    <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
-                        {% csrf_token %}
-                        <input type="hidden" name="product_type" value="xml">
-                        <div class="flex items-center">
-                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
-                                   class="border rounded px-3 py-2 w-20 mr-4">
-                            <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
-                                {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
-                            </button>
-                        </div>
-                        {% if product.xml_data.min_order_quantity > 1 %}
-                        <p class="text-sm text-gray-500 mt-2">Минимальный заказ: {{ product.xml_data.min_order_quantity }} шт.</p>
-                        {% endif %}
-                    </form>
-
-                    {% if not user.is_broker %}
-                    <form method="POST"  class="w-full">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-outline hover:border-blue-600 hover:text-blue-600 w-full text-center">
-                            <i class="bi bi-heart{% if is_favorite %}-fill text-red-500{% endif %} mr-2"></i>
-                            <span>
-                                {% if is_favorite %}
-                                    Удалить из избранного
-                                {% else %}
-                                    Добавить в избранное
-                                {% endif %}
-                            </span>
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </div>
@@ -565,6 +516,7 @@
     </div>
     {% endif %}
 </div>
+{% endwith %}
 
 <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
 <script>
@@ -632,40 +584,6 @@
                 modal.style.display = 'none';
                 modalImg.classList.remove('modal-opened');
             }
-        });
-    }
-
-    // Обработка избранного
-    function setupFavorites() {
-        document.querySelectorAll('form[action*="favorite"]').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const icon = form.querySelector('i');
-                const text = form.querySelector('span');
-
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'Accept': 'application/json',
-                        },
-                    });
-                    const data = await response.json();
-
-                    if (data.status === 'added') {
-                        icon.classList.add('bi-heart-fill', 'text-red-500');
-                        icon.classList.remove('bi-heart');
-                        text.textContent = 'Удалить из избранного';
-                    } else {
-                        icon.classList.remove('bi-heart-fill', 'text-red-500');
-                        icon.classList.add('bi-heart');
-                        text.textContent = 'Добавить в избранное';
-                    }
-                } catch (error) {
-                    console.error('Ошибка:', error);
-                }
-            });
         });
     }
 
@@ -758,7 +676,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         const swiper = initSwiper();
         setupModal();
-        setupFavorites();
         setupTabs();
         setupCart();
     });

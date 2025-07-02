@@ -4,10 +4,10 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <!-- Хлебные крошки -->
-        <nav class="breadcrumbs mb-6" aria-label="Хлебные крошки">
+    <nav class="breadcrumbs mb-6" aria-label="Хлебные крошки">
         <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
         <span class="separator" aria-hidden="true">/</span>
-        <a href="{% url 'main:home' %}">{% trans "Категории" %}</a>
+        <a href="{% url 'main:category_list' %}">{% trans "Категории" %}</a>
         <span class="separator" aria-hidden="true">/</span>
         <span>{{ category.name }}</span>
     </nav>
@@ -154,6 +154,223 @@
                 </div>
                 {% endif %}
 
+                <!-- Фильтр по стране производства -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Страна производства" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="made_in_russia" class="country-filter mr-2" value="true"
+                                   {% if request.GET.made_in_russia == 'true' %}checked{% endif %}
+                                   aria-labelledby="made_in_russia_label">
+                            <label for="made_in_russia" id="made_in_russia_label">{% trans "Сделано в России" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="is_eco" class="country-filter mr-2" value="true"
+                                   {% if request.GET.is_eco == 'true' %}checked{% endif %}
+                                   aria-labelledby="is_eco_label">
+                            <label for="is_eco" id="is_eco_label">{% trans "Эко-продукция" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по полу -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Пол" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="gender_male" class="gender-filter mr-2" value="male"
+                                   {% if 'male' in selected_genders %}checked{% endif %}
+                                   aria-labelledby="gender_male_label">
+                            <label for="gender_male" id="gender_male_label">{% trans "Мужские" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="gender_female" class="gender-filter mr-2" value="female"
+                                   {% if 'female' in selected_genders %}checked{% endif %}
+                                   aria-labelledby="gender_female_label">
+                            <label for="gender_female" id="gender_female_label">{% trans "Женские" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="gender_unisex" class="gender-filter mr-2" value="unisex"
+                                   {% if 'unisex' in selected_genders %}checked{% endif %}
+                                   aria-labelledby="gender_unisex_label">
+                            <label for="gender_unisex" id="gender_unisex_label">{% trans "Унисекс" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по возрасту -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Возраст" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="for_kids" class="age-filter mr-2" value="true"
+                                   {% if request.GET.for_kids == 'true' %}checked{% endif %}
+                                   aria-labelledby="for_kids_label">
+                            <label for="for_kids" id="for_kids_label">{% trans "Для детей" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по типу нанесения -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип нанесения" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_uv_print" class="app-type-filter mr-2" value="uv_print"
+                                   {% if 'uv_print' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_uv_print_label">
+                            <label for="app_uv_print" id="app_uv_print_label">{% trans "УФ-печать" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_laser_engraving" class="app-type-filter mr-2" value="laser_engraving"
+                                   {% if 'laser_engraving' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_laser_engraving_label">
+                            <label for="app_laser_engraving" id="app_laser_engraving_label">{% trans "Лазерная гравировка" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_embroidery" class="app-type-filter mr-2" value="embroidery"
+                                   {% if 'embroidery' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_embroidery_label">
+                            <label for="app_embroidery" id="app_embroidery_label">{% trans "Вышивка" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_silk_print" class="app-type-filter mr-2" value="silk_print"
+                                   {% if 'silk_print' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_silk_print_label">
+                            <label for="app_silk_print" id="app_silk_print_label">{% trans "Шелкография" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_tampo_print" class="app-type-filter mr-2" value="tampo_print"
+                                   {% if 'tampo_print' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_tampo_print_label">
+                            <label for="app_tampo_print" id="app_tampo_print_label">{% trans "Тамопечать" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="app_thermal_print" class="app-type-filter mr-2" value="thermal_print"
+                                   {% if 'thermal_print' in selected_application_types %}checked{% endif %}
+                                   aria-labelledby="app_thermal_print_label">
+                            <label for="app_thermal_print" id="app_thermal_print_label">{% trans "Термопечать" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по типу упаковки -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип упаковки" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="pack_bag" class="pack-type-filter mr-2" value="bag"
+                                   {% if 'bag' in selected_packaging_types %}checked{% endif %}
+                                   aria-labelledby="pack_bag_label">
+                            <label for="pack_bag" id="pack_bag_label">{% trans "Пакет" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="pack_gift_box" class="pack-type-filter mr-2" value="gift_box"
+                                   {% if 'gift_box' in selected_packaging_types %}checked{% endif %}
+                                   aria-labelledby="pack_gift_box_label">
+                            <label for="pack_gift_box" id="pack_gift_box_label">{% trans "Подарочная коробка" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="pack_none" class="pack-type-filter mr-2" value="none"
+                                   {% if 'none' in selected_packaging_types %}checked{% endif %}
+                                   aria-labelledby="pack_none_label">
+                            <label for="pack_none" id="pack_none_label">{% trans "Без упаковки" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по типу маркировки -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип маркировки" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="mark_textile" class="marking-type-filter mr-2" value="textile"
+                                   {% if 'textile' in selected_marking_types %}checked{% endif %}
+                                   aria-labelledby="mark_textile_label">
+                            <label for="mark_textile" id="mark_textile_label">{% trans "Текстиль" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="mark_other" class="marking-type-filter mr-2" value="other"
+                                   {% if 'other' in selected_marking_types %}checked{% endif %}
+                                   aria-labelledby="mark_other_label">
+                            <label for="mark_other" id="mark_other_label">{% trans "Другое" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по механизму -->
+                {% if mechanism_types %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Механизм" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for mech_type in mechanism_types %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="mech_type_{{ forloop.counter }}"
+                                   class="mech-type-filter mr-2" value="{{ mech_type }}"
+                                   {% if mech_type in selected_mechanism_types %}checked{% endif %}
+                                   aria-labelledby="mech_type_{{ forloop.counter }}_label">
+                            <label for="mech_type_{{ forloop.counter }}" id="mech_type_{{ forloop.counter }}_label">{{ mech_type }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Фильтр по типу обложки -->
+                {% if cover_types %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип обложки" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for cover_type in cover_types %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="cover_type_{{ forloop.counter }}"
+                                   class="cover-type-filter mr-2" value="{{ cover_type }}"
+                                   {% if cover_type in selected_cover_types %}checked{% endif %}
+                                   aria-labelledby="cover_type_{{ forloop.counter }}_label">
+                            <label for="cover_type_{{ forloop.counter }}" id="cover_type_{{ forloop.counter }}_label">{{ cover_type }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Фильтр по маркировке -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Маркировка" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="requires_marking" class="marking-filter mr-2" value="true"
+                                   {% if request.GET.requires_marking == 'true' %}checked{% endif %}
+                                   aria-labelledby="requires_marking_label">
+                            <label for="requires_marking" id="requires_marking_label">{% trans "Подлежит маркировке" %}</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="individual_packaging" class="marking-filter mr-2" value="true"
+                                   {% if request.GET.individual_packaging == 'true' %}checked{% endif %}
+                                   aria-labelledby="individual_packaging_label">
+                            <label for="individual_packaging" id="individual_packaging_label">{% trans "Индивидуальная упаковка" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по типу зонта -->
+                {% if umbrella_types %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип зонта" %}</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for umbrella_type in umbrella_types %}
+                        <div class="flex items-center">
+                            <input type="checkbox" id="umbrella_type_{{ forloop.counter }}"
+                                   class="umbrella-type-filter mr-2" value="{{ umbrella_type }}"
+                                   {% if umbrella_type in selected_umbrella_types %}checked{% endif %}
+                                   aria-labelledby="umbrella_type_{{ forloop.counter }}_label">
+                            <label for="umbrella_type_{{ forloop.counter }}" id="umbrella_type_{{ forloop.counter }}_label">{{ umbrella_type }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Фильтр по типу товара -->
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Тип товара" %}</h3>
@@ -232,85 +449,74 @@
             </div>
 
             <!-- Список товаров -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {% for product in products %}
-                <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
-                    <a href="{{ product.get_absolute_url }}" class="block" aria-label="Подробнее о товаре {{ product.name }}">
-                        <img src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200"
-     alt="{{ product.name }}"
-     class="object-contain w-full h-full p-2"
-     onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    {% if product.has_discount %}
-                                    <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
-                                    <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
-                                    {% else %}
-                                    <span class="font-bold">{{ product.price }} ₽</span>
-                                    {% endif %}
-                                </div>
-                                {% if product.status == 'new' %}
-                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
-                                {% elif product.status == 'limited' %}
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
-                                {% endif %}
-                                {% if product.is_featured %}
-                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </a>
-                    <div class="px-4 pb-4">
-                        <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                                data-product-id="{{ product.product_id }}"
-                                aria-label="Добавить {{ product.name }} в корзину">
-                            {% trans "В корзину" %}
-                        </button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="products-container">
+    {% for product in products %}
+    <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition flex flex-col h-full">
+        <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
+            <!-- Placeholder для изображения -->
+            <div class="image-container w-full h-64">
+    <div class="image-placeholder"></div>
+    <img
+        src="{% static 'images/placeholder.jpg' %}"
+        data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
+        alt="{{ product.name }}"
+        class="lazy-load w-full h-full object-cover absolute top-0 left-0"
+        loading="lazy"
+    >
+</div>
+            <div class="p-4 flex-grow">
+                <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                <div class="flex items-center justify-between mt-auto">
+                    <div>
+                        {% if product.has_discount %}
+                        <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
+                        <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
+                        {% else %}
+                        <span class="font-bold">{{ product.price }} ₽</span>
+                        {% endif %}
                     </div>
-                </div>
-                {% empty %}
-                <div class="col-span-full text-center py-12">
-                    <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
-                    {% if request.GET %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}{% endif %}" class="text-blue-600 hover:underline mt-2 inline-block"
-                       aria-label="Сбросить фильтры">
-                        {% trans "Сбросить фильтры" %}
-                    </a>
+                    {% if product.status == 'new' %}
+                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
+                    {% elif product.status == 'limited' %}
+                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
+                    {% endif %}
+                    {% if product.is_featured %}
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
                     {% endif %}
                 </div>
-                {% endfor %}
             </div>
-
-            <!-- Пагинация -->
-            {% if products.paginator.num_pages > 1 %}
-            <nav class="mt-8 flex justify-center" aria-label="Навигация по страницам">
-                <div class="flex items-center space-x-2">
-                    {% if products.has_previous %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1" class="px-3 py-1 border rounded hover:bg-gray-100"
-                       aria-label="Первая страница">&laquo;</a>
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100"
-                       aria-label="Предыдущая страница">&lsaquo;</a>
-                    {% endif %}
-
-                    {% for num in products.paginator.page_range %}
-                    {% if products.number == num %}
-                    <span class="px-3 py-1 border rounded bg-blue-600 text-white" aria-current="page" aria-label="Страница {{ num }}">{{ num }}</span>
-                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}" class="px-3 py-1 border rounded hover:bg-gray-100"
-                       aria-label="Страница {{ num }}">{{ num }}</a>
-                    {% endif %}
-                    {% endfor %}
-
-                    {% if products.has_next %}
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100"
-                       aria-label="Следующая страница">&rsaquo;</a>
-                    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ products.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100"
-                       aria-label="Последняя страница">&raquo;</a>
-                    {% endif %}
+        </a>
+        <div class="px-4 pb-4 mt-auto">
+            <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                    data-product-id="{{ product.product_id }}"
+                    aria-label="Добавить {{ product.name }} в корзину">
+                {% trans "В корзину" %}
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12">
+        <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
+        {% if request.GET %}
+        <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}{% endif %}" class="text-blue-600 hover:underline mt-2 inline-block"
+           aria-label="Сбросить фильтры">
+            {% trans "Сбросить фильтры" %}
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+            <!-- Кнопка загрузки дополнительных товаров -->
+            {% if products.has_next %}
+            <div id="load-more-container" class="mt-8 text-center">
+                <button id="load-more" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                    {% trans "Загрузить еще" %}
+                </button>
+                <div id="loading-indicator" class="hidden py-4">
+                    <div class="inline-block spinner"></div>
+                    <span class="ml-2">{% trans "Загрузка..." %}</span>
                 </div>
-            </nav>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -320,212 +526,292 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Функция для обновления URL с параметрами
+    // Кэш для изображений
+    const imageCache = {};
+    let activeRequests = 0;
+    const MAX_PARALLEL_REQUESTS = 5;
+    const REQUEST_DELAY = 200;
+
+    // 1. Функции для работы с фильтрами
     function updateUrlParams(params) {
-        // Всегда сбрасываем на первую страницу при изменении фильтров
         params.set('page', '1');
         window.location.search = params.toString();
     }
 
-    // Применение всех фильтров
     function applyFilters() {
         const params = new URLSearchParams(window.location.search);
 
         // Фильтр по цене
-        const minPrice = document.getElementById('min_price').value;
-        const maxPrice = document.getElementById('max_price').value;
-        if (minPrice) params.set('min_price', minPrice);
-        else params.delete('min_price');
-        if (maxPrice) params.set('max_price', maxPrice);
-        else params.delete('max_price');
+        const minPrice = document.getElementById('min_price')?.value;
+        const maxPrice = document.getElementById('max_price')?.value;
+        if (minPrice) params.set('min_price', minPrice); else params.delete('min_price');
+        if (maxPrice) params.set('max_price', maxPrice); else params.delete('max_price');
 
-        // Фильтр по наличию
-        const inStock = document.getElementById('in_stock').checked;
-        const onOrder = document.getElementById('on_order').checked;
-        if (inStock) params.set('in_stock', 'true');
-        else params.delete('in_stock');
-        if (onOrder) params.set('on_order', 'true');
-        else params.delete('on_order');
+        // Собираем все фильтры
+        const filters = {
+            // Наличие
+            'in_stock': document.getElementById('in_stock')?.checked,
+            'on_order': document.getElementById('on_order')?.checked,
 
-        // Фильтр по статусу
-        const statusFilter = document.querySelector('input[name="status"]:checked');
-        if (statusFilter && statusFilter.value) params.set('status', statusFilter.value);
-        else params.delete('status');
+            // Статус
+            'status': document.querySelector('input[name="status"]:checked')?.value,
 
-        // Фильтр по брендам
-        const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked'))
-            .map(el => el.value)
-            .join(',');
-        if (selectedBrands) params.set('brands', selectedBrands);
-        else params.delete('brands');
+            // Бренды, материалы, размеры
+            'brands': getCheckedValues('.brand-filter'),
+            'materials': getCheckedValues('.material-filter'),
+            'sizes': getCheckedValues('.size-filter'),
 
-        // Фильтр по материалам
-        const selectedMaterials = Array.from(document.querySelectorAll('.material-filter:checked'))
-            .map(el => el.value)
-            .join(',');
-        if (selectedMaterials) params.set('materials', selectedMaterials);
-        else params.delete('materials');
+            // Остальные фильтры
+            'made_in_russia': document.getElementById('made_in_russia')?.checked,
+            'is_eco': document.getElementById('is_eco')?.checked,
+            'genders': getCheckedValues('.gender-filter'),
+            'for_kids': document.getElementById('for_kids')?.checked,
+            'application_types': getCheckedValues('.app-type-filter'),
+            'mechanism_types': getCheckedValues('.mech-type-filter'),
+            'cover_types': getCheckedValues('.cover-type-filter'),
+            'packaging_types': getCheckedValues('.pack-type-filter'),
+            'marking_types': getCheckedValues('.marking-type-filter'),
+            'requires_marking': document.getElementById('requires_marking')?.checked,
+            'individual_packaging': document.getElementById('individual_packaging')?.checked,
+            'umbrella_types': getCheckedValues('.umbrella-type-filter'),
+            'is_featured': document.getElementById('is_featured')?.checked,
+            'is_bestseller': document.getElementById('is_bestseller')?.checked,
+            'has_discount': document.getElementById('has_discount')?.checked
+        };
 
-        // Фильтр по размерам
-        const selectedSizes = Array.from(document.querySelectorAll('.size-filter:checked'))
-            .map(el => el.value)
-            .join(',');
-        if (selectedSizes) params.set('sizes', selectedSizes);
-        else params.delete('sizes');
+        // Добавляем фильтры в URL
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) {
+                if (Array.isArray(value) && value.length > 0) {
+                    params.set(key, value.join(','));
+                } else if (typeof value === 'string' || typeof value === 'boolean') {
+                    params.set(key, value);
+                }
+            } else {
+                params.delete(key);
+            }
+        });
 
-        // Фильтр по типу товара
-        if (document.getElementById('is_featured').checked) params.set('is_featured', 'true');
-        else params.delete('is_featured');
-        if (document.getElementById('is_bestseller').checked) params.set('is_bestseller', 'true');
-        else params.delete('is_bestseller');
-        if (document.getElementById('has_discount').checked) params.set('has_discount', 'true');
-        else params.delete('has_discount');
+        // Сортировка и количество на странице
+        const sortBy = document.getElementById('sort_by')?.value;
+        const perPage = document.getElementById('per_page')?.value;
 
-        // Сортировка
-        const sortBy = document.getElementById('sort_by').value;
-        if (sortBy !== 'default') params.set('sort', sortBy);
-        else params.delete('sort');
-
-        // Количество товаров на странице
-        const perPage = document.getElementById('per_page').value;
-        if (perPage !== '12') params.set('per_page', perPage);
-        else params.delete('per_page');
+        if (sortBy && sortBy !== 'default') params.set('sort', sortBy); else params.delete('sort');
+        if (perPage && perPage !== '12') params.set('per_page', perPage); else params.delete('per_page');
 
         updateUrlParams(params);
     }
 
-    // Установка текущих значений фильтров из URL
+    function getCheckedValues(selector) {
+        return Array.from(document.querySelectorAll(`${selector}:checked`)).map(el => el.value);
+    }
+
     function setCurrentFilters() {
         const params = new URLSearchParams(window.location.search);
 
-        // Цена
-        if (params.has('min_price')) {
-            document.getElementById('min_price').value = params.get('min_price');
-        }
-        if (params.has('max_price')) {
-            document.getElementById('max_price').value = params.get('max_price');
-        }
+        // Устанавливаем значения фильтров из URL
+        params.forEach((value, key) => {
+            if (key === 'brands' || key === 'materials' || key === 'sizes' ||
+                key === 'genders' || key === 'application_types' ||
+                key === 'mechanism_types' || key === 'cover_types' ||
+                key === 'packaging_types' || key === 'marking_types' ||
+                key === 'umbrella_types') {
+                const values = value.split(',');
+                document.querySelectorAll(`.${key.replace('_', '-')}-filter`).forEach(el => {
+                    el.checked = values.includes(el.value);
+                });
+            } else {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = value === 'true';
+                    } else if (element.type === 'radio') {
+                        if (element.value === value) {
+                            element.checked = true;
+                        }
+                    } else {
+                        element.value = value;
+                    }
+                }
+            }
+        });
 
-        // Наличие
-        document.getElementById('in_stock').checked = params.get('in_stock') === 'true';
-        document.getElementById('on_order').checked = params.get('on_order') === 'true';
-
-        // Статус
-        if (params.has('status')) {
-            const status = params.get('status');
-            document.querySelector(`input[name="status"][value="${status}"]`).checked = true;
-        }
-
-        // Бренды
-        if (params.has('brands')) {
-            const selectedBrands = params.get('brands').split(',');
-            document.querySelectorAll('.brand-filter').forEach(el => {
-                el.checked = selectedBrands.includes(el.value);
-            });
-        }
-
-        // Материалы
-        if (params.has('materials')) {
-            const selectedMaterials = params.get('materials').split(',');
-            document.querySelectorAll('.material-filter').forEach(el => {
-                el.checked = selectedMaterials.includes(el.value);
-            });
-        }
-
-        // Размеры
-        if (params.has('sizes')) {
-            const selectedSizes = params.get('sizes').split(',');
-            document.querySelectorAll('.size-filter').forEach(el => {
-                el.checked = selectedSizes.includes(el.value);
-            });
-        }
-
-        // Тип товара
-        document.getElementById('is_featured').checked = params.get('is_featured') === 'true';
-        document.getElementById('is_bestseller').checked = params.get('is_bestseller') === 'true';
-        document.getElementById('has_discount').checked = params.get('has_discount') === 'true';
-
-        // Сортировка
+        // Устанавливаем сортировку и количество на странице
         document.getElementById('sort_by').value = params.get('sort') || 'default';
-
-        // Количество товаров на странице
         document.getElementById('per_page').value = params.get('per_page') || '12';
     }
 
-    // Сброс всех фильтров
-    document.getElementById('reset_filters').addEventListener('click', function() {
-        window.location.search = '';
-    });
+    // 2. Функции для работы с изображениями
+    function loadImage(img) {
+        try {
+            if (!img.dataset.src) {
+                img.src = '{% static 'images/no-image.jpg' %}';
+                return;
+            }
 
-    // Обработчики событий
-    document.getElementById('apply_price_filter').addEventListener('click', applyFilters);
-    document.getElementById('sort_by').addEventListener('change', applyFilters);
-    document.getElementById('per_page').addEventListener('change', applyFilters);
+            if (imageCache[img.dataset.src]) {
+                img.src = imageCache[img.dataset.src];
+                img.classList.add('loaded');
+                return;
+            }
 
-    // Делегирование событий для чекбоксов и радио-кнопок
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('brand-filter') ||
-            e.target.classList.contains('material-filter') ||
-            e.target.classList.contains('size-filter') ||
-            e.target.classList.contains('type-filter') ||
-            e.target.classList.contains('availability-filter') ||
-            e.target.name === 'status') {
-            applyFilters();
+            if (activeRequests >= MAX_PARALLEL_REQUESTS) {
+                setTimeout(() => loadImage(img), REQUEST_DELAY);
+                return;
+            }
+
+            activeRequests++;
+
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                imageCache[img.dataset.src] = img.dataset.src;
+                img.src = this.src;
+                img.classList.add('loaded');
+                activeRequests--;
+            };
+            tempImg.onerror = function() {
+                img.src = '{% static 'images/no-image.jpg' %}';
+                activeRequests--;
+            };
+            tempImg.src = img.dataset.src;
+        } catch (e) {
+            console.error('Error loading image:', e);
+            img.src = '{% static 'images/no-image.jpg' %}';
         }
-    });
+    }
 
-    // Улучшенное добавление в корзину
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
-            e.preventDefault();
-            const button = e.target.classList.contains('add-to-cart')
-                ? e.target
-                : e.target.closest('.add-to-cart');
-            const productId = button.getAttribute('data-product-id');
+    function initLazyLoading() {
+        const lazyImages = document.querySelectorAll('.lazy-load:not(.loaded)');
 
-            // Показываем лоадер
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner"></span>';
-
-            fetch(`/ru/add-to-cart/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `quantity=1`
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Ошибка сети');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-
-                    // Обновляем счетчик корзины
-                    const cartCount = document.getElementById('cart-count');
-                    if (cartCount) {
-                        cartCount.textContent = data.cart_total;
-                        animateCartCounter(cartCount);
+        const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    // Загружаем первые 4 изображения сразу, остальные с задержкой
+                    if (index < 4) {
+                        loadImage(img);
+                    } else {
+                        setTimeout(() => loadImage(img), (index - 3) * REQUEST_DELAY);
                     }
-                } else {
-                    showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
+                    observer.unobserve(img);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Произошла ошибка', 'error');
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.textContent = '{% trans "В корзину" %}';
             });
-        }
-    });
+        }, {
+            rootMargin: '300px',
+            threshold: 0.01
+        });
 
-    // Функция для показа уведомлений
+        lazyImages.forEach(img => lazyLoadObserver.observe(img));
+    }
+
+    // 3. Функции для работы с корзиной
+    function initCartHandlers() {
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.getAttribute('data-product-id');
+
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner"></span>';
+
+                fetch(`/ru/add-to-cart/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `quantity=1`
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Ошибка сети');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        updateCartCounter(data.cart_total);
+                    } else {
+                        showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Произошла ошибка', 'error');
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.textContent = '{% trans "В корзину" %}';
+                });
+            });
+        });
+    }
+
+    function updateCartCounter(count) {
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            cartCount.textContent = count;
+            cartCount.classList.add('animate-bounce', 'scale-110');
+            setTimeout(() => {
+                cartCount.classList.remove('animate-bounce', 'scale-110');
+            }, 1000);
+        }
+    }
+
+    // 4. Функция для подгрузки товаров
+    function loadMoreProducts() {
+        const params = new URLSearchParams(window.location.search);
+        const nextPage = parseInt(params.get('page') || '1') + 1;
+        params.set('page', nextPage.toString());
+
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const loadMoreButton = document.getElementById('load-more');
+        const productsContainer = document.getElementById('products-container');
+
+        if (loadMoreButton) loadMoreButton.classList.add('hidden');
+        if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+
+        fetch(`?${params.toString()}&partial=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Ошибка сети');
+            return response.text();
+        })
+        .then(html => {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            const newProducts = temp.querySelector('#products-container');
+            if (newProducts) {
+                productsContainer.innerHTML += newProducts.innerHTML;
+                initLazyLoading();
+                initCartHandlers();
+            }
+
+            const hasMore = temp.querySelector('#load-more-container') !== null;
+            if (hasMore) {
+                if (loadMoreButton) {
+                    loadMoreButton.classList.remove('hidden');
+                    loadMoreButton.addEventListener('click', loadMoreProducts);
+                }
+            } else {
+                if (loadMoreButton) loadMoreButton.remove();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка при загрузке товаров', 'error');
+            if (loadMoreButton) loadMoreButton.classList.remove('hidden');
+        })
+        .finally(() => {
+            if (loadingIndicator) loadingIndicator.classList.add('hidden');
+        });
+    }
+
+    // 5. Вспомогательные функции
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
@@ -541,49 +827,106 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Анимация счетчика корзины
-    function animateCartCounter(element) {
-        element.classList.add('animate-bounce', 'scale-110');
-        setTimeout(() => {
-            element.classList.remove('animate-bounce', 'scale-110');
-        }, 1000);
-    }
+    // 6. Инициализация обработчиков событий
+    function initEventHandlers() {
+        // Фильтры
+        document.getElementById('reset_filters')?.addEventListener('click', () => {
+            window.location.search = '';
+        });
+        document.getElementById('apply_price_filter')?.addEventListener('click', applyFilters);
+        document.getElementById('sort_by')?.addEventListener('change', applyFilters);
+        document.getElementById('per_page')?.addEventListener('change', applyFilters);
 
-    // Инициализация фильтров
-    setCurrentFilters();
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    const categoryHeader = document.getElementById('category-header');
-
-    if (categoryHeader) {
-        function handleScroll() {
-            if (window.pageYOffset > 10) {
-                categoryHeader.classList.add('scrolled');
-            } else {
-                categoryHeader.classList.remove('scrolled');
+        // Делегирование событий для фильтров
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('.brand-filter, .material-filter, .size-filter, .type-filter, .availability-filter, .app-type-filter, .mech-type-filter, .cover-type-filter, .pack-type-filter, .umbrella-type-filter, .country-filter, .marking-filter, .gender-filter, .age-filter, .marking-type-filter, input[name="status"]')) {
+                applyFilters();
             }
-        }
+        });
 
-        window.addEventListener('scroll', handleScroll);
-        handleScroll(); // Инициализация при загрузке
+        // Кнопка "Загрузить еще"
+        document.getElementById('load-more')?.addEventListener('click', loadMoreProducts);
+
+        // Бесконечный скролл
+        let isLoading = false;
+        window.addEventListener('scroll', () => {
+            if (isLoading || !document.getElementById('load-more')) return;
+
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const threshold = 100;
+
+            if (scrollTop + clientHeight >= scrollHeight - threshold) {
+                isLoading = true;
+                loadMoreProducts().finally(() => {
+                    isLoading = false;
+                });
+            }
+        });
     }
+
+    // Инициализация при загрузке страницы
+    setCurrentFilters();
+    initLazyLoading();
+    initCartHandlers();
+    initEventHandlers();
 });
 </script>
 
 <style>
+.image-container {
+    min-height: 250px;
+    position: relative;
+    background-color: #f5f5f5;
+}
+
+.lazy-load {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+}
+
+/* Анимация placeholder */
+@keyframes placeholderShimmer {
+    0% { background-position: -468px 0 }
+    100% { background-position: 468px 0 }
+}
+
+.image-placeholder {
+    animation: placeholderShimmer 1.5s linear infinite;
+    background: linear-gradient(to right, #f5f5f5 8%, #e0e0e0 18%, #f5f5f5 33%);
+    background-size: 800px 104px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
 .spinner {
     display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid rgba(255,255,255,.3);
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid rgba(0, 0, 0, 0.1);
     border-radius: 50%;
-    border-top-color: #fff;
+    border-top-color: #3b82f6;
     animation: spin 1s ease-in-out infinite;
 }
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+#load-more {
+    transition: all 0.3s ease;
+}
+
+#load-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .sticky-header {
@@ -596,10 +939,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .sticky-header.scrolled {
-    /* Дополнительные стили при скролле, если нужно */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 
 .sr-only {
     position: absolute;

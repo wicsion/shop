@@ -19,6 +19,7 @@ from django.conf import settings
 from io import BytesIO
 from PIL import Image
 from django.views import View
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,14 @@ class ResizeImageView(View):
         image_url = unquote(request.GET.get('url', ''))
         width = int(request.GET.get('width', 200))
         height = int(request.GET.get('height', 200))
+
+        # Генерируем ключ для кэша
+        cache_key = f"resized_image_{image_url}_{width}_{height}"
+
+        # Проверяем кэш
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            return cached_response
 
         if not image_url:
             return self._serve_placeholder()
@@ -46,19 +55,22 @@ class ResizeImageView(View):
             )
             response.raise_for_status()
 
-            # Определяем Content-Type
-            content_type = response.headers['Content-Type']
-
             # Обрабатываем изображение
             img = Image.open(BytesIO(response.content))
             img.thumbnail((width, height))
 
-            # Конвертируем в JPEG (универсальный формат)
+            # Конвертируем в JPEG
             output = BytesIO()
             img.save(output, format='JPEG', quality=90)
             output.seek(0)
 
-            return HttpResponse(output.getvalue(), content_type='image/jpeg')
+            # Создаем HTTP ответ
+            http_response = HttpResponse(output.getvalue(), content_type='image/jpeg')
+
+            # Кэшируем результат на 24 часа
+            cache.set(cache_key, http_response, 60 * 60 * 24)
+
+            return http_response
 
         except Exception as e:
             print(f"Image processing error: {str(e)}")
@@ -627,22 +639,69 @@ class XMLProductDetailView(DetailView):
     slug_url_kwarg = 'product_id'
     slug_field = 'product_id'
 
+    def get_filter_type_name(self, filter_type):
+        type_names = {
+            '1': 'Тип товара',
+            '5': 'Тип крепления',
+            '8': 'Метод нанесения',
+            '13': 'Особенность',
+            '21': 'Цвет',
+            '23': 'Размер',
+            '73': 'Материал',
+            '93': 'Коллекция'
+        }
+        return type_names.get(filter_type, f"Фильтр {filter_type}")
+
+    def get_filter_value_name(self, filter_type, filter_id):
+        filter_mapping = {
+            '5': {'22': 'Кнопка', '51': 'Молния'},
+            '8': {'229': 'Шелкография', '232': 'Термопечать'},
+            '21': {'14': 'Чёрный'},
+            '30': {'48331': 'Лето 2023'}
+        }
+        return filter_mapping.get(filter_type, {}).get(filter_id, filter_id)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # Основное изображение
-        # Обработка изображений
-        images = []
-        if product.xml_data and 'attributes' in product.xml_data:
-            for attachment in product.xml_data['attributes'].get('attachments', []):
-                if attachment.get('image'):
-                    images.append({
-                        'url': self.clean_image_url(attachment['image']),
-                        'name': attachment.get('name', '')
-                    })
+        # Обработка фильтров
+        readable_filters = []
+        if product.xml_data and 'filters' in product.xml_data:
+            for f in product.xml_data['filters']:
+                try:
+                    filter_type = f.get('type_id', '') or f.get('type', '')
+                    filter_id = f.get('filter_id', '') or f.get('id', '')
+                    type_name = f.get('type_name', self.get_filter_type_name(filter_type))
+                    value_name = f.get('filter_name', self.get_filter_value_name(filter_type, filter_id))
 
-        context['images'] = images
+                    if filter_type and filter_id:
+                        readable_filters.append({
+                            'type': type_name,
+                            'value': value_name
+                        })
+                except (KeyError, AttributeError) as e:
+                    print(f"Error processing filter: {e}")
+                    continue
+
+        context['readable_filters'] = readable_filters
+
+        # Обработка принтов
+        readable_prints = []
+        if product.xml_data and 'prints' in product.xml_data:
+            for p in product.xml_data['prints']:
+                try:
+                    if p.get('code') and p.get('description'):
+                        readable_prints.append({
+                            'code': p['code'],
+                            'description': p['description']
+                        })
+                except (KeyError, AttributeError):
+                    continue
+
+        context['readable_prints'] = readable_prints
+        context['excluded_attributes'] = "attachments,images,filters,prints"
+
         return context
 
     def clean_image_url(self, url):

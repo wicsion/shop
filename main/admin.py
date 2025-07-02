@@ -100,37 +100,48 @@ class CategoryFilter(admin.SimpleListFilter):
 class XMLProductAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'brand', 'price', 'old_price', 'display_categories',
-        'in_stock', 'status', 'is_featured', 'is_bestseller'
+        'in_stock', 'status', 'is_featured', 'is_bestseller', 'display_discount'
     ]
     list_filter = [
         CategoryFilter,
         'status', 'is_featured', 'is_bestseller', 'in_stock',
-        'categories', 'brand',
+        'categories', 'brand_link',
         'made_in_russia', 'is_eco', 'for_kids', 'is_profitable',
         'gender', 'requires_marking', 'individual_packaging',
         'replaceable_refill', 'application_type', 'mechanism_type',
-        'cover_type', 'format_size', 'page_count'
+        'cover_type', 'format_size', 'page_count', 'marking_type',
+        'packaging_type', 'umbrella_type', 'has_lining'
     ]
-    search_fields = ['name', 'product_id', 'code', 'barcode', 'material']
+    search_fields = [
+        'name', 'product_id', 'code', 'barcode', 'material',
+        'collection', 'stock_marking', 'xml_id'
+    ]
     filter_horizontal = ['categories']
-    readonly_fields = ['created_at', 'updated_at', 'main_image_preview', 'attachments_preview']
+    readonly_fields = [
+        'created_at', 'updated_at', 'main_image_preview',
+        'attachments_preview', 'discount_percent_display'
+    ]
     fieldsets = (
         (None, {
-            'fields': ('product_id', 'code', 'name', 'categories')
+            'fields': ('product_id', 'code', 'name', 'categories', 'brand_link')
         }),
         (_('Описание'), {
-            'fields': ('description', 'material')
+            'fields': ('description', 'material', 'collection')
         }),
         (_('Цены и наличие'), {
-            'fields': ('price', 'old_price', 'in_stock', 'quantity', 'sizes_available')
+            'fields': (
+                'price', 'old_price', 'discount_percent_display',
+                'in_stock', 'quantity', 'sizes_available'
+            )
         }),
         (_('Изображения'), {
             'fields': ('main_image_preview', 'attachments_preview')
         }),
-        (_('Характеристики'), {
+        (_('Основные характеристики'), {
             'fields': (
-                'brand', 'status', 'weight', 'volume', 'barcode',
-                'gender', 'made_in_russia', 'is_eco', 'for_kids', 'is_profitable'
+                'status', 'weight', 'volume', 'barcode', 'dimensions',
+                'gender', 'made_in_russia', 'is_eco', 'for_kids', 'is_profitable',
+                'video_link', 'stock_marking'
             )
         }),
         (_('Технические параметры'), {
@@ -139,19 +150,17 @@ class XMLProductAdmin(admin.ModelAdmin):
                 'refill_type', 'replaceable_refill', 'format_size',
                 'cover_type', 'block_color', 'edge_type', 'page_count',
                 'calendar_grid', 'ribbon_color', 'box_size', 'density',
-                'expiration_date', 'pantone_color', 'requires_marking',
-                'individual_packaging', 'cover_material', 'block_number',
-                'collection', 'dating', 'dimensions', 'fit', 'cut',
-                'lining', 'has_lining', 'video_link', 'stock_marking',
-                'umbrella_type', 'marking_type', 'packaging_type'
+                'expiration_date', 'pantone_color', 'cover_material', 'block_number',
+                'dating', 'fit', 'cut', 'lining', 'has_lining', 'umbrella_type',
+                'marking_type', 'packaging_type', 'requires_marking', 'individual_packaging'
             ),
             'classes': ('collapse',)
         }),
         (_('Флаги'), {
-            'fields': ('is_featured', 'is_bestseller')
+            'fields': ('is_featured', 'is_bestseller', 'was_imported')
         }),
         (_('Дополнительно'), {
-            'fields': ('xml_data', 'alt_ids'),
+            'fields': ('xml_data', 'alt_ids', 'special_filters'),
             'classes': ('collapse',)
         }),
         (_('Даты'), {
@@ -159,17 +168,27 @@ class XMLProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    actions = ['assign_to_category']
+    actions = ['assign_to_category', 'mark_as_featured', 'mark_as_bestseller']
+
+    def display_discount(self, obj):
+        if obj.has_discount:
+            return f"{obj.discount_percent}%"
+        return "-"
+    display_discount.short_description = _('Скидка')
+
+    def discount_percent_display(self, obj):
+        return self.display_discount(obj)
+    discount_percent_display.short_description = _('Скидка')
 
     def main_image_preview(self, obj):
         if obj.main_image:
             return format_html('<img src="{}" width="200" />', obj.main_image)
         return '-'
-
     main_image_preview.short_description = _('Основное изображение')
 
     def attachments_preview(self, obj):
         images_html = []
+        additional_images = []
 
         # Основное изображение
         if obj.main_image:
@@ -183,8 +202,9 @@ class XMLProductAdmin(admin.ModelAdmin):
                 )
             )
 
-        # Дополнительные изображения
+        # Дополнительные изображения из свойства additional_images
         for i, url in enumerate(obj.additional_images, 1):
+            additional_images.append(url)
             images_html.append(
                 format_html(
                     '<div style="float: left; margin-right: 10px; margin-bottom: 10px;">'
@@ -226,7 +246,6 @@ class XMLProductAdmin(admin.ModelAdmin):
         if images_html:
             return format_html(''.join(images_html))
         return '-'
-
     attachments_preview.short_description = _('Все изображения и файлы')
 
     def get_urls(self):
@@ -262,17 +281,27 @@ class XMLProductAdmin(admin.ModelAdmin):
         except Exception as e:
             logger.error(f"Search error: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
-
     def display_categories(self, obj):
         return ", ".join([cat.name for cat in obj.categories.all()])
     display_categories.short_description = 'Категории'
 
-    def main_image_preview(self, obj):
-        if obj.main_image:  # Используем свойство, а не поле
-            return format_html('<img src="{}" width="200" />', obj.main_image)
-        return '-'
+    def mark_as_featured(self, request, queryset):
+        updated = queryset.update(is_featured=True)
+        self.message_user(
+            request,
+            f"Помечено как рекомендуемые: {updated} товаров",
+            messages.SUCCESS
+        )
+    mark_as_featured.short_description = _('Пометить как рекомендуемые')
 
-
+    def mark_as_bestseller(self, request, queryset):
+        updated = queryset.update(is_bestseller=True)
+        self.message_user(
+            request,
+            f"Помечено как хиты продаж: {updated} товаров",
+            messages.SUCCESS
+        )
+    mark_as_bestseller.short_description = _('Пометить как хиты продаж')
 
     def attachments_preview(self, obj):
         if obj.xml_data and 'attributes' in obj.xml_data and 'attachments' in obj.xml_data['attributes']:
@@ -311,6 +340,7 @@ class XMLProductAdmin(admin.ModelAdmin):
                 return format_html(''.join(images_html))
 
         return '-'
+
     attachments_preview.short_description = _('Дополнительные изображения и файлы')
 
     def assign_to_category(self, request, queryset):

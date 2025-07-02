@@ -5,6 +5,10 @@ import requests
 from urllib.parse import urljoin
 import logging
 from collections import defaultdict
+from colorama import init, Fore, Back, Style
+
+# Инициализация colorama для цветного вывода
+init(autoreset=True)
 
 logger = logging.getLogger(__name__)
 
@@ -14,19 +18,47 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
+            self.stdout.write(Fore.YELLOW + "=== НАЧАЛО ИМПОРТА ФИЛЬТРОВ ===" + Style.RESET_ALL)
+
             # 1. Загрузка данных о фильтрах
+            self.stdout.write(Fore.CYAN + "\n[1/3] Загрузка данных о фильтрах из filters.xml..." + Style.RESET_ALL)
             filters_data = self.load_filters_data()
+            self.log_filters_data(filters_data)
 
             # 2. Загрузка данных о товарах и их фильтрах
+            self.stdout.write(
+                Fore.CYAN + "\n[2/3] Загрузка данных о фильтрах товаров из product.xml..." + Style.RESET_ALL)
             products_filters = self.load_products_filters()
+            self.log_products_filters(products_filters)
 
             # 3. Применение фильтров к товарам
+            self.stdout.write(Fore.CYAN + "\n[3/3] Применение фильтров к товарам..." + Style.RESET_ALL)
             self.apply_filters_to_products(filters_data, products_filters)
 
+            self.stdout.write(Fore.GREEN + "\n=== ИМПОРТ ФИЛЬТРОВ УСПЕШНО ЗАВЕРШЕН ===" + Style.RESET_ALL)
             self.stdout.write(self.style.SUCCESS('Successfully imported and applied filters'))
         except Exception as e:
+            self.stdout.write(Fore.RED + f"\nОШИБКА: {str(e)}" + Style.RESET_ALL)
             logger.error(f"Error importing filters: {str(e)}", exc_info=True)
-            self.stdout.write(self.style.ERROR(f'Error importing filters: {str(e)}'))
+
+    def log_filters_data(self, filters_data):
+        """Выводит данные о фильтрах в терминал"""
+        self.stdout.write(Fore.MAGENTA + f"\nЗагружено типов фильтров: {len(filters_data)}" + Style.RESET_ALL)
+        for type_id, type_data in filters_data.items():
+            self.stdout.write(Fore.BLUE + f"\nТип фильтра [ID: {type_id}]: " +
+                              Fore.YELLOW + f"{type_data['name']}" + Style.RESET_ALL)
+            self.stdout.write(f"Содержит значений: {len(type_data['filters'])}")
+            for filter_id, filter_name in type_data['filters'].items():
+                self.stdout.write(f"  - [ID: {filter_id}]: {filter_name}")
+
+    def log_products_filters(self, products_filters):
+        """Выводит фильтры товаров перед применением"""
+        self.stdout.write(Fore.MAGENTA + f"\nНайдено товаров с фильтрами: {len(products_filters)}" + Style.RESET_ALL)
+        for product_id, filters in products_filters.items():
+            self.stdout.write(Fore.GREEN + f"\nТовар [ID: {product_id}]" + Style.RESET_ALL +
+                              f" имеет фильтров: {len(filters)}")
+            for i, f in enumerate(filters, 1):
+                self.stdout.write(f"  {i}. Тип: {f.get('type_id')}, Фильтр: {f.get('filter_id')}")
 
     def load_filters_data(self):
         """Загружает данные о фильтрах из filters.xml"""
@@ -37,7 +69,6 @@ class Command(BaseCommand):
         root = ET.fromstring(response.content)
         filters_data = defaultdict(dict)
 
-        # Парсим типы фильтров
         for filter_type in root.findall('.//filtertype'):
             type_id = filter_type.find('filtertypeid')
             type_name = filter_type.find('filtertypename')
@@ -48,7 +79,6 @@ class Command(BaseCommand):
                 filters_data[type_id]['name'] = type_name
                 filters_data[type_id]['filters'] = {}
 
-                # Парсим значения фильтров для каждого типа
                 for filter_item in filter_type.findall('.//filter'):
                     filter_id = filter_item.find('filterid')
                     filter_name = filter_item.find('filtername')
@@ -80,7 +110,6 @@ class Command(BaseCommand):
 
             filters = []
 
-            # Получаем фильтры товара
             for filter_element in product.findall('.//filters/filter'):
                 filter_type = filter_element.find('filtertypeid')
                 filter_id = filter_element.find('filterid')
@@ -104,22 +133,23 @@ class Command(BaseCommand):
             try:
                 product = XMLProduct.objects.get(product_id=product_id)
                 filter_info = []
+                applied_filters = []
 
-                # Формируем информацию о фильтрах
                 for f in filters:
                     type_id = f.get('type_id')
                     filter_id = f.get('filter_id')
 
                     if type_id and filter_id and type_id in filters_data and filter_id in filters_data[type_id][
                         'filters']:
+                        filter_name = filters_data[type_id]['filters'][filter_id]
                         filter_info.append({
                             'type_id': type_id,
                             'type_name': filters_data[type_id]['name'],
                             'filter_id': filter_id,
-                            'filter_name': filters_data[type_id]['filters'][filter_id]
+                            'filter_name': filter_name
                         })
+                        applied_filters.append(f"{filters_data[type_id]['name']}: {filter_name}")
 
-                # Обновляем данные товара
                 if filter_info:
                     if not product.xml_data:
                         product.xml_data = {}
@@ -127,9 +157,16 @@ class Command(BaseCommand):
                     product.xml_data['filters'] = filter_info
                     product.save()
 
-                    self.stdout.write(f"Applied filters to product {product_id}")
+                    # Вывод информации о привязке
+                    self.stdout.write(Fore.GREEN + f"\nТовар [ID: {product_id}]" +
+                                      Fore.YELLOW + f" {product.name}" + Style.RESET_ALL)
+                    self.stdout.write("Присвоены фильтры:")
+                    for i, f in enumerate(applied_filters, 1):
+                        self.stdout.write(f"  {i}. {f}")
+                    self.stdout.write(Fore.CYAN + f"Всего применено: {len(applied_filters)}" + Style.RESET_ALL)
 
             except XMLProduct.DoesNotExist:
-                self.stdout.write(self.style.WARNING(f"Product {product_id} not found in database"))
+                self.stdout.write(Fore.RED + f"\n[WARNING] Товар не найден: ID {product_id}" + Style.RESET_ALL)
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Error processing product {product_id}: {str(e)}"))
+                self.stdout.write(
+                    Fore.RED + f"\n[ERROR] Ошибка обработки товара {product_id}: {str(e)}" + Style.RESET_ALL)
