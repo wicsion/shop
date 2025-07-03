@@ -721,6 +721,7 @@ class XMLProductDetailView(DetailView):
         context['available_sizes'] = product.available_sizes
         context['readable_prints'] = readable_prints
         context['excluded_attributes'] = "attachments,images,filters,prints"
+        context['sizes_with_quantities'] = product.get_sizes_with_quantities()
 
         return context
 

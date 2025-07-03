@@ -581,63 +581,62 @@
         <i class="fas fa-list me-2"></i>{% trans "Каталог" %}
     </button>
     <div class="dropdown-menu mega-dropdown-menu p-4" aria-labelledby="catalogButton">
-        <div class="container-fluid px-0">
-            <div class="row gx-5">
-                <!-- Основные категории -->
-                <div class="col-lg-4">
-                    <div class="mb-4">
-                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
-                        <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odezhda' %}">Одежда</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sumki-portfeli-ryukzaki' %}">Сумки, портфели, рюкзаки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sport-otdyh-turizm' %}">Спорт, отдых, туризм</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ezhednevniki' %}">Ежедневники</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='zonty' %}">Зонты</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='biznes-i-ofis' %}">Бизнес и офис</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='breloki' %}">Брелоки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='syedobnye-podarki' %}">Съедобные подарки</a>
-                        </div>
-                    </div>
+      <div class="container-fluid px-0">
+    <div class="row gx-5">
+        <!-- Основные категории -->
+        <div class="col-lg-4">
+            <div class="mb-4">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Основные категории</h6>
+                <div class="d-flex flex-column">
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda' %}">Корпоративная одежда с логотипом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sumki' %}">Сумки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ruchki' %}">Ручки с логотипом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='otdyh' %}">Отдых</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='ejednevniki' %}">Ежедневники и блокноты</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='zonty' %}">Зонты с логотипом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='korporativnye-podarki' %}">Корпоративные подарки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='brelki-s-logotipom' %}">Брелки с логотипом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sjedobnye-podarki' %}">Съедобные корпоративные подарки с логотипом</a>
                 </div>
+            </div>
+        </div>
 
-                <!-- Дополнительные категории -->
-                <div class="col-lg-4">
-                    <div class="mb-4">
-                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
-                        <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='chasy-i-pogodnye-stantsii' %}">Часы и погодные станции</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='dom-i-byt' %}">Дом и быт</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='kuhnya-i-bar' %}">Кухня и бар</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='gadzhety' %}">Гаджеты</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='lichnye-veshchi-i-aksessuary' %}">Личные вещи и аксессуары</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='sad-i-instrumenty' %}">Сад и инструменты</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='antistressy' %}">Антистрессы</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='podarochnaya-upakovka' %}">Подарочная упаковка</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='poligrafiya' %}">Полиграфия</a>
-                        </div>
-                    </div>
+        <!-- Дополнительные категории -->
+        <div class="col-lg-4">
+            <div class="mb-4">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Другие категории</h6>
+                <div class="d-flex flex-column">
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='chasy' %}">Часы и метеостанции</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='dom' %}">Дом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='posuda' %}">Посуда</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='elektronika' %}">Электроника и гаджеты</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='personalnye-koshelki' %}">Кошельки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='dom-instrumenty' %}">Инструменты</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='promo-antistressy' %}">Антистрессы</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='upakovka' %}">Упаковка</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='kancelyarskie-prinadlejnosti' %}">Канцелярские принадлежности</a>
                 </div>
+            </div>
+        </div>
 
-                <!-- Подкатегории одежды -->
-                <div class="col-lg-4">
-                    <div class="mb-4">
-                        <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
-                        <div class="d-flex flex-column">
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='beysbolki-kozyrki-panamy' %}">Бейсболки, козырьки, панамы</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='galstuki-i-platki' %}">Галстуки и платки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='vodolazki-dzhempery' %}">Водолазки, джемперы</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='plashi-i-dozhdeviki' %}">Плащи и дождевики</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='kurtki-vetrovki-i-zhilety' %}">Куртки, ветровки и жилеты</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='mayki' %}">Майки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='rubashki' %}">Рубашки</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='rubashki-polo' %}">Рубашки-поло</a>
-                            <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='tolstovki' %}">Толстовки</a>
-                        </div>
-                    </div>
+        <!-- Подкатегории одежды -->
+        <div class="col-lg-4">
+            <div class="mb-4">
+                <h6 class="dropdown-header fw-bold mb-3 text-primary">Подкатегории одежды</h6>
+                <div class="d-flex flex-column">
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='futbolki' %}">Футболки с логотипом</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-kepki' %}">Кепки и бейсболки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-sharfy' %}">Шарфы</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-jumper' %}">Джемперы и кардиганы</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-dojdeviki' %}">Дождевики</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-kurtki' %}">Куртки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='polo-s-logotipom' %}">Футболки поло</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-rubashki' %}">Офисные рубашки</a>
+                    <a class="dropdown-item py-2" href="{% url 'main:category_detail' slug='odejda-tolstovki' %}">Толстовки с логотипом</a>
                 </div>
+                </div>
+                    </div>
             </div>
         </div>
     </div>

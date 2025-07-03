@@ -149,7 +149,7 @@
                                    class="size-filter mr-2" value="{{ size }}"
                                    {% if size in selected_sizes %}checked{% endif %}
                                    aria-labelledby="size_{{ forloop.counter }}_label">
-                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ size }}</label>
+                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ sizes|length }} </label>
                         </div>
                         {% endfor %}
                     </div>

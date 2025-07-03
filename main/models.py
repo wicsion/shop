@@ -476,6 +476,36 @@ class XMLProduct(models.Model):
         self.quantity = total
         self.save(update_fields=['quantity'])
 
+    def get_sizes_with_quantities(self):
+        """Возвращает список размеров с их количеством"""
+        sizes = []
+
+        # Если есть варианты, берем из них
+        if self.variants.exists():
+            for variant in self.variants.all():
+                # Получаем связь через промежуточную модель
+                through = ProductVariantThrough.objects.filter(
+                    product=self,
+                    variant=variant
+                ).first()
+
+                if through:
+                    sizes.append({
+                        'size': variant.size,
+                        'quantity': through.quantity
+                    })
+        # Иначе берем из sizes_available с общим количеством
+        elif self.sizes_available:
+            for size in self.sizes_available.split(','):
+                size = size.strip()
+                if size:
+                    sizes.append({
+                        'size': size,
+                        'quantity': self.quantity
+                    })
+
+        return sizes
+
 # models.py - добавить новые модели
 
 

@@ -134,6 +134,7 @@ class Command(BaseCommand):
                 product = XMLProduct.objects.get(product_id=product_id)
                 filter_info = []
                 applied_filters = []
+                sizes = []
 
                 for f in filters:
                     type_id = f.get('type_id')
@@ -142,6 +143,7 @@ class Command(BaseCommand):
                     if type_id and filter_id and type_id in filters_data and filter_id in filters_data[type_id][
                         'filters']:
                         filter_name = filters_data[type_id]['filters'][filter_id]
+
                         filter_info.append({
                             'type_id': type_id,
                             'type_name': filters_data[type_id]['name'],
@@ -150,20 +152,26 @@ class Command(BaseCommand):
                         })
                         applied_filters.append(f"{filters_data[type_id]['name']}: {filter_name}")
 
+                        # Сохраняем размеры отдельно
+                        if type_id == "23":  # Размеры
+                            sizes.append(filter_name)
+
                 if filter_info:
                     if not product.xml_data:
                         product.xml_data = {}
 
                     product.xml_data['filters'] = filter_info
-                    product.save()
 
-                    # Вывод информации о привязке
+                    # Обновляем поле sizes_available
+                    if sizes:
+                        product.sizes_available = ", ".join(sizes)
+                        product.save()
+
+                    # Вывод информации в терминал
                     self.stdout.write(Fore.GREEN + f"\nТовар [ID: {product_id}]" +
                                       Fore.YELLOW + f" {product.name}" + Style.RESET_ALL)
-                    self.stdout.write("Присвоены фильтры:")
-                    for i, f in enumerate(applied_filters, 1):
-                        self.stdout.write(f"  {i}. {f}")
-                    self.stdout.write(Fore.CYAN + f"Всего применено: {len(applied_filters)}" + Style.RESET_ALL)
+                    if sizes:
+                        self.stdout.write(Fore.CYAN + f"Размеры: {product.sizes_available}" + Style.RESET_ALL)
 
             except XMLProduct.DoesNotExist:
                 self.stdout.write(Fore.RED + f"\n[WARNING] Товар не найден: ID {product_id}" + Style.RESET_ALL)

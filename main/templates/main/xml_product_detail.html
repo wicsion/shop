@@ -427,7 +427,7 @@
                             <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
                                 {% csrf_token %}
                                 <input type="hidden" name="product_type" value="xml">
-<!-- Отладочная информация -->
+
 <div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
     <h4 style="margin-top: 0;">Отладочная информация:</h4>
     <pre>
@@ -439,33 +439,29 @@ First variant: {% if product.variants.first %}{{ product.variants.first.size }} 
 Sizes available: {{ product.sizes_available|default:"Не указано" }}
     </pre>
 </div>
-
-
-{% if product.xml_data.filters %}
-<div class="size-selector mb-4">
-    <div class="printing-info-label">Размер</div>
-    <div class="size-options">
-        {% for filter in product.xml_data.filters %}
-            {% if filter.type_id == '1' %}  <!-- Фильтры типа 1 - размеры одежды -->
+  {% if sizes_with_quantities %}
+    <div class="size-selector mb-4">
+        <div class="printing-info-label">Размер</div>
+        <div class="size-options">
+            {% for item in sizes_with_quantities %}
                 <div class="size-option {% if forloop.first %}selected{% endif %}"
-                     data-size="{{ filter.filter_name }}"
-                     data-quantity="{{ product.get_variant_quantity|default:product.quantity }}">
-                    {{ filter.filter_name }}
+                     data-size="{{ item.size }}"
+                     data-quantity="{{ item.quantity }}">
+                    {{ item.size }}
                     <span class="quantity-indicator">
-                        ({{ product.get_variant_quantity|default:product.quantity }} шт.)
+                        ({{ item.quantity }} шт.)
                     </span>
                 </div>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
+        </div>
+        <input type="hidden" name="selected_size" id="selected-size"
+               value="{{ sizes_with_quantities.0.size }}">
     </div>
-    <input type="hidden" name="selected_size" id="selected-size"
-           value="{{ product.xml_data.filters.0.filter_name }}">
-</div>
 {% endif %}
 
                                 <div class="flex items-center">
                                     <input type="number" name="quantity" value="1" min="1"
-                                           max="{{ product.get_max_available_quantity }}"
+                                           max="{% if product.variants.exists %}{{ product.variants.first.quantity }}{% else %}{{ product.quantity }}{% endif %}"
                                            class="border rounded px-3 py-2 w-20 mr-4">
                                     <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
                                         {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
@@ -515,7 +511,7 @@ Sizes available: {{ product.sizes_available|default:"Не указано" }}
                         <div class="text-xs md:text-sm text-gray-500">Наличие</div>
                         <div class="text-lg md:text-xl font-bold">
                             {% if product.in_stock %}
-                                В наличии ({{ product.quantity }} шт.)
+                                В наличии ({% if product.variants.exists %}{{ product.variants.count }} размеров{% else %}{{ product.quantity }} шт.{% endif %})
                             {% else %}
                                 Нет в наличии
                             {% endif %}
@@ -811,44 +807,38 @@ Sizes available: {{ product.sizes_available|default:"Не указано" }}
         });
     }
 
+    function setupSizeSelection() {
+        const sizeOptions = document.querySelectorAll('.size-option');
+        const sizeInput = document.getElementById('selected-size');
+        const quantityInput = document.querySelector('input[name="quantity"]');
 
- function setupSizeSelection() {
-    const sizeOptions = document.querySelectorAll('.size-option');
-    const sizeInput = document.getElementById('selected-size');
-    const quantityInput = document.querySelector('input[name="quantity"]');
+        sizeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Удаляем выделение у всех вариантов
+                sizeOptions.forEach(opt => opt.classList.remove('selected'));
 
-    sizeOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            // Удаляем выделение у всех вариантов
-            sizeOptions.forEach(opt => opt.classList.remove('selected'));
+                // Добавляем выделение выбранному варианту
+                option.classList.add('selected');
 
-            // Добавляем выделение выбранному варианту
-            option.classList.add('selected');
+                // Устанавливаем значение в скрытое поле
+                sizeInput.value = option.getAttribute('data-size');
 
-            // Устанавливаем значение в скрытое поле
-            sizeInput.value = option.getAttribute('data-size');
+                // Обновляем максимальное количество
+                const maxQuantity = parseInt(option.getAttribute('data-quantity'));
+                quantityInput.setAttribute('max', maxQuantity);
 
-            // Обновляем максимальное количество
-            const maxQuantity = parseInt(option.getAttribute('data-quantity'));
-            quantityInput.setAttribute('max', maxQuantity);
-
-            // Корректируем текущее значение, если оно превышает максимум
-            if (parseInt(quantityInput.value) > maxQuantity) {
-                quantityInput.value = maxQuantity;
-            }
+                // Корректируем текущее значение, если оно превышает максимум
+                if (parseInt(quantityInput.value) > maxQuantity) {
+                    quantityInput.value = maxQuantity;
+                }
+            });
         });
-    });
 
-    // Выбираем первый вариант по умолчанию
-    if (sizeOptions.length > 0 && !sizeInput.value) {
-        sizeOptions[0].click();
+        // Выбираем первый вариант по умолчанию
+        if (sizeOptions.length > 0 && !sizeInput.value) {
+            sizeOptions[0].click();
+        }
     }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    setupSizeSelection();
-});
-
 
     // Обработка добавления в корзину
     function setupCart() {
