@@ -28,8 +28,10 @@
 
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Боковая панель с фильтрами -->
+
+        <!-- Боковая панель с фильтрами -->
         <aside class="w-full lg:w-64 flex-shrink-0">
-            <div class="bg-white rounded-lg shadow p-6 sticky top-4">
+    <div class="bg-white rounded-lg shadow p-6 sticky-column">
                 <!-- Фильтр по цене -->
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
@@ -869,15 +871,52 @@ document.addEventListener('DOMContentLoaded', function() {
     initLazyLoading();
     initCartHandlers();
     initEventHandlers();
+
 });
+
 </script>
 
 <style>
-.image-container {
-    min-height: 250px;
-    position: relative;
-    background-color: #f5f5f5;
+:root {
+    --top-navbar-height: 40px;
+    --main-header-height: 20px;
+    --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
 }
+
+.sticky-column {
+    top: calc(var(--total-header-height) + 4.0rem);
+    position: sticky;
+    height: fit-content;
+    align-self: flex-start; /* Добавлено для правильного позиционирования */
+    margin-bottom: 1rem; /* Добавлено для отступа в мобильной версии */
+}
+
+@media (max-width: 767px) {
+    .sticky-column {
+        position: relative;
+        top: auto;
+    }
+}
+  .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background-color: white;
+        padding: 1rem 0;
+        transition: all 0.3s ease;
+    }
+
+    .sticky-header.scrolled {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 0.5rem 0;
+    }
+
+    /* Остальные стили остаются без изменений */
+    .image-container {
+        min-height: 250px;
+        position: relative;
+        background-color: #f5f5f5;
+    }
 
 .lazy-load {
     opacity: 0;

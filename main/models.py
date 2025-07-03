@@ -81,6 +81,62 @@ class Brand(models.Model):
         return reverse('main:brand_detail', kwargs={'slug': self.slug})
 
 
+class ProductVariant(models.Model):
+    product = models.ForeignKey(
+        'XMLProduct',
+        on_delete=models.CASCADE,
+        related_name='product_variants',
+        verbose_name='Товар',
+        null=True,  # Разрешаем NULL
+        blank=True  # Разрешаем пустое значение в формах
+    )
+    size = models.CharField('Размер', max_length=50)
+    price = models.DecimalField(
+        'Цена',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    old_price = models.DecimalField(
+        'Старая цена',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    barcode = models.CharField(
+        'Штрих-код размера',
+        max_length=50,
+        blank=True,
+        help_text="Штрих-код, общий для этого размера во всех товарах"
+    )
+    quantity = models.PositiveIntegerField('Количество', default=0)
+    sku = models.CharField(
+        'Артикул размера',
+        max_length=100,
+        blank=True,
+        help_text="Автоматически генерируется как 'SIZE-{размер}'"
+    )
+
+
+    # При создании связи:
+    # Обновить количество для всех вариантов товара
+
+    class Meta:
+        verbose_name = 'Вариант товара'
+        verbose_name_plural = 'Варианты товаров'
+        unique_together = ('product', 'size')
+        ordering = ['size']
+
+    def __str__(self):
+        return f"{self.size} - {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            self.sku = f"{self.product.code}-{self.size}"
+        super().save(*args, **kwargs)
+
 class XMLProduct(models.Model):
     STATUS_CHOICES = [
         ('new', 'Новинка'),
@@ -88,10 +144,11 @@ class XMLProduct(models.Model):
         ('limited', 'До исчерпания')
     ]
     quantity = models.PositiveIntegerField(
-        _('Количество'),
+        _('Общее количество'),
         default=0,
         blank=True,
-        null=True
+        null=True,
+        help_text="Автоматически рассчитывается из вариантов"
     )
     sizes_available = models.CharField(
         _('Доступные размеры'),
@@ -259,6 +316,13 @@ class XMLProduct(models.Model):
         default=list,
         blank=True
     )
+    variants = models.ManyToManyField(
+        ProductVariant,
+        through='ProductVariantThrough',
+        through_fields=('product', 'variant'),
+        related_name='product_variants',  # Изменено с 'products' во избежание конфликта
+        verbose_name='Варианты размеров'
+    )
 
     class Meta:
         verbose_name = _('XML Товар')
@@ -278,6 +342,32 @@ class XMLProduct(models.Model):
 
     def get_absolute_url(self):
         return reverse('main:xml_product_detail', kwargs={'product_id': self.product_id})
+
+    @property
+    def has_variants(self):
+        """Есть ли варианты у товара"""
+        return self.variants.exists()
+
+    def get_available_sizes(self):
+        """Возвращает список доступных размеров"""
+        if self.has_variants:
+            return list(self.variants.values_list('size', flat=True))
+        return [self.sizes_available] if self.sizes_available else []
+
+    def get_variant_by_size(self, size):
+        """Возвращает вариант по размеру"""
+        try:
+            return self.variants.get(size=size)
+        except ProductVariant.DoesNotExist:
+            return None
+
+    def update_main_quantity(self):
+        """Обновляет общее количество на основе вариантов"""
+        if self.has_variants:
+            self.quantity = sum(v.quantity for v in self.variants.all())
+            self.save(update_fields=['quantity'])
+
+
 
     @property
     def main_image(self):
@@ -336,22 +426,58 @@ class XMLProduct(models.Model):
 
         return gallery
 
+    # models.py - обновленный метод available_sizes
+
+    @property
+    def available_sizes(self):
+        """Возвращает список всех доступных размеров"""
+        sizes = set()
+
+        # Добавляем размеры из вариантов
+        if self.variants.exists():
+            for variant in self.variants.all():
+                sizes.add(variant.size)
+        else:
+            # Добавляем основной размер, если нет вариантов
+            if self.sizes_available:
+                sizes.add(self.sizes_available)
+
+        # Добавляем размеры из фильтров
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if f.get('type_id') == '1' and f.get('filter_name'):
+                    sizes.add(f['filter_name'])
+
+        # Возвращаем отсортированный список
+        standard_order = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+        return sorted(sizes, key=lambda x: (
+            standard_order.index(x) if x in standard_order else len(standard_order),
+            x
+        ))
+    def get_max_available_quantity(self, size=None):
+        """Возвращает максимальное доступное количество для размера"""
+        if size and self.variants.exists():
+            variant = self.variants.filter(size=size).first()
+            return variant.quantity if variant else 0
+        return self.quantity
+
+    def get_variant_quantity(self, size=None):
+        """Возвращает количество для конкретного размера"""
+        if size and self.variants.exists():
+            variant = self.variants.filter(size=size).first()
+            return variant.quantity if variant else 0
+        return self.quantity
+
+    def update_quantity(self):
+        """Обновляет общее количество на основе вариантов"""
+        total = self.productvariantthrough_set.aggregate(
+            total_quantity=models.Sum('quantity')
+        )['total_quantity'] or 0
+        self.quantity = total
+        self.save(update_fields=['quantity'])
+
 # models.py - добавить новые модели
-class ProductVariant(models.Model):
-    product = models.ForeignKey(XMLProduct, related_name='variants', on_delete=models.CASCADE)
-    size = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    old_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    barcode = models.CharField(max_length=50, blank=True)
-    quantity = models.PositiveIntegerField(default=0)
-    sku = models.CharField(max_length=100, blank=True)
 
-    class Meta:
-        verbose_name = _('Вариант товара')
-        verbose_name_plural = _('Варианты товаров')
-
-    def __str__(self):
-        return f"{self.size} - {self.product.name}"
 
 class ProductFilter(models.Model):
     filter_type = models.CharField(max_length=50)
@@ -366,6 +492,66 @@ class ProductFilter(models.Model):
 
     def __str__(self):
         return f"{self.filter_type}: {self.filter_id}"
+class ProductVariantThrough(models.Model):
+    """
+    Промежуточная модель для связи товара с вариантами
+    """
+    product = models.ForeignKey(
+        XMLProduct,
+        on_delete=models.CASCADE,
+        verbose_name='Товар'
+    )
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        verbose_name='Размер'
+    )
+    quantity = models.PositiveIntegerField(
+        'Количество для товара',
+        default=0
+    )
+    price = models.DecimalField(
+        'Цена для этого товара',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    old_price = models.DecimalField(
+        'Старая цена',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+
+    # Дублируем артикул и штрих-код (если могут быть уникальными для товара)
+    item_sku = models.CharField(
+        'Артикул позиции',
+        max_length=100,
+        blank=True,
+        help_text="Артикул для конкретной связки товар-размер"
+    )
+
+    item_barcode = models.CharField(
+        'Штрих-код позиции',
+        max_length=50,
+        blank=True,
+        help_text="Уникальный штрих-код для связки товар-размер"
+    )
+
+    class Meta:
+        verbose_name = 'Связь товара с размером'
+        verbose_name_plural = 'Связи товаров с размерами'
+        unique_together = [('product', 'variant')]  # Одна связь на пару товар-размер
+
+    def __str__(self):
+        return f"{self.product.name} - {self.variant.size}"
+
+    def get_price(self):
+        """Возвращает цену варианта (индивидуальную или из продукта)"""
+        return self.price or self.product.price
 
 class ApplicationType(models.Model):
     code = models.CharField(max_length=10, unique=True)
@@ -559,7 +745,7 @@ class CartItem(models.Model):
     )
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
-
+    size = models.CharField(max_length=50, blank=True, null=True)
     class Meta:
         verbose_name = _('Элемент корзины')
         verbose_name_plural = _('Элементы корзины')

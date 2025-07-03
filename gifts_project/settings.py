@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
+    'main.templatetags',
     'rest_framework',
     'django.contrib.humanize',
     'mptt',

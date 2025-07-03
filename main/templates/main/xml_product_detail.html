@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
 <style>
 :root {
-    --top-navbar-height: 40px; /* Высота верхнего навбара */
-    --main-header-height: 20px; /* Высота основного хедера */
+    --top-navbar-height: 40px;
+    --main-header-height: 20px;
     --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
 }
 
@@ -26,245 +26,363 @@
     }
 }
 
+.animate-block {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  /* Анимация для секций */
-    .animate-block {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+.animate-block.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
 
+.swiper {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 500px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background-color: #f5f5f5;
+}
 
-    .animate-block.reveal {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    /* Стили карусели */
+@media (min-width: 768px) {
     .swiper {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1 / 1;
-        max-height: 500px;
-        border-radius: 1rem;
-        overflow: hidden;
-        background-color: #f5f5f5;
+        height: 400px;
     }
+}
 
-    @media (min-width: 768px) {
-        .swiper {
-            height: 400px;
-        }
-    }
+.swiper-slide {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-in;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    overflow: hidden;
+}
 
-    .swiper-slide {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: zoom-in;
-        height: 100%;
-        width: 100%;
-        background-color: white;
-        overflow: hidden;
-    }
+.swiper-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background-color: white;
+    margin: 0 auto;
+    display: block;
+}
 
-    .swiper-slide img {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        background-color: white;
-        margin: 0 auto;
-        display: block;
-    }
+.swiper-button-next,
+.swiper-button-prev {
+    color: white;
+    background: none;
+    backdrop-filter: none;
+    width: auto;
+    height: auto;
+}
 
-    .swiper-button-next,
-    .swiper-button-prev {
-        color: white;
-        background: none;
-        backdrop-filter: none;
-        width: auto;
-        height: auto;
-    }
+.swiper-button-next:after,
+.swiper-button-prev:after {
+    font-size: 24px;
+    font-weight: 700;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
 
+@media (min-width: 768px) {
     .swiper-button-next:after,
     .swiper-button-prev:after {
-        font-size: 24px;
-        font-weight: 700;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        font-size: 32px;
     }
+}
 
-    @media (min-width: 768px) {
-        .swiper-button-next:after,
-        .swiper-button-prev:after {
-            font-size: 32px;
-        }
-    }
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    justify-content: center;
+    align-items: center;
+}
 
-    /* Модальное окно */
-    .image-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.95);
-        justify-content: center;
-        align-items: center;
-    }
+.modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+}
 
-    .modal-content {
-        max-width: 90%;
-        max-height: 90%;
-        object-fit: contain;
-        border-radius: 8px;
-    }
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
 
+@media (min-width: 768px) {
     .close-modal {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        color: white;
-        font-size: 30px;
-        cursor: pointer;
-        opacity: 0.8;
-        transition: opacity 0.2s;
+        top: 25px;
+        right: 35px;
+        font-size: 40px;
     }
+}
 
-    @media (min-width: 768px) {
-        .close-modal {
-            top: 25px;
-            right: 35px;
-            font-size: 40px;
-        }
-    }
+@keyframes zoomIn {
+    from {transform: scale(0.9); opacity: 0;}
+    to {transform: scale(1); opacity: 1;}
+}
 
-    @keyframes zoomIn {
-        from {transform: scale(0.9); opacity: 0;}
-        to {transform: scale(1); opacity: 1;}
-    }
+.modal-opened { animation: zoomIn 0.3s ease-out; }
 
-    .modal-opened { animation: zoomIn 0.3s ease-out; }
+.scrollable-description {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-bottom: 1.5rem;
+}
 
-    .scrollable-description {
-        max-height: 400px;
-        overflow-y: auto;
-        padding-right: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
+.contact-sidebar {
+    height: fit-content;
+    max-height: 500px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
 
+@media (max-width: 767px) {
     .contact-sidebar {
-        height: fit-content;
-        max-height: 500px;
-        padding: 1rem;
-        margin-top: 1.5rem;
+        margin-top: 2rem;
     }
+}
 
-    @media (max-width: 767px) {
-        .contact-sidebar {
-            margin-top: 2rem;
-        }
-    }
+.btn-primary {
+    border-radius: 9999px;
+    background: #0060f4;
+    color: #ffffff;
+    border: 2px solid transparent;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
 
-    .btn-primary {
-        border-radius: 9999px;
-        background: #0060f4;
-        color: #ffffff;
-        border: 2px solid transparent;
-        padding: 0.6rem 1.5rem;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
+.btn-outline {
+    border-radius: 9999px;
+    border: 2px solid #0a0202;
+    color: #34495e;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-    .btn-outline {
-        border-radius: 9999px;
-        border: 2px solid #0a0202;
-        color: #34495e;
-        justify-content: center;
-        text-align: center;
-        width: 100%;
-        padding: 0.6rem 1.5rem;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+}
+.tab {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-right: 0.5rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+}
+.tab.active {
+    border-color: #ddd;
+    border-bottom-color: white;
+    background: white;
+    color: #3b82f6;
+    font-weight: 500;
+}
+.tab-content {
+    display: none;
+    padding: 1rem;
+    background: white;
+    border-radius: 0 0.25rem 0.25rem 0.25rem;
+}
+.tab-content.active {
+    display: block;
+}
 
-    /* Вкладки */
-    .tabs {
-        display: flex;
-        border-bottom: 1px solid #ddd;
-        margin-bottom: 1rem;
-    }
-    .tab {
-        padding: 0.75rem 1.5rem;
-        cursor: pointer;
-        border: 1px solid transparent;
-        border-bottom: none;
-        margin-right: 0.5rem;
-        border-radius: 0.25rem 0.25rem 0 0;
-    }
-    .tab.active {
-        border-color: #ddd;
-        border-bottom-color: white;
-        background: white;
-        color: #3b82f6;
-        font-weight: 500;
-    }
-    .tab-content {
-        display: none;
-        padding: 1rem;
-        background: white;
-        border-radius: 0 0.25rem 0.25rem 0.25rem;
-    }
-    .tab-content.active {
-        display: block;
-    }
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+.breadcrumbs a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+.breadcrumbs .separator {
+    margin: 0 8px;
+    color: #6b7280;
+}
 
-    /* Хлебные крошки */
-    .breadcrumbs {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-    .breadcrumbs a {
-        color: #3b82f6;
-        text-decoration: none;
-    }
-    .breadcrumbs .separator {
-        margin: 0 8px;
-        color: #6b7280;
-    }
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
 
-    /* Видео контейнер */
-    .video-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        height: 0;
-        overflow: hidden;
-        margin: 1rem 0;
-    }
-    .video-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
+.size-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+.size-table th, .size-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+.size-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+.size-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.printing-methods {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+.printing-methods h4 {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.printing-methods ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 0;
+}
+.printing-methods li {
+    margin-bottom: 0.25rem;
+}
+
+.printing-info {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+.printing-info-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.printing-info-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.printing-info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+.printing-info-value {
+    color: #212529;
+}
+
+.size-selector {
+    margin-bottom: 1.5rem;
+}
+.size-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.size-option {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+.size-option:hover {
+    background-color: #f5f5f5;
+}
+.size-option.selected {
+    background-color: #0060f4;
+    color: white;
+    border-color: #0060f4;
+}
+.size-option .quantity-indicator {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    color: inherit;
+    opacity: 0.8;
+}
+
+.size-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.size-option {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.size-option:hover {
+    background-color: #f5f5f5;
+}
+
+.size-option.selected {
+    background-color: #0060f4;
+    color: white;
+    border-color: #0060f4;
+}
+
+.quantity-indicator {
+    font-size: 0.8em;
+    opacity: 0.8;
+    margin-left: 4px;
+}
 </style>
 
 {% with excluded_filters="Спецфильтр,Новинки"  %}
 <div class="container py-8">
-    <!-- Хлебные крошки -->
     <nav class="breadcrumbs">
         <a href="{% url 'main:home' %}">Главная</a>
         <span class="separator">/</span>
@@ -276,66 +394,93 @@
     </nav>
 
     <div class="bg-white rounded-xl shadow-sm p-4 md:p-8 border-2 border-gray-100">
-        <!-- Новая структура с слайдером слева и контентом справа -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-            <!-- Левая колонка со слайдером и контактной информацией -->
-           <!-- В xml_product_detail.html замените блок левой колонки на следующий код: -->
-<div class="lg:col-span-5">
-    <!-- Обертка для sticky-элементов -->
-    <div class="sticky-column sticky space-y-6">
-        <!-- Карусель с анимацией -->
-        <div class="animate-block swiper">
-            <div class="swiper-wrapper">
-                {% for attachment in product.xml_data.attributes.attachments %}
-                    {% if forloop.counter <= 5 and attachment.type == 'image' and attachment.image %}
-                    <div class="swiper-slide">
-                        <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=500&height=500"
-                             alt="{{ attachment.name|default:product.name }}"
-                             onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
+            <div class="lg:col-span-5">
+                <div class="sticky-column sticky space-y-6">
+                    <div class="animate-block swiper">
+                        <div class="swiper-wrapper">
+                            {% for attachment in product.xml_data.attributes.attachments %}
+                                {% if forloop.counter <= 5 and attachment.type == 'image' and attachment.image %}
+                                <div class="swiper-slide">
+                                    <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=500&height=500"
+                                         alt="{{ attachment.name|default:product.name }}"
+                                         onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
                     </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-        </div>
 
-        <!-- Модальное окно -->
-        <div id="imageModal" class="image-modal">
-            <span class="close-modal">&times;</span>
-            <img class="modal-content" id="expandedImg">
-        </div>
-
-        <!-- Контактная информация под слайдером -->
-        <div class="animate-block contact-sidebar bg-gray-50 p-4 md:p-6 rounded-xl">
-            <div class="contact-content">
-                <div class="mb-4 md:mb-6">
-                    <h3 class="text-lg md:text-xl font-bold">Оформление заказа</h3>
-                </div>
-
-                <!-- Кнопка добавления в корзину -->
-                <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
-                    {% csrf_token %}
-                    <input type="hidden" name="product_type" value="xml">
-                    <div class="flex items-center">
-                        <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
-                               class="border rounded px-3 py-2 w-20 mr-4">
-                        <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
-                            {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
-                        </button>
+                    <div id="imageModal" class="image-modal">
+                        <span class="close-modal">&times;</span>
+                        <img class="modal-content" id="expandedImg">
                     </div>
-                    {% if product.xml_data.min_order_quantity > 1 %}
-                    <p class="text-sm text-gray-500 mt-2">Минимальный заказ: {{ product.xml_data.min_order_quantity }} шт.</p>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-    </div>
+
+                    <div class="animate-block contact-sidebar bg-gray-50 p-4 md:p-6 rounded-xl">
+                        <div class="contact-content">
+                            <div class="mb-4 md:mb-6">
+                                <h3 class="text-lg md:text-xl font-bold">Оформление заказа</h3>
+                            </div>
+
+                            <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_type" value="xml">
+<!-- Отладочная информация -->
+<div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <h4 style="margin-top: 0;">Отладочная информация:</h4>
+    <pre>
+Product ID: {{ product.product_id }}
+Has variants: {{ product.variants.exists }}
+Available sizes: {{ product.available_sizes|default:"Нет данных" }}
+Variants count: {{ product.variants.count }}
+First variant: {% if product.variants.first %}{{ product.variants.first.size }} - {{ product.variants.first.quantity }}{% else %}Нет вариантов{% endif %}
+Sizes available: {{ product.sizes_available|default:"Не указано" }}
+    </pre>
 </div>
 
-            <!-- Правая колонка с основной информацией о товаре -->
+
+{% if product.xml_data.filters %}
+<div class="size-selector mb-4">
+    <div class="printing-info-label">Размер</div>
+    <div class="size-options">
+        {% for filter in product.xml_data.filters %}
+            {% if filter.type_id == '1' %}  <!-- Фильтры типа 1 - размеры одежды -->
+                <div class="size-option {% if forloop.first %}selected{% endif %}"
+                     data-size="{{ filter.filter_name }}"
+                     data-quantity="{{ product.get_variant_quantity|default:product.quantity }}">
+                    {{ filter.filter_name }}
+                    <span class="quantity-indicator">
+                        ({{ product.get_variant_quantity|default:product.quantity }} шт.)
+                    </span>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <input type="hidden" name="selected_size" id="selected-size"
+           value="{{ product.xml_data.filters.0.filter_name }}">
+</div>
+{% endif %}
+
+                                <div class="flex items-center">
+                                    <input type="number" name="quantity" value="1" min="1"
+                                           max="{{ product.get_max_available_quantity }}"
+                                           class="border rounded px-3 py-2 w-20 mr-4">
+                                    <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
+                                        {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
+                                    </button>
+                                </div>
+                                {% if product.xml_data.min_order_quantity > 1 %}
+                                <p class="text-sm text-gray-500 mt-2">Минимальный заказ: {{ product.xml_data.min_order_quantity }} шт.</p>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="lg:col-span-7">
-                <!-- Верхний блок с заголовком и ценой -->
                 <div class="animate-block">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">{{ product.name }}</h1>
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mb-4 md:mb-6">
@@ -359,17 +504,13 @@
                     </div>
                 </div>
 
-                <!-- Параметры товара -->
-
-    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                    <!-- Артикул -->
+                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Артикул</div>
                         <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
                     </div>
 
-                    <!-- Наличие -->
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Наличие</div>
                         <div class="text-lg md:text-xl font-bold">
@@ -381,7 +522,6 @@
                         </div>
                     </div>
 
-                    <!-- Бренд -->
                     {% if product.brand %}
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Бренд</div>
@@ -389,23 +529,19 @@
                     </div>
                     {% endif %}
 
-                    <!-- Материал -->
-                    {% if product.material %}
+                    {% if product.material or product.xml_data.material_composition %}
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Материал</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.material }}</div>
+                        <div class="text-xs md:text-sm text-gray-500">Материал и состав</div>
+                        <div class="text-lg md:text-xl font-bold">
+                            {% if product.material %}{{ product.material }}{% endif %}
+                            {% if product.xml_data.material_composition %}
+                                {% if product.material %}<br>{% endif %}
+                                {{ product.xml_data.material_composition }}
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
 
-                    <!-- Состав -->
-                    {% if product.xml_data.material_composition %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Состав</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.xml_data.material_composition }}</div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Вес -->
                     {% if product.weight %}
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Вес</div>
@@ -413,7 +549,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Объем -->
                     {% if product.volume %}
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Объем</div>
@@ -421,7 +556,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Размеры -->
                     {% if product.xml_data.attributes.size %}
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="text-xs md:text-sm text-gray-500">Размер</div>
@@ -429,7 +563,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Фильтры -->
                     {% if readable_filters %}
                         {% for filter in readable_filters %}
                         <div class="bg-gray-50 p-4 rounded-lg">
@@ -438,83 +571,159 @@
                         </div>
                         {% endfor %}
                     {% endif %}
+                </div>
 
-                    <!-- Методы нанесения -->
-                    {% if readable_prints %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Методы нанесения</div>
-                        <div class="text-lg md:text-xl font-bold">
-                            {% for print in readable_prints %}
-                                {{ print.description }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
+                <div class="tabs-container mt-6">
+                    {% if product.xml_data.size_table %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4">Таблица размеров</h3>
+                        <div class="overflow-x-auto">
+                            <table class="size-table">
+                                <thead>
+                                    <tr>
+                                        {% for header in product.xml_data.size_table.headers %}
+                                        <th>{{ header }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in product.xml_data.size_table.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     {% endif %}
-                </div>
 
-                <!-- Вкладки с дополнительной информацией -->
-                <div class="tabs-container mt-6">
                     <div class="tabs">
                         <div class="tab active" data-tab="description">Описание</div>
-
-
+                        <div class="tab" data-tab="printing">Нанесение</div>
                         {% if product.xml_data.video_link %}
                         <div class="tab" data-tab="video">Видео</div>
                         {% endif %}
                     </div>
 
-                    <!-- Содержимое вкладок -->
                     <div class="tab-content active" id="description">
                         <div class="scrollable-description prose max-w-none">
                             {{ product.description|safe }}
                         </div>
                     </div>
 
-
-
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Похожие товары -->
-    {% if related_products %}
-    <div class="mt-12">
-        <h2 class="text-xl font-bold mb-6">Похожие товары</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% for product in related_products %}
-            <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
-                <a href="{{ product.get_absolute_url }}" class="block">
-                    <div class="aspect-w-1 aspect-h-1 bg-gray-100 flex items-center justify-center" style="height: 200px;">
-                        <img src="{% static 'images/placeholder.jpg' %}"
-                             data-src="{{ product.main_image }}"
-                             alt="{{ product.name }}"
-                             class="object-contain w-full h-full p-2 lazy-image"
-                             loading="lazy"
-                             onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                {% if product.has_discount %}
-                                <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
-                                <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
-                                {% else %}
-                                <span class="font-bold">{{ product.price }} ₽</span>
-                                {% endif %}
+                    <div class="tab-content" id="printing">
+                        <div class="printing-info">
+                            {% if product.application_type %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Вид нанесения</div>
+                                <div class="printing-info-value">{{ product.get_application_type_display }}</div>
                             </div>
-                            {% if product.status == 'new' %}
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
+                            {% endif %}
+
+                            {% if product.mechanism_type %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Механизм</div>
+                                <div class="printing-info-value">{{ product.mechanism_type }}</div>
+                            </div>
+                            {% endif %}
+
+                            {% if product.ball_diameter %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Диаметр шарика</div>
+                                <div class="printing-info-value">{{ product.ball_diameter }}</div>
+                            </div>
+                            {% endif %}
+
+                            {% if product.refill_type %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Тип стержня</div>
+                                <div class="printing-info-value">{{ product.refill_type }}</div>
+                            </div>
+                            {% endif %}
+
+                            {% if product.replaceable_refill %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Сменный стержень</div>
+                                <div class="printing-info-value">Да</div>
+                            </div>
+                            {% endif %}
+
+                            {% if readable_prints %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Доступные принты</div>
+                                <div class="printing-info-value">
+                                    <ul class="list-disc pl-5">
+                                        {% for print in readable_prints %}
+                                        <li>
+                                            <strong>{{ print.code }}</strong>: {{ print.description }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if product.xml_data.attributes.printing_notes %}
+                            <div class="printing-info-item">
+                                <div class="printing-info-label">Примечания по нанесению</div>
+                                <div class="printing-info-value">{{ product.xml_data.attributes.printing_notes }}</div>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
-                </a>
+
+                    {% if product.xml_data.video_link %}
+                    <div class="tab-content" id="video">
+                        <div class="video-container">
+                            <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if related_products %}
+                <div class="mt-12">
+                    <h2 class="text-xl font-bold mb-6">Похожие товары</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% for product in related_products %}
+                        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+                            <a href="{{ product.get_absolute_url }}" class="block">
+                                <div class="aspect-w-1 aspect-h-1 bg-gray-100 flex items-center justify-center" style="height: 200px;">
+                                    <img src="{% static 'images/placeholder.jpg' %}"
+                                         data-src="{{ product.main_image }}"
+                                         alt="{{ product.name }}"
+                                         class="object-contain w-full h-full p-2 lazy-image"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
+                                </div>
+                                <div class="p-4">
+                                    <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            {% if product.has_discount %}
+                                            <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
+                                            <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
+                                            {% else %}
+                                            <span class="font-bold">{{ product.price }} ₽</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.status == 'new' %}
+                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            {% endfor %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endwith %}
 
@@ -533,7 +742,7 @@
         observer.observe(element);
     });
 
-    // Функция для инициализации свайпера после загрузки изображений
+    // Инициализация свайпера
     function initSwiper() {
         const swiper = new Swiper('.swiper', {
             loop: true,
@@ -553,7 +762,7 @@
         return swiper;
     }
 
-    // Модальное окно
+    // Модальное окно для изображений
     function setupModal() {
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('expandedImg');
@@ -592,11 +801,9 @@
         const tabs = document.querySelectorAll('.tab');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Удаляем активный класс у всех вкладок и содержимого
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-                // Добавляем активный класс к выбранной вкладке и соответствующему содержимому
                 tab.classList.add('active');
                 const tabId = tab.getAttribute('data-tab');
                 document.getElementById(tabId).classList.add('active');
@@ -604,15 +811,64 @@
         });
     }
 
+
+ function setupSizeSelection() {
+    const sizeOptions = document.querySelectorAll('.size-option');
+    const sizeInput = document.getElementById('selected-size');
+    const quantityInput = document.querySelector('input[name="quantity"]');
+
+    sizeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Удаляем выделение у всех вариантов
+            sizeOptions.forEach(opt => opt.classList.remove('selected'));
+
+            // Добавляем выделение выбранному варианту
+            option.classList.add('selected');
+
+            // Устанавливаем значение в скрытое поле
+            sizeInput.value = option.getAttribute('data-size');
+
+            // Обновляем максимальное количество
+            const maxQuantity = parseInt(option.getAttribute('data-quantity'));
+            quantityInput.setAttribute('max', maxQuantity);
+
+            // Корректируем текущее значение, если оно превышает максимум
+            if (parseInt(quantityInput.value) > maxQuantity) {
+                quantityInput.value = maxQuantity;
+            }
+        });
+    });
+
+    // Выбираем первый вариант по умолчанию
+    if (sizeOptions.length > 0 && !sizeInput.value) {
+        sizeOptions[0].click();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupSizeSelection();
+});
+
+
     // Обработка добавления в корзину
     function setupCart() {
-        document.querySelector('form[action*="add_to_cart"]').addEventListener('submit', function(e) {
+        const form = document.querySelector('form[action*="add_to_cart"]');
+        if (!form) return;
+
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
-            const form = this;
             const button = form.querySelector('button[type="submit"]');
+            const selectedSize = document.getElementById('selected-size')?.value;
+            const quantity = form.querySelector('input[name="quantity"]').value;
+
+            // Проверка выбора размера для товаров с вариантами
+            if (document.querySelector('.size-options') && !selectedSize) {
+                showNotification('Пожалуйста, выберите размер', 'error');
+                return;
+            }
 
             button.disabled = true;
-            button.innerHTML = '<span class="spinner"></span>';
+            button.innerHTML = '<span class="spinner"></span>Обработка...';
 
             fetch(form.action, {
                 method: 'POST',
@@ -627,13 +883,7 @@
             .then(data => {
                 if (data.success) {
                     showNotification(data.message, 'success');
-
-                    // Обновляем счетчик корзины
-                    const cartCount = document.getElementById('cart-count');
-                    if (cartCount) {
-                        cartCount.textContent = data.cart_total;
-                        animateCartCounter(cartCount);
-                    }
+                    updateCartCounter(data.cart_total);
                 } else {
                     showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
                 }
@@ -644,7 +894,7 @@
             })
             .finally(() => {
                 button.disabled = false;
-                button.textContent = button.textContent.trim();
+                button.textContent = 'Добавить в корзину';
             });
         });
     }
@@ -654,7 +904,7 @@
         const notification = document.createElement('div');
         notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
             type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        }`;
+        } z-50`;
         notification.textContent = message;
         document.body.appendChild(notification);
 
@@ -662,6 +912,15 @@
             notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+
+    // Обновление счетчика корзины
+    function updateCartCounter(count) {
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            cartCount.textContent = count;
+            animateCartCounter(cartCount);
+        }
     }
 
     // Анимация счетчика корзины
@@ -674,9 +933,10 @@
 
     // Основная инициализация
     document.addEventListener('DOMContentLoaded', function() {
-        const swiper = initSwiper();
+        initSwiper();
         setupModal();
         setupTabs();
+        setupSizeSelection();
         setupCart();
     });
 </script>

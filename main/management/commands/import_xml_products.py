@@ -21,11 +21,17 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('import_debug.log'),
+        logging.FileHandler('import_debug.log', mode='w', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
 
+# Настройка подробного логирования
+detailed_logger = logging.getLogger('detailed_import')
+detailed_logger.setLevel(logging.INFO)
+fh = logging.FileHandler('detailed_import.log', mode='w', encoding='utf-8')
+fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+detailed_logger.addHandler(fh)
 
 def clean_filename(filename):
     """Очищает имя файла от недопустимых символов"""
@@ -133,26 +139,31 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.ERROR(f"Ошибка товара {product_id}: {str(e)}"))
 
     def process_product_batch(self, products, options):
-        with tqdm(total=len(products), desc=f"Импорт партиями по {options['batch_size']}") as pbar:
+        with tqdm(total=len(products), desc="Импорт товаров") as pbar:
             for i in range(0, len(products), options['batch_size']):
                 batch = products[i:i + options['batch_size']]
 
                 for product in batch:
                     try:
                         product_id = product.find('product_id').text.strip()
-                        pbar.set_postfix({'id': product_id})
+                        # Обработка товара
+                        xml_product = self.process_product(product, options)
 
-                        if not options.get('force_update'):
-                            if XMLProduct.objects.filter(product_id=product_id).exists():
-                                continue
+                        # Выводим информацию о последнем обработанном товаре
+                        variants = xml_product.variants.all()
+                        if variants:
+                            last_info = f"{product_id}: " + ", ".join(
+                                f"{v.size}={v.quantity}" for v in variants
+                            )
+                        else:
+                            last_info = f"{product_id}: {xml_product.quantity} шт"
 
-                        self.process_product(product, options)
+                        pbar.set_postfix_str(last_info)
                         pbar.update(1)
 
                     except Exception as e:
-                        logger.error(f"Ошибка товара {product_id}: {str(e)}", exc_info=True)
-                        if not options.get('no_input'):
-                            self.stdout.write(self.style.ERROR(f"Ошибка товара {product_id}: {str(e)}"))
+                        logger.error(f"Ошибка товара {product_id}: {str(e)}")
+                        pbar.update(1)
 
     def get_image_url(self, image_element):
         """Извлекает URL изображения из XML элемента без изменения размера"""
@@ -415,18 +426,267 @@ class Command(BaseCommand):
 
     def process_product_variants(self, product, xml_product):
         """Обрабатывает варианты товара (размеры, цвета и т.д.)"""
-        # Удаляем старые варианты
-        xml_product.variants.all().delete()
+        if xml_product is None:
+            logger.error("XMLProduct is None, cannot process variants")
+            return
 
-        # Ищем варианты в XML (пример структуры может отличаться)
-        variants = product.findall('variants/variant') or []
+        try:
+            # Получаем данные из XML
+            total_quantity = self.get_int_value(product, 'quantity') or 0
+            sizes_available = self.get_text_value(product, 'sizes_available') or ''
 
-        if not variants:
-            # Если нет явных вариантов, создаем один на основе основного товара
-            self.create_variant_from_product(product, xml_product)
-        else:
+            # Получаем фильтры размеров (тип 1 - размеры одежды)
+            size_filters = []
+            if xml_product.xml_data and 'attributes' in xml_product.xml_data:
+                size_filters = [
+                    f for f in xml_product.xml_data['attributes'].get('filters', [])
+                    if f.get('type_id') == '1' and f.get('filter_name')
+                ]
+
+            # Логируем начало обработки вариантов
+            logger.info(f"Обработка вариантов для товара {xml_product.product_id}")
+            logger.info(f"Доступные размеры: {sizes_available}")
+            logger.info(f"Валидные размеры из фильтров: {[f['filter_name'] for f in size_filters]}")
+            logger.info(f"Общее количество: {total_quantity}")
+
+            # Получаем существующие варианты
+            existing_variants = {v.size: v for v in xml_product.variants.all()}
+            sizes_to_keep = set()
+
+            # Обработка вариантов в порядке приоритета:
+            # 1. Явные варианты в XML
+            # 2. Размеры из валидных фильтров
+            # 3. Размеры из поля sizes_available
+            # 4. Единственный вариант "One Size"
+
+            if variants := product.findall('variants/variant'):
+                # 1. Явные варианты в XML
+                for variant in variants:
+                    size = self.get_text_value(variant, 'size') or 'One Size'
+                    sizes_to_keep.add(size)
+
+                    if size in existing_variants:
+                        variant_obj = existing_variants[size]
+                        variant_obj.price = self.get_float_value(variant, 'price') or xml_product.price
+                        variant_obj.old_price = self.get_float_value(variant, 'oldprice') or xml_product.old_price
+                        variant_obj.barcode = self.get_text_value(variant, 'barcode') or ''
+                        variant_obj.quantity = self.get_int_value(variant, 'quantity') or 0
+                        variant_obj.sku = self.get_text_value(variant, 'sku') or f"{xml_product.code}-{size}"
+                        variant_obj.save()
+                    else:
+                        self.create_product_variant(variant, xml_product)
+
+            elif size_filters:
+                # 2. Размеры из валидных фильтров
+                # Нормализуем размеры (удаляем лишние пробелы, преобразуем в верхний регистр)
+                normalized_sizes = {}
+                for f in size_filters:
+                    size_name = f['filter_name'].strip().upper()
+
+                    # Обрабатываем составные размеры (S/M, L/XL и т.д.)
+                    if '/' in size_name or '-' in size_name:
+                        # Разделяем составные размеры
+                        parts = re.split(r'[/-]', size_name)
+                        for part in parts:
+                            part = part.strip()
+                            if part:
+                                normalized_sizes[part] = f
+                    else:
+                        normalized_sizes[size_name] = f
+
+                # Список стандартных размеров одежды
+                standard_sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+
+                # Фильтруем только стандартные размеры
+                valid_sizes = []
+                for size in normalized_sizes.keys():
+                    if size in standard_sizes:
+                        valid_sizes.append(size)
+
+                # Если есть стандартные размеры, распределяем количество
+                if valid_sizes:
+                    quantity_per_size = total_quantity // len(valid_sizes) if len(valid_sizes) > 0 else 0
+
+                    for size in valid_sizes:
+                        sizes_to_keep.add(size)
+
+                        if size in existing_variants:
+                            variant_obj = existing_variants[size]
+                            variant_obj.quantity = quantity_per_size
+                            variant_obj.save()
+                        else:
+                            ProductVariant.objects.create(
+                                product=xml_product,
+                                size=size,
+                                price=xml_product.price,
+                                old_price=xml_product.old_price,
+                                barcode=xml_product.barcode or '',
+                                quantity=quantity_per_size,
+                                sku=f"{xml_product.code}-{size}"
+                            )
+                else:
+                    # Если нет стандартных размеров, создаем один вариант с составным размером
+                    size = sizes_available if sizes_available else 'One Size'
+                    sizes_to_keep.add(size)
+
+                    if size in existing_variants:
+                        variant_obj = existing_variants[size]
+                        variant_obj.quantity = total_quantity
+                        variant_obj.save()
+                    else:
+                        ProductVariant.objects.create(
+                            product=xml_product,
+                            size=size,
+                            price=xml_product.price,
+                            old_price=xml_product.old_price,
+                            barcode=xml_product.barcode or '',
+                            quantity=total_quantity,
+                            sku=xml_product.code
+                        )
+
+            elif sizes_available:
+                # 3. Размеры из поля sizes_available
+                # Нормализуем строку размеров (удаляем лишние пробелы, преобразуем в верхний регистр)
+                sizes_str = sizes_available.strip().upper()
+
+                # Разделяем размеры по запятым или другим разделителям
+                size_list = []
+                for part in re.split(r'[,/]', sizes_str):
+                    part = part.strip()
+                    if part:
+                        size_list.append(part)
+
+                # Фильтруем только стандартные размеры
+                standard_sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+                valid_sizes = [size for size in size_list if size in standard_sizes]
+
+                if valid_sizes:
+                    quantity_per_size = total_quantity // len(valid_sizes)
+
+                    for size in valid_sizes:
+                        sizes_to_keep.add(size)
+
+                        if size in existing_variants:
+                            variant_obj = existing_variants[size]
+                            variant_obj.quantity = quantity_per_size
+                            variant_obj.save()
+                        else:
+                            ProductVariant.objects.create(
+                                product=xml_product,
+                                size=size,
+                                price=xml_product.price,
+                                old_price=xml_product.old_price,
+                                barcode=xml_product.barcode or '',
+                                quantity=quantity_per_size,
+                                sku=f"{xml_product.code}-{size}"
+                            )
+                else:
+                    # Если нет стандартных размеров, создаем один вариант с составным размером
+                    size = sizes_available if sizes_available else 'One Size'
+                    sizes_to_keep.add(size)
+
+                    if size in existing_variants:
+                        variant_obj = existing_variants[size]
+                        variant_obj.quantity = total_quantity
+                        variant_obj.save()
+                    else:
+                        ProductVariant.objects.create(
+                            product=xml_product,
+                            size=size,
+                            price=xml_product.price,
+                            old_price=xml_product.old_price,
+                            barcode=xml_product.barcode or '',
+                            quantity=total_quantity,
+                            sku=xml_product.code
+                        )
+            else:
+                # 4. Единственный вариант
+                size = 'One Size'
+                sizes_to_keep.add(size)
+
+                if size in existing_variants:
+                    variant_obj = existing_variants[size]
+                    variant_obj.quantity = total_quantity
+                    variant_obj.save()
+                else:
+                    ProductVariant.objects.create(
+                        product=xml_product,
+                        size=size,
+                        price=xml_product.price,
+                        old_price=xml_product.old_price,
+                        barcode=xml_product.barcode or '',
+                        quantity=total_quantity,
+                        sku=xml_product.code
+                    )
+
+            # Удаляем варианты, которых больше нет
+            for size, variant in existing_variants.items():
+                if size not in sizes_to_keep:
+                    variant.delete()
+
+            # Обновляем общее количество
+            xml_product.quantity = sum(v.quantity for v in xml_product.variants.all())
+            xml_product.save()
+
+            # Логируем итоговую информацию
+            self.log_size_quantities(xml_product)
+            self.validate_quantities(xml_product, total_quantity)
+
+        except Exception as e:
+            logger.error(f"Ошибка обработки вариантов для товара {xml_product.product_id}: {str(e)}", exc_info=True)
+            raise
+
+    def log_size_quantities(self, xml_product):
+        """Логирует информацию по размерам и количествам товара"""
+        variants = xml_product.variants.all()
+        size_info = []
+
+        if variants:
             for variant in variants:
-                self.create_product_variant(variant, xml_product)
+                size_info.append(f"{variant.size}: {variant.quantity} шт")
+            status = f"Варианты: {', '.join(size_info)}"
+        else:
+            status = f"Без вариантов: {xml_product.quantity} шт"
+
+        # Логируем в оба места
+        message = f"Товар ID: {xml_product.product_id} | {xml_product.name} | {status}"
+        detailed_logger.info(message)
+        self.stdout.write(self.style.SUCCESS(message))
+
+    def validate_quantities(self, xml_product, original_quantity):
+        """Проверяет, что сумма количеств вариантов соответствует исходному количеству"""
+        variants = xml_product.variants.all()
+        variants_quantity = sum(v.quantity for v in variants)
+
+        # Формируем детальную информацию о товаре
+        product_info = [
+            f"\nProduct ID: {xml_product.product_id}",
+            f"Name: {xml_product.name}",
+            f"Has variants: {xml_product.has_variants}",
+            f"Available sizes: {[v.size for v in variants] if variants else [xml_product.sizes_available]}",
+            f"Variants count: {len(variants)}",
+            f"First variant: {variants[0] if variants else 'Нет вариантов'}",
+            f"Sizes available: {xml_product.sizes_available}",
+            f"Original quantity: {original_quantity}",
+            f"Variants total: {variants_quantity}",
+            f"Main product quantity: {xml_product.quantity}",
+            "-" * 50
+        ]
+
+        # Логиру
+
+        if variants:
+            if variants_quantity != original_quantity:
+                logger.warning(
+                    f"Несоответствие количеств для товара {xml_product.product_id}: "
+                    f"исходное={original_quantity}, вариантов={variants_quantity}"
+                )
+        else:
+            if xml_product.quantity != original_quantity:
+                logger.warning(
+                    f"Несоответствие количеств для товара {xml_product.product_id}: "
+                    f"исходное={original_quantity}, текущее={xml_product.quantity}"
+                )
 
     def create_variant_from_product(self, product, xml_product):
         """Создает вариант на основе основного товара"""
@@ -463,25 +723,50 @@ class Command(BaseCommand):
         )
 
     def process_product_filters(self, product, xml_product):
-        """Обрабатывает фильтры товара"""
+        """Обрабатывает фильтры товара, включая размеры одежды"""
         filters = product.findall('filters/filter')
+        valid_size_filters = []
+
         for f in filters:
             filter_type = f.find('filtertypeid')
             filter_id = f.find('filterid')
+            filter_name = f.find('name')
 
             if filter_type is not None and filter_id is not None:
                 filter_type = filter_type.text.strip()
                 filter_id = filter_id.text.strip()
+                filter_name = filter_name.text.strip() if filter_name is not None and filter_name.text.strip() else None
 
-                # Ищем или создаем фильтр
-                pf, created = ProductFilter.objects.get_or_create(
-                    filter_type=filter_type,
-                    filter_id=filter_id,
-                    defaults={'name': f"{filter_type}_{filter_id}"}
-                )
+                # Для размеров одежды (тип 1) требуем наличие названия
+                if filter_type == '1' and filter_name:
+                    # Нормализуем название размера
+                    size_name = filter_name.strip().upper()
+                    valid_size_filters.append({
+                        'type_id': filter_type,
+                        'filter_id': filter_id,
+                        'filter_name': size_name,
+                        'type_name': 'Размер одежды'
+                    })
 
-                # Добавляем связь с товаром
-                pf.products.add(xml_product)
+                # Создаем или обновляем фильтр только если есть название
+                if filter_name:
+                    pf, created = ProductFilter.objects.get_or_create(
+                        filter_type=filter_type,
+                        filter_id=filter_id,
+                        defaults={'name': filter_name}
+                    )
+                    pf.products.add(xml_product)
+
+        # Обновляем XML данные только с валидными фильтрами
+        if xml_product.xml_data is None:
+            xml_product.xml_data = {}
+        if 'attributes' not in xml_product.xml_data:
+            xml_product.xml_data['attributes'] = {}
+
+        xml_product.xml_data['attributes']['filters'] = valid_size_filters
+        xml_product.save()
+
+        return valid_size_filters
 
     def process_application_types(self, product, xml_product):
         """Обрабатывает типы нанесения для товара"""
@@ -634,6 +919,8 @@ class Command(BaseCommand):
         attributes = {
             # Основные атрибуты
             'size': self.get_text_value(product, 'product_size'),
+            'size_options': {},
+            'filters': [],
 
             # Флаги
             'made_in_russia': self.get_bool_value(product, 'made_in_russia'),
@@ -681,18 +968,7 @@ class Command(BaseCommand):
             'marking_type': self.get_text_value(product, 'marking_type'),
             'packaging_type': self.get_text_value(product, 'packaging_type'),
 
-            # Фильтры и принты
-            'filters': [
-                {
-                    'type_id': f.find('filtertypeid').text,
-                    'filter_id': f.find('filterid').text,
-                    'type_name': 'Тип фильтра',  # можно добавить из справочника
-                    'filter_name': 'Название фильтра'  # можно добавить из справочника
-                }
-                for f in product.findall('filters/filter')
-                if f.find('filtertypeid') is not None and f.find('filterid') is not None
-            ],
-
+            # Принты
             'prints': [
                 {'code': p.find('name').text, 'description': p.find('description').text}
                 for p in product.findall('print')
@@ -711,6 +987,29 @@ class Command(BaseCommand):
                 for a in product.findall('product_attachment')
             ]
         }
+
+        # Обработка фильтров (включая размеры одежды)
+        filters = product.findall('filters/filter')
+        for f in filters:
+            filter_type = f.find('filtertypeid')
+            filter_id = f.find('filterid')
+            filter_name = f.find('name')
+
+            if filter_type is not None and filter_id is not None:
+                filter_data = {
+                    'type_id': filter_type.text.strip(),
+                    'filter_id': filter_id.text.strip(),
+                    'type_name': 'Тип фильтра',  # можно добавить из справочника
+                    'filter_name': filter_name.text.strip() if filter_name is not None else 'Без названия'
+                }
+                attributes['filters'].append(filter_data)
+
+                # Сохраняем информацию о размерах одежды
+                if filter_type.text.strip() == '1':  # Предполагаем, что тип 1 - это размеры одежды
+                    size_name = filter_name.text.strip() if filter_name is not None else filter_id.text.strip()
+                    attributes['size_options'][size_name] = {
+                        'quantity': self.get_int_value(product, 'quantity') or 0
+                    }
 
         # Парсинг таблицы размеров
         if product.find('content') is not None:

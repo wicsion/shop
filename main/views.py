@@ -323,10 +323,24 @@ def add_to_cart(request, product_id):
         form = AddToCartForm(request.POST)
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
+            selected_size = request.POST.get('selected_size')
 
+            # Проверка доступности количества
+            if selected_size:
+                if product.variants.exists():
+                    variant = product.variants.filter(size=selected_size).first()
+                    if variant and variant.quantity < quantity:
+                        messages.error(request, 'Недостаточное количество товара выбранного размера')
+                        return redirect(product.get_absolute_url())
+                elif product.quantity < quantity:
+                    messages.error(request, 'Недостаточное количество товара')
+                    return redirect(product.get_absolute_url())
+
+            # Создаем или обновляем элемент корзины
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 xml_product=product,
+                size=selected_size,
                 defaults={'quantity': quantity}
             )
 
@@ -334,15 +348,7 @@ def add_to_cart(request, product_id):
                 cart_item.quantity += quantity
                 cart_item.save()
 
-            messages.success(request, _('Товар добавлен в корзину'))
-
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': str(_('Товар добавлен в корзину')),
-                    'cart_total': cart.total_quantity
-                })
-
+            messages.success(request, 'Товар добавлен в корзину')
             return redirect('main:cart_view')
 
     return redirect(product.get_absolute_url())
@@ -666,6 +672,20 @@ class XMLProductDetailView(DetailView):
         product = self.object
 
         # Обработка фильтров
+        # Подготовим данные о размерах
+        size_data = []
+        if product.variants.exists():
+            for variant in product.variants.all():
+                size_data.append({
+                    'size': variant.size,
+                    'quantity': variant.quantity
+                })
+        elif product.available_sizes:
+            for size in product.available_sizes:
+                size_data.append({
+                    'size': size,
+                    'quantity': product.quantity  # Общее количество, если нет вариантов
+                })
         readable_filters = []
         if product.xml_data and 'filters' in product.xml_data:
             for f in product.xml_data['filters']:
@@ -698,7 +718,7 @@ class XMLProductDetailView(DetailView):
                         })
                 except (KeyError, AttributeError):
                     continue
-
+        context['available_sizes'] = product.available_sizes
         context['readable_prints'] = readable_prints
         context['excluded_attributes'] = "attachments,images,filters,prints"
 
