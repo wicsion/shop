@@ -1002,14 +1002,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     cartCount.classList.add('animate-bounce');
                     setTimeout(() => cartCount.classList.remove('animate-bounce'), 1000);
                 }
-                window.location.href = "{% url 'main:cart_view' %}";
+                // УДАЛИТЕ ЭТУ СТРОКУ, КОТОРАЯ ВЫЗЫВАЕТ РЕДИРЕКТ
+                // window.location.href = "{% url 'main:cart_view' %}";
+
+                // Вместо редиректа показываем уведомление
+                showNotification('Товар успешно добавлен в корзину', 'success');
             } else {
-                alert(data.errors || 'Ошибка при добавлении в корзину');
+                showNotification(data.errors || 'Ошибка при добавлении в корзину', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Произошла ошибка');
+            showNotification('Произошла ошибка', 'error');
         })
         .finally(() => {
             submitButton.disabled = false;
@@ -1017,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 
 // Основная инициализация
 document.addEventListener('DOMContentLoaded', function() {

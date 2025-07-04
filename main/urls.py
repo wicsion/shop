@@ -26,6 +26,8 @@ urlpatterns = [
     path('search/suggestions/', views.search_suggestions, name='search_suggestions'),
     path('category/search/', category_search, name='category_search'),
     path('resize-image/', ResizeImageView.as_view(), name='resize_image'),
+    path('order/confirm/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
+    path('order/<int:order_id>/', views.order_detail, name='order_detail'),
 
 
 

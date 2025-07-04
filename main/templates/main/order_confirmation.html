@@ -1,0 +1,28 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="bg-white rounded-lg shadow p-8">
+            <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+
+            <h1 class="text-2xl font-bold mb-4">{% trans "Спасибо за ваш заказ!" %}</h1>
+            <p class="text-gray-700 mb-6">{% trans "Наш оператор свяжется с вами в ближайшее время для уточнения деталей." %}</p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+                <a href="{% url 'main:order_detail' order_id=order.id %}"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition">
+                    {% trans "Перейти к заказу" %}
+                </a>
+                <a href="{% url 'main:home' %}"
+                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition">
+                    {% trans "К товарам" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

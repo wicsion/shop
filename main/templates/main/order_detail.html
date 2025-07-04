@@ -1,0 +1,119 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">{% trans "Заказ #" %}{{ order.id }}</h1>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <!-- Статус заказа -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold mb-3">{% trans "Статус заказа" %}</h2>
+                <div class="flex items-center justify-between">
+                    <div class="text-center">
+                        <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
+                            {% if order.status == 'new' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            1
+                        </div>
+                        <p class="mt-2 text-sm">{% trans "Создан" %}</p>
+                    </div>
+
+                    <div class="flex-1 h-1 mx-2 bg-gray-200"></div>
+
+                    <div class="text-center">
+                        <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
+                            {% if order.status == 'in_progress' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            2
+                        </div>
+                        <p class="mt-2 text-sm">{% trans "Ожидает оплаты" %}</p>
+                    </div>
+
+                    <div class="flex-1 h-1 mx-2 bg-gray-200"></div>
+
+                    <div class="text-center">
+                        <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
+                            {% if order.status == 'completed' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            3
+                        </div>
+                        <p class="mt-2 text-sm">{% trans "Доставляется" %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о заказе -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h2 class="text-lg font-semibold mb-3">{% trans "Информация о заказе" %}</h2>
+                    <p><strong>{% trans "Номер заказа:" %}</strong> #{{ order.id }}</p>
+                    <p><strong>{% trans "Дата:" %}</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                    <p><strong>{% trans "Статус:" %}</strong> {{ order.get_status_display }}</p>
+                    <p><strong>{% trans "Сумма:" %}</strong> {{ order.total_price }} ₽</p>
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-semibold mb-3">{% trans "Контактная информация" %}</h2>
+                    {% if order.company %}
+                    <p><strong>{% trans "Компания:" %}</strong> {{ order.company.legal_name }} </p>
+                    {% endif %}
+                    <p><strong>{% trans "Имя:" %}</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p><strong>{% trans "Телефон:" %}</strong> {{ order.phone }}</p>
+                    <p><strong>{% trans "Email:" %}</strong> {{ order.email }}</p>
+                    <p><strong>{% trans "Адрес:" %}</strong> {{ order.address }}</p>
+                    {% if order.comment %}
+                    <p><strong>{% trans "Комментарий:" %}</strong> {{ order.comment }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Товары в заказе -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">{% trans "Состав заказа" %}</h2>
+
+            <div class="divide-y divide-gray-200">
+                {% for item in order.items.all %}
+                <div class="py-4 flex items-start">
+                    <div class="w-20 h-20 flex-shrink-0 rounded overflow-hidden mr-4">
+                        {% if item.xml_product %}
+                        <img src="{% url 'main:resize_image' %}?url={{ item.xml_product.main_image|urlencode }}&width=80&height=80"
+                             alt="{{ item.xml_product.name }}"
+                             class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="{% static 'images/no-image.jpg' %}"
+                             alt="No image"
+                             class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium">
+                            {% if item.xml_product %}
+                                {{ item.xml_product.name }}
+                            {% else %}
+                                {{ item.product.name }}
+                            {% endif %}
+                        </h3>
+                        <p class="text-gray-800 font-medium mt-1">
+                            {{ item.quantity }} × {{ item.price }} ₽ = {{ item.total_price }} ₽
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="border-t border-gray-200 pt-4 mt-4">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold">{% trans "Итого" %}:</span>
+                    <span class="text-xl font-bold">{{ order.total_price }} ₽</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{% url 'main:home' %}" class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition">
+                {% trans "Вернуться к покупкам" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

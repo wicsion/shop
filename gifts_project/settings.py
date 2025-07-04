@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'main.middleware.HTTP2PushMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,7 +78,7 @@ DATABASES = {
 }
 
 # Оптимизация для медиа-файлов
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'gifts_projects.storage.CustomFileStorage'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

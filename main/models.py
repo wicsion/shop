@@ -1111,6 +1111,14 @@ class Order(models.Model):
         (STATUS_COMPLETED, _('Завершен')),
         (STATUS_CANCELLED, _('Отменен')),
     ]
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Компания'),
+        related_name='orders'
+    )
 
     user = models.ForeignKey(
         User,
@@ -1163,7 +1171,16 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.PROTECT,
-        verbose_name=_('Товар')
+        verbose_name=_('Товар'),
+        null=True,  # Добавляем null=True
+        blank=True  # Добавляем blank=True
+    )
+    xml_product = models.ForeignKey(
+        XMLProduct,
+        on_delete=models.PROTECT,
+        verbose_name=_('XML Товар'),
+        null=True,
+        blank=True
     )
     quantity = models.PositiveIntegerField(_('Количество'), default=1)
     price = models.DecimalField(_('Цена'), max_digits=10, decimal_places=2)
@@ -1177,7 +1194,9 @@ class OrderItem(models.Model):
 
     @property
     def total_price(self):
-        return self.price * self.quantity
+        if self.price is not None and self.quantity is not None:
+            return self.price * self.quantity
+        return 0
 
 
 class ProductReview(models.Model):

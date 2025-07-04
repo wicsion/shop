@@ -1,44 +1,48 @@
 from django.contrib.sites import requests
-from django.http import JsonResponse,  HttpResponseRedirect,  HttpResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.utils.translation import gettext as _
 from django.views.generic import ListView, DetailView, TemplateView
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Q, F
-from .models import Category, Cart, CartItem, Order,  Brand, Slider, Partner, OrderItem, XMLProduct
-from .forms import AddToCartForm, OrderForm, SearchForm
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_GET
+from django.conf import settings
+from django.views import View
+from django.core.cache import cache
+from django.utils.cache import patch_response_headers
 import logging
 import re
 import requests
 from requests.auth import HTTPBasicAuth
-from urllib.parse import unquote
-from django.conf import settings
+from urllib.parse import unquote, quote
 from io import BytesIO
 from PIL import Image
-from django.views import View
-from django.core.cache import cache
-from urllib.parse import quote
 
+from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
+from .forms import AddToCartForm, OrderForm, SearchForm
 logger = logging.getLogger(__name__)
+
+
 
 
 class ResizeImageView(View):
     def get(self, request):
         image_url = unquote(request.GET.get('url', ''))
-        width = int(request.GET.get('width', 200))
-        height = int(request.GET.get('height', 200))
+        width = int(request.GET.get('width', 400))
+        height = int(request.GET.get('height', 400))
+        format = request.GET.get('format', 'webp' if 'image/webp' in request.headers.get('Accept', '') else 'jpeg')
 
-        # Проверяем поддержку WebP в заголовках запроса
-        accept_header = request.headers.get('Accept', '')
-        supports_webp = 'image/webp' in accept_header
+        cache_key = f"resized:{width}x{height}:{format}:{image_url}"
+        cached = cache.get(cache_key)
 
-        cache_key = f"resized_image_{image_url}_{width}_{height}_{'webp' if supports_webp else 'jpeg'}"
-        cached_response = cache.get(cache_key)
-        if cached_response:
-            return cached_response
+        if cached:
+            response = HttpResponse(cached, content_type=f'image/{format}')
+            # Кэшировать в браузере на 7 дней
+            patch_response_headers(response, cache_timeout=60*60*24*7)
+            response['Cache-Control'] = 'public, max-age=604800'  # 7 дней
+            return response
 
         try:
             clean_url = re.sub(r'https?://[^@]+@', 'https://', image_url)
@@ -46,32 +50,37 @@ class ResizeImageView(View):
                 clean_url,
                 auth=HTTPBasicAuth('87358_xmlexport', 'MGzXXSgD'),
                 stream=True,
-                timeout=10
+                timeout=5  # Уменьшенный таймаут
             )
             response.raise_for_status()
 
             img = Image.open(BytesIO(response.content))
-            img.thumbnail((width, height))
+
+            # Оптимизированное изменение размера
+            img.thumbnail((width, height), Image.Resampling.LANCZOS)
+
             output = BytesIO()
-
-            # Используем WebP если поддерживается, иначе JPEG
-            if supports_webp:
-                img.save(output, format='WEBP', quality=85)
-                content_type = 'image/webp'
-            else:
-                img.save(output, format='JPEG', quality=90)
-                content_type = 'image/jpeg'
-
+            img.save(output, format=format, quality=85, optimize=True)
             output.seek(0)
 
-            http_response = HttpResponse(output.getvalue(), content_type=content_type)
-            cache.set(cache_key, http_response, 60 * 60 * 24)  # Кэш на 24 часа
-            return http_response
+            # Кэшируем результат
+            cache.set(cache_key, output.getvalue(), 60 * 60 * 24 * 7)  # 1 неделя
+
+            response = HttpResponse(output.getvalue(), content_type=f'image/{format}')
+            # Кэшировать в браузере на 7 дней
+            patch_response_headers(response, cache_timeout=60*60*24*7)
+            response['Cache-Control'] = 'public, max-age=604800'  # 7 дней
+            return response
 
         except Exception as e:
             logger.error(f"Error resizing image: {e}")
-            return HttpResponseRedirect(settings.STATIC_URL + 'images/no-image.jpg')
-
+            # Возвращаем прозрачный 1x1 пиксель вместо редиректа
+            transparent_pixel = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x04\x00\x09\xfb\x03\xfd\x00\x00\x00\x00IEND\xaeB`\x82'
+            response = HttpResponse(transparent_pixel, content_type='image/png')
+            # Для ошибок кэшируем на 5 минут
+            patch_response_headers(response, cache_timeout=300)
+            response['Cache-Control'] = 'public, max-age=300'
+            return response
 
 
 def get_cart(request):
@@ -360,7 +369,10 @@ def add_to_cart(request, product_id):
             messages.error(request, 'Ошибка при добавлении в корзину')
             return redirect(product.get_absolute_url())
 
-    return redirect(product.get_absolute_url())
+
+
+
+
 def remove_from_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id)
     cart = cart_item.cart
@@ -446,7 +458,6 @@ def checkout(request):
         messages.warning(request, _('Ваша корзина пуста'))
         return redirect('main:cart_view')
 
-    # Подготовка элементов корзины с данными о продуктах
     cart_items = []
     for item in cart.items.all():
         if item.xml_product:
@@ -455,7 +466,7 @@ def checkout(request):
                 'product': item.xml_product,
                 'image': item.xml_product.main_image,
                 'total_price': item.quantity * item.xml_product.price,
-                'size': item.size  # Добавляем размер
+                'size': item.size
             })
 
     if request.method == 'POST':
@@ -465,36 +476,40 @@ def checkout(request):
 
             if request.user.is_authenticated:
                 order.user = request.user
+                # Если пользователь принадлежит компании, привязываем заказ к компании
+                if hasattr(request.user, 'company'):
+                    order.company = request.user.company
             else:
                 order.session_key = request.session.session_key
 
             order.save()
 
-            # Переносим товары из корзины в заказ
             for cart_item in cart.items.all():
                 if cart_item.xml_product:
                     OrderItem.objects.create(
                         order=order,
-                        product=None,
                         xml_product=cart_item.xml_product,
                         quantity=cart_item.quantity,
                         price=cart_item.xml_product.price
                     )
+                elif cart_item.product:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=cart_item.product,
+                        quantity=cart_item.quantity,
+                        price=cart_item.product.price
+                    )
 
-            # Очищаем корзину
             cart.items.all().delete()
-
             messages.success(request, _('Ваш заказ успешно оформлен! Номер заказа: #{}').format(order.id))
-            return redirect('main:order_success', order_id=order.id)
+            return redirect('main:order_confirmation', order_id=order.id)
     else:
         if request.user.is_authenticated:
-            # Заполняем форму данными пользователя
             initial = {
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'email': request.user.email,
                 'phone': request.user.phone,
-                # Добавьте другие поля, если нужно
             }
             form = OrderForm(initial=initial)
         else:
@@ -502,11 +517,13 @@ def checkout(request):
 
     context = {
         'cart': cart,
-        'cart_items': cart_items,  # Передаем подготовленные элементы корзины
+        'cart_items': cart_items,
         'form': form,
         'search_form': SearchForm(),
     }
+
     return render(request, 'main/checkout.html', context)
+
 
 
 def order_success(request, order_id):
@@ -838,3 +855,35 @@ def category_search(request):
     } for cat in categories]
 
     return JsonResponse({'results': results})
+
+
+def order_confirmation(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    # Проверка, что заказ принадлежит текущему пользователю или сессии
+    if (request.user.is_authenticated and order.user != request.user) or \
+            (not request.user.is_authenticated and order.session_key != request.session.session_key):
+        messages.error(request, _('Ошибка доступа'))
+        return redirect('main:home')
+
+    context = {
+        'order': order,
+        'search_form': SearchForm(),
+    }
+    return render(request, 'main/order_confirmation.html', context)
+
+
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    # Проверка, что заказ принадлежит текущему пользователю или сессии
+    if (request.user.is_authenticated and order.user != request.user) or \
+            (not request.user.is_authenticated and order.session_key != request.session.session_key):
+        messages.error(request, _('Ошибка доступа'))
+        return redirect('main:home')
+
+    context = {
+        'order': order,
+        'search_form': SearchForm(),
+    }
+    return render(request, 'main/order_detail.html', context)

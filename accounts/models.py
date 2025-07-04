@@ -209,7 +209,7 @@ class Order(models.Model):
         ('canceled', 'Отменен'),
     )
 
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='accounts_orders')
     order_number = models.UUIDField('Номер заказа', default=uuid.uuid4, editable=False)
     status = models.CharField('Статус', max_length=20, choices=ORDER_STATUSES, default='new')
     created_at = models.DateTimeField(auto_now_add=True)

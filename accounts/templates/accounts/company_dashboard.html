@@ -2,6 +2,8 @@
 {% load humanize %}
 {% load custom_filters %}
 {% block content %}
+
+    {{ orders|length }}
 <style>
     .dashboard-section {
         background: rgba(255, 255, 255, 0.98);
@@ -705,114 +707,109 @@
     .company-header-block p {
         font-size: 0.875rem !important; /* Уменьшаем размер шрифта */
     }
+    .company-header-container {
+    max-width: 400px; /* или любое другое значение по вашему усмотрению */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+    .status-canceled {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
 </style>
-
-<div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
-    <!-- Верхний блок с названием компании и ИНН -->
-    <div class="company-header-block">
+<div class="container mx-auto px-15 sm:px-15 py-6 lg:py-6">
+  <div class="company-header-container">
+    <div class="border-gray-1">
+      <div class="company-header-block">
+        <!-- Основная информация о компании -->
         <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-1">
-            <i class="fas fa-building mr-2 text-blue-600"></i>
-            {{ company.legal_name }}
+          <i class="fas  mr-2 text-blue-600"></i>
+          {{ company.legal_name }}
         </h1>
-        <p class="text-sm text-gray-600">
-            <i class="fas fa-id-card-alt mr-1"></i>
-            ИНН: {{ company.inn }}
-        </p>
+
+        <!-- Добавленная информация о пользователе -->
+        <!-- Роль пользователя -->
+        <div class="text-center mb-3">
+          <div class="text-lg font-semibold text-blue-800">
+            {% if user.role == 'admin' %}
+              <i class="fas fa-user-cog mr-2"></i>Администратор
+            {% elif user.role == 'accountant' %}
+              <i class="fas fa-calculator mr-2"></i>Бухгалтер
+            {% elif user.role == 'manager' %}
+              <i class="fas fa-shopping-cart mr-2"></i>Менеджер закупок
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ФИО пользователя -->
+        <div class="text-center">
+          <h2 class="text-xl font-semibold text-gray-800">{{ user.get_full_name }}</h2>
+        </div>
+      </div>
     </div>
+  </div>
 
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
-        <!-- Боковая панель (1 колонка) -->
-        <div class="lg:col-span-1 space-y-4 lg:space-y-8">
-            <!-- 2. Отдельный блок роли (новый, между компанией и пользователем) -->
-            <div class="dashboard-section p-3 text-center bg-blue-50 rounded-xl">
-                <p class="text-xs uppercase tracking-wider text-blue-600 mb-1">Ваша роль в системе</p>
-                <div class="text-lg font-semibold text-blue-800">
-                    {% if user.role == 'admin' %}
-                        <i class="fas fa-user-cog mr-2"></i>Администратор
-                    {% elif user.role == 'accountant' %}
-                        <i class="fas fa-calculator mr-2"></i>Бухгалтер
-                    {% elif user.role == 'manager' %}
-                        <i class="fas fa-shopping-cart mr-2"></i>Менеджер закупок
-                    {% endif %}
-                </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
+    <div class="lg:col-span-1 space-y-4 lg:space-y-8">
+      <!-- Боковая панель (1 колонка) -->
+      <div class="dashboard-section p-4 lg:p-6">
+        <div class="text-center">
+          <p class="text-gray-600 mb-4 font-medium">Есть проблема или вопрос?</p>
+          <a href="{% url 'accounts:support_ticket' %}" class="text-btn w-full justify-center">
+            <i class="fas fa-headset mr-2"></i>Связаться с нами
+          </a>
+        </div>
+      </div>
+
+      <!-- Раздел с адресами доставки -->
+      <div class="dashboard-section p-4 lg:p-6">
+        <h3 class="font-bold mb-4 text-center">Адреса доставки</h3>
+        <form id="delivery-address-form" method="post" action="{% url 'accounts:add_delivery_address' %}">
+          {% csrf_token %}
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Адрес доставки</label>
+              {{ delivery_address_form.address }}
             </div>
-
-            <!-- 3. Блок пользователя (теперь только ФИО и контакты) -->
-            <div class="dashboard-section p-4 lg:p-6">
-                <div class="text-center">
-                    <h2 class="text-xl lg:text-2xl font-semibold text-gray-800 mb-4">{{ user.get_full_name }}</h2>
-                    <div class="space-y-3 text-center text-gray-600">
-                        <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
-                            <i class="fas fa-envelope text-blue-600 text-lg"></i>
-                            <span class="text-gray-800">{{ user.email }}</span>
-                        </div>
-                        {% if user.phone %}
-                        <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
-                            <i class="fas fa-phone text-blue-600 text-lg"></i>
-                            <span class="text-gray-800">{{ user.phone }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="flex items-center">
+              {{ delivery_address_form.is_default }}
+              <label for="{{ delivery_address_form.is_default.id_for_label }}" class="ml-2 text-sm text-gray-600">
+                Сделать адресом по умолчанию
+              </label>
             </div>
+            <button type="submit" class="save-btn">
+              <i class="fas fa-plus mr-2"></i> Добавить адрес
+            </button>
+          </div>
+        </form>
 
-            <!-- 4. Секция "Связаться с нами" -->
-            <div class="dashboard-section p-4 lg:p-6">
-                <div class="text-center">
-                    <p class="text-gray-600 mb-4 font-medium">Есть проблема или вопрос?</p>
-                    <a href="{% url 'accounts:support_ticket' %}" class="text-btn w-full justify-center">
-                        <i class="fas fa-headset mr-2"></i>Связаться с нами
-                    </a>
+        <!-- Список добавленных адресов -->
+        <div class="mt-6">
+          <h4 class="text-sm font-medium text-gray-600 mb-3">Сохранённые адреса:</h4>
+          <div id="delivery-addresses-list" class="space-y-2">
+            {% for address in delivery_addresses %}
+              <div class="delivery-address-item bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center" data-address-id="{{ address.id }}">
+                <div>
+                  <p class="text-gray-800">{{ address.address }}</p>
+                  {% if address.is_default %}
+                    <span class="text-xs text-blue-600">(по умолчанию)</span>
+                  {% endif %}
                 </div>
-            </div>
+                <button class="delete-address text-red-500 hover:text-red-700" data-address-id="{{ address.id }}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            {% empty %}
+              <p class="text-gray-500 text-sm">Нет сохранённых адресов</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
 
-            <!-- Раздел с адресами доставки (перемещенный выше реквизитов) -->
-            <div class="dashboard-section p-4 lg:p-6">
-                <h3 class="font-bold mb-4 text-center">Адреса доставки</h3>
-                <form id="delivery-address-form" method="post" action="{% url 'accounts:add_delivery_address' %}">
-                    {% csrf_token %}
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-1">Адрес доставки</label>
-                            {{ delivery_address_form.address }}
-                        </div>
-                        <div class="flex items-center">
-                            {{ delivery_address_form.is_default }}
-                            <label for="{{ delivery_address_form.is_default.id_for_label }}" class="ml-2 text-sm text-gray-600">
-                                Сделать адресом по умолчанию
-                            </label>
-                        </div>
-                        <button type="submit" class="save-btn">
-                            <i class="fas fa-plus mr-2"></i> Добавить адрес
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Список добавленных адресов -->
-                <div class="mt-6">
-                    <h4 class="text-sm font-medium text-gray-600 mb-3">Сохранённые адреса:</h4>
-                    <div id="delivery-addresses-list" class="space-y-2">
-                        {% for address in delivery_addresses %}
-                            <div class="delivery-address-item bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center" data-address-id="{{ address.id }}">
-                                <div>
-                                    <p class="text-gray-800">{{ address.address }}</p>
-                                    {% if address.is_default %}
-                                        <span class="text-xs text-blue-600">(по умолчанию)</span>
-                                    {% endif %}
-                                </div>
-                                <button class="delete-address text-red-500 hover:text-red-700" data-address-id="{{ address.id }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        {% empty %}
-                            <p class="text-gray-500 text-sm">Нет сохранённых адресов</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Раздел с реквизитами компании (теперь идет после адресов) -->
+     <!-- Раздел с реквизитами компании (теперь идет после адресов) -->
             <div class="dashboard-section p-4 lg:p-6">
                 <h3 class="font-bold mb-4 text-center">Реквизиты компании</h3>
                 <form id="company-details-form" method="post" action="{% url 'accounts:company_profile' %}">
@@ -841,16 +838,16 @@
             </div>
         </div>
 
-        <!-- Основной контент -->
-        <div class="lg:col-span-3 space-y-4 lg:space-y-8 main-content-mobile">
-            <!-- Статистика компании -->
-            <div class="dashboard-section p-4 lg:p-8">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 lg:mb-8">
-                    <h3 class="section-title">
-                        <i class="fas fa-chart-line text-green-500/80"></i>
-                        Основные разделы
-                    </h3>
-                </div>
+    <!-- Основной контент -->
+    <div class="lg:col-span-3 space-y-4 lg:space-y-8 main-content-mobile mt-21">
+      <!-- Статистика компании -->
+      <div class="dashboard-section p-4 lg:p-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 lg:mb-8">
+          <h3 class="section-title">
+            <i class="fas fa-chart-line text-green-500/80"></i>
+            Основные разделы
+          </h3>
+        </div>
 
                 <!-- Панель разделов -->
                 <div class="grid grid-cols-6 gap-2 mb-6">
@@ -1013,88 +1010,109 @@
                     </div>
                 </div>
 
-                <div class="section-content" id="orders-content">
-                    <!-- Заказы -->
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                        <h2 class="text-xl font-bold">Активные заказы</h2>
-                        <div class="flex gap-2">
-                            <div class="relative">
-                                <input type="text" id="order-search" placeholder="Поиск..."
-                                    class="border rounded-lg px-3 py-2 text-sm">
-                            </div>
-                            <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
-                                <option value="">Все статусы</option>
-                                <option value="new">Новый</option>
-                                <option value="processing">В обработке</option>
-                                <option value="completed">Завершен</option>
-                            </select>
-                            <button id="export-orders" class="btn-custom">
-                                <i class="fas fa-file-export mr-2"></i> Экспорт
-                            </button>
-                            <button class="btn-custom">
-                                <i class="fas fa-plus mr-2"></i> Создать заказ
-                            </button>
-                        </div>
-                    </div>
+               <div class="section-content" id="orders-content">
+    <!-- Заказы -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 class="text-xl font-bold">Активные заказы</h2>
+        <p>Total orders: {{ orders.count }}</p>
+        <div class="flex gap-2">
+            <div class="relative">
+                <input type="text" id="order-search" placeholder="Поиск..."
+                    class="border rounded-lg px-3 py-2 text-sm">
+            </div>
 
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Номер</th>
-                                    <th>Дата</th>
-                                    <th>Сумма</th>
-                                    <th>Статус</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>#ORD-1234</td>
-                                    <td>27.05.2025</td>
-                                    <td>25 000 ₽</td>
-                                    <td><span class="status-badge status-completed">Завершено</span></td>
-                                    <td>
-                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
-                                            <i class="fas fa-eye"></i> Просмотреть
-                                        </a>
-                                        <a href="#" class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i> Удалить
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>#ORD-1233</td>
-                                    <td>26.05.2025</td>
-                                    <td>18 500 ₽</td>
-                                    <td><span class="status-badge status-pending">В обработке</span></td>
-                                    <td>
-                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
-                                            <i class="fas fa-eye"></i> Просмотреть
-                                        </a>
-                                        <a href="#" class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i> Удалить
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>#ORD-1232</td>
-                                    <td>25.05.2025</td>
-                                    <td>32 000 ₽</td>
-                                    <td><span class="status-badge status-new">Новый</span></td>
-                                    <td>
-                                        <a href="#" class="text-blue-500 hover:text-blue-700 mr-3">
-                                            <i class="fas fa-eye"></i> Просмотреть
-                                        </a>
-                                        <a href="#" class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i> Удалить
-                                        </a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
+                <option value="">Все статусы</option>
+                <option value="new">Новый</option>
+                <option value="processing">В обработке</option>
+                <option value="completed">Завершен</option>
+                <option value="canceled">Отменен</option>
+            </select>
+            <button id="export-orders" class="btn-custom">
+                <i class="fas fa-file-export mr-2"></i> Экспорт
+            </button>
+
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Номер</th>
+                    <th>Дата</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order.order_number|default:order.id }}</td>
+                    <td>{{ order.created_at|date:"d.m.Y" }}</td>
+                    <td>{{ order.total_amount|floatformat:2 }} ₽</td>
+                    <td>
+                        <span class="status-badge
+                            {% if order.status == 'completed' %}status-completed
+                            {% elif order.status == 'new' %}status-new
+                            {% elif order.status == 'processing' %}status-pending
+                            {% elif order.status == 'canceled' %}status-canceled
+                            {% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'accounts:order_detail' order.id %}" class="text-blue-500 hover:text-blue-700 mr-3">
+                            <i class="fas fa-eye"></i> Просмотреть
+                        </a>
+                        {% if order.status == 'new' %}
+                        <a href="{% url 'accounts:order_cancel' order.id %}" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times-circle"></i> Отменить
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-gray-500">Нет заказов</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Пагинация -->
+        {% if orders.has_other_pages %}
+        <div class="flex justify-center mt-4">
+            <nav class="inline-flex">
+                {% if orders.has_previous %}
+                <a href="?page={{ orders.previous_page_number }}" class="px-3 py-1 rounded-l border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                    &laquo;
+                </a>
+                {% else %}
+                <span class="px-3 py-1 rounded-l border border-gray-300 bg-gray-100 text-gray-400">&laquo;</span>
+                {% endif %}
+
+                {% for i in orders.paginator.page_range %}
+                    {% if orders.number == i %}
+                    <span class="px-3 py-1 border-t border-b border-gray-300 bg-blue-500 text-white">{{ i }}</span>
+                    {% else %}
+                    <a href="?page={{ i }}" class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}" class="px-3 py-1 rounded-r border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                    &raquo;
+                </a>
+                {% else %}
+                <span class="px-3 py-1 rounded-r border border-gray-300 bg-gray-100 text-gray-400">&raquo;</span>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
                 <div class="section-content" id="documents-content">
                     <!-- Документы -->
@@ -1478,30 +1496,25 @@
 
     // В блок script
     document.getElementById('order-search').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        filterOrders(searchTerm, document.getElementById('status-filter').value);
+    const searchTerm = this.value.toLowerCase();
+    filterOrders(searchTerm, document.getElementById('status-filter').value);
+});
+
+document.getElementById('status-filter').addEventListener('change', function() {
+    filterOrders(document.getElementById('order-search').value, this.value);
+});
+
+function filterOrders(searchTerm, statusFilter) {
+    const rows = document.querySelectorAll('.table tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
+        const matchesSearch = text.includes(searchTerm);
+        const matchesStatus = !statusFilter || rowStatus.includes(statusFilter.toLowerCase());
+
+        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
     });
-
-    document.getElementById('status-filter').addEventListener('change', function() {
-        filterOrders(document.getElementById('order-search').value, this.value);
-    });
-
-    document.getElementById('export-orders').addEventListener('click', function() {
-        // Здесь будет код для экспорта
-        exportOrdersToExcel();
-    });
-
-    function filterOrders(searchTerm, statusFilter) {
-        const rows = document.querySelectorAll('.table tbody tr');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
-            const matchesSearch = text.includes(searchTerm);
-            const matchesStatus = !statusFilter || rowStatus.includes(statusFilter);
-
-            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-        });
-    }
+}
 
     function exportOrdersToExcel() {
         // Здесь будет реализация экспорта через API

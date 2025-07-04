@@ -141,31 +141,23 @@ def verify_company_email(request, token):
 
 class CompanyDashboardView(LoginRequiredMixin, ListView):
     template_name = 'accounts/company_dashboard.html'
+    paginate_by = 10
 
     def get_queryset(self):
-        return {
-            'documents': Document.objects.filter(company=self.request.user.company),
-            'orders': Order.objects.filter(company=self.request.user.company),
-            'audit_logs': AuditLog.objects.filter(company=self.request.user.company)
-        }
+        print(f"Company ID: {self.request.user.company.id}")
+        return Order.objects.filter(company=self.request.user.company).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         company = self.request.user.company
         user = self.request.user
 
-        # Добавляем форму и список адресов доставки
-        context['delivery_address_form'] = DeliveryAddressForm()
-        context['delivery_addresses'] = DeliveryAddress.objects.filter(company=company)
-
-        admin_user = CustomUser.objects.filter(company=company, role='admin').first()
-        manager_user = CustomUser.objects.filter(company=company, role='manager').first()
-
         context.update({
             'company': company,
-            'admin_user': admin_user,
-            'manager_user': manager_user,
             'user': user,
+            'orders': context['object_list'],
+            'delivery_address_form': DeliveryAddressForm(),
+            'delivery_addresses': DeliveryAddress.objects.filter(company=company)
         })
         return context
 

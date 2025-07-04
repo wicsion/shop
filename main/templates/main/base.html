@@ -509,6 +509,31 @@
     min-width: auto;
     border-width: 1px !important;
 }
+/* Добавьте эти стили в ваш CSS блок */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Убедитесь, что основной контент растягивается */
+.flex-grow-1 {
+    flex: 1 0 auto;
+}
+
+/* Для footer */
+.mt-auto {
+    margin-top: auto;
+}
+
+/* Уберите лишние отступы у main-content */
+.main-content {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
 </style>
 </head>
 
@@ -726,7 +751,7 @@
 </main>
 
 <!-- Подвал -->
-<footer class="bg-dark text-white py-5 mt-5">
+<footer class="bg-dark text-white py-5 mt-auto">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">

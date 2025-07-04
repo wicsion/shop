@@ -4,8 +4,6 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
-
-from . import views
 from .models import (
     Category, Brand, Product, XMLProduct,
     Cart, CartItem, Order, OrderItem,
@@ -447,44 +445,36 @@ class CartAdmin(admin.ModelAdmin):
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 0
-    fields = ['product', 'xml_product', 'quantity', 'price', 'total_price']
-    readonly_fields = ['total_price']
+    extra = 0  # Не показывать дополнительные пустые формы
+    fields = ['product', 'xml_product', 'quantity', 'price', 'total_price']  # Отображаемые поля
+    readonly_fields = ('total_price',)  # Поля только для чтения
 
     def total_price(self, obj):
-        return obj.price * obj.quantity
-    total_price.short_description = _('Общая сумма')
+        """
+        Рассчитывает общую стоимость для одного элемента заказа
+        """
+        if obj.price is not None and obj.quantity is not None:
+            return obj.price * obj.quantity
+        return 0  # Возвращаем 0 если цена или количество не указаны
+
+    total_price.short_description = 'Общая стоимость'  # Заголовок столбца
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = [
-        'id', 'user', 'status', 'total_price', 'first_name',
-        'last_name', 'email', 'phone', 'created_at'
-    ]
-    list_filter = ['status', 'created_at']
-    search_fields = ['id', 'user__username', 'first_name', 'last_name', 'email', 'phone']
-    inlines = [OrderItemInline]
-    readonly_fields = ['created_at', 'updated_at']
-    fieldsets = (
-        (None, {
-            'fields': ('user', 'session_key', 'status')
-        }),
-        (_('Контактная информация'), {
-            'fields': ('first_name', 'last_name', 'email', 'phone')
-        }),
-        (_('Доставка'), {
-            'fields': ('address', 'comment')
-        }),
-        (_('Даты'), {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
+    inlines = [OrderItemInline]  # Включаем inline для элементов заказа
+    list_display = ('id', 'status', 'created_at', 'total_price')  # Поля в списке заказов
+    list_filter = ['status', 'created_at']  # Фильтры справа
+    search_fields = ['id', 'user__username']  # Поиск по этим полям
 
     def total_price(self, obj):
-        return obj.total_price
-    total_price.short_description = _('Общая сумма')
+        """
+        Рассчитывает общую стоимость всего заказа
+        Суммирует total_price всех элементов заказа
+        """
+        return sum(item.total_price for item in obj.items.all())
+
+    total_price.short_description = 'Общая стоимость заказа'
 
 
 @admin.register(Slider)

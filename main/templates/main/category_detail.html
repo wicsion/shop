@@ -2,10 +2,10 @@
 {% load static i18n %}
 
 {% block extra_head %}
-<!-- Предзагрузка первых 4 изображений -->
-{% for product in products|slice:":4" %}
-<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200&format=webp" as="image" type="image/webp" importance="high">
-<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200" as="image" importance="high">
+<!-- Предзагрузка первых 12 изображений с приоритетом -->
+{% for product in products|slice:":6" %}
+<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400&format=webp" as="image" type="image/webp" fetchpriority="high">
+<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400" as="image" fetchpriority="high">
 {% endfor %}
 {% endblock %}
 
@@ -449,18 +449,18 @@
                 <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition flex flex-col h-full">
                     <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
                         <div class="image-container w-full h-64 relative">
-                            <!-- Заглушка для ленивой загрузки -->
-                            <img
-                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
-                                data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
-                                loading="{% if forloop.counter <= 4 %}eager{% else %}lazy{% endif %}"
-                                class="lazy-load w-full h-full object-cover"
-                                alt="{{ product.name }}"
-                                width="400"
-                                height="400"
-                                {% if forloop.counter <= 4 %}fetchpriority="high"{% endif %}
-                            >
-                        </div>
+    <img
+        src="{% static 'images/placeholder.svg' %}"
+        data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400&format=webp"
+        data-src-fallback="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
+        loading="lazy"
+        class="lazy-load w-full h-full object-cover"
+        alt="{{ product.name }}"
+        width="400"
+        height="400"
+        decoding="async"
+    >
+</div>
                         <div class="p-4 flex-grow">
                             <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
                             <div class="flex items-center justify-between mt-auto">
@@ -531,61 +531,53 @@
 
 {% block extra_js %}
 <script>
+function optimizedImageLoader() {
+    const lazyImages = document.querySelectorAll('.lazy-load');
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.dataset.src;
+                const fallback = img.dataset.srcFallback;
+
+                // Сначала пробуем загрузить WebP
+                const webpLoader = new Image();
+                webpLoader.onload = () => {
+                    img.src = src;
+                    img.classList.add('loaded');
+                };
+                webpLoader.onerror = () => {
+                    // Если WebP не поддерживается, загружаем fallback
+                    img.src = fallback;
+                    img.classList.add('loaded');
+                };
+                webpLoader.src = src;
+
+                observer.unobserve(img);
+            }
+        });
+    }, {
+        rootMargin: '200px', // Начинаем загружать заранее
+        threshold: 0.01
+    });
+
+    lazyImages.forEach(img => observer.observe(img));
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Оптимизированная ленивая загрузка изображений
-    const lazyLoadImages = () => {
-        const images = document.querySelectorAll('.lazy-load:not(.loaded)');
-        const VISIBLE_IMAGES = 12; // Первые 4 грузим сразу
-        const REQUEST_DELAY = 100; // 200ms = 5 запр./сек
-        let loadedCount = 0;
-
-        // 1. Загружаем видимые изображения сразу
-        const loadVisible = () => {
-            const visible = Array.from(images).slice(0, VISIBLE_IMAGES);
-            visible.forEach(img => loadImage(img));
-            loadedCount = visible.length;
-        };
-
-        // 2. Ленивая загрузка остальных с задержкой
-        const lazyLoad = () => {
-            if (loadedCount >= images.length) return;
-
-            loadImage(images[loadedCount]);
-            loadedCount++;
-            setTimeout(lazyLoad, REQUEST_DELAY);
-        };
-
-        // 3. Упрощенная загрузка с кэшированием
-        function loadImage(img) {
+    // Упрощенная загрузка всех изображений сразу
+    const loadAllImages = () => {
+        document.querySelectorAll('.lazy-load').forEach(img => {
             if (!img.dataset.src) {
                 img.src = '{% static 'images/no-image.jpg' %}';
                 return;
             }
 
-            // Используем браузерный кэш вместо ручного
             img.src = img.dataset.src;
             img.onload = () => img.classList.add('loaded');
             img.onerror = () => {
                 img.src = '{% static 'images/no-image.jpg' %}';
             };
-        }
-
-        // Запуск
-        loadVisible();
-
-        // Дополнительно: загружаем при скролле
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    loadImage(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {threshold: 0.1});
-
-        // Наблюдаем за оставшимися изображениями
-        Array.from(images).slice(VISIBLE_IMAGES).forEach(img => {
-            observer.observe(img);
         });
     };
 
@@ -781,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newProducts = temp.querySelector('#products-container');
             if (newProducts) {
                 productsContainer.innerHTML += newProducts.innerHTML;
-                lazyLoadImages();
+                loadAllImages(); // Загружаем изображения для новых товаров
                 initCartHandlers();
             }
 
@@ -873,20 +865,66 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Инициализация при загрузке страницы
-    lazyLoadImages();
+    loadAllImages(); // Загружаем все изображения сразу
     setCurrentFilters();
     initCartHandlers();
     initEventHandlers();
 });
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+  }
 </script>
 
 <style>
+
 :root {
     --top-navbar-height: 40px;
     --main-header-height: 20px;
     --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
 }
+/* Оптимизированные стили для изображений */
+.image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1; /* Сохраняем соотношение сторон */
+    background-color: #f5f5f5;
+    overflow: hidden;
+}
 
+.lazy-load {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    will-change: opacity; /* Подсказка для браузера */
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+}
+
+/* Placeholder стили */
+.image-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(110deg, #f5f5f5 8%, #eee 18%, #f5f5f5 33%);
+    background-size: 200% 100%;
+    animation: 1.5s shine linear infinite;
+}
+
+@keyframes shine {
+    to {
+        background-position-x: -200%;
+    }
+}
 .sticky-column {
     top: calc(var(--total-header-height) + 4.0rem);
     position: sticky;
