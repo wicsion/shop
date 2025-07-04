@@ -8,6 +8,9 @@ from django.core.validators import MinValueValidator
 import uuid
 
 
+
+
+
 class Company(models.Model):
     ORGANIZATION_TYPES = (
         ('ООО', 'Общество с ограниченной ответственностью'),
@@ -242,3 +245,20 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"Счет {self.invoice_number} для заказа #{self.order.order_number}"
+
+
+
+class DeliveryAddress(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='delivery_addresses')
+    address = models.TextField('Адрес доставки')
+    is_default = models.BooleanField('Адрес по умолчанию', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Адрес доставки'
+        verbose_name_plural = 'Адреса доставки'
+        ordering = ['-is_default', '-created_at']
+
+    def __str__(self):
+        return f"{self.address} ({'по умолчанию' if self.is_default else ''})"

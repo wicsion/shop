@@ -1,7 +1,7 @@
 # forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Company, CustomUser, Document, Order, CartItem
+from .models import Company, CustomUser, Document, Order, CartItem, DeliveryAddress
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 
@@ -111,3 +111,11 @@ class EmailAuthenticationForm(AuthenticationForm):
         return self.cleaned_data
 
 
+class DeliveryAddressForm(forms.ModelForm):
+    class Meta:
+        model = DeliveryAddress
+        fields = ['address', 'is_default']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3, 'class': 'w-full border rounded-lg px-3 py-2 text-sm'}),
+            'is_default': forms.CheckboxInput(attrs={'class': 'form-checkbox h-4 w-4 text-blue-600'})
+        }

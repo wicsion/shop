@@ -1,8 +1,8 @@
 # views.py
 from django.views.generic import CreateView, UpdateView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Company, Document,  AuditLog, CustomUser, SupportTicket
-from .forms import CompanyRegistrationForm, DocumentUploadForm
+from .models import Company, Document, AuditLog, CustomUser, SupportTicket, DeliveryAddress
+from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm
 import random
 import string
 from django.core.mail import send_mail
@@ -154,6 +154,10 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
         company = self.request.user.company
         user = self.request.user
 
+        # Добавляем форму и список адресов доставки
+        context['delivery_address_form'] = DeliveryAddressForm()
+        context['delivery_addresses'] = DeliveryAddress.objects.filter(company=company)
+
         admin_user = CustomUser.objects.filter(company=company, role='admin').first()
         manager_user = CustomUser.objects.filter(company=company, role='manager').first()
 
@@ -164,6 +168,10 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
             'user': user,
         })
         return context
+
+
+
+
 
 class InvalidTokenView(TemplateView):
     template_name = 'accounts/emails/invalid_token.html'
@@ -624,3 +632,46 @@ class SupportTicketCreateView(LoginRequiredMixin, CreateView):
         form.instance.company = self.request.user.company
         messages.success(self.request, 'Ваше обращение успешно отправлено!')
         return super().form_valid(form)
+
+
+def add_delivery_address(request):
+    if request.method == 'POST':
+        form = DeliveryAddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.company = request.user.company
+
+            # Если новый адрес помечен как default, снимаем флаг с других адресов
+            if address.is_default:
+                DeliveryAddress.objects.filter(company=request.user.company).update(is_default=False)
+
+            address.save()
+
+            # Возвращаем JSON ответ
+            return JsonResponse({
+                'success': True,
+                'address_id': address.id,
+                'address': address.address,
+                'is_default': address.is_default,
+                'html': render_to_string('accounts/partials/delivery_address_item.html', {
+                    'address': address
+                }, request=request)
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            }, status=400)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=405)
+
+
+def delete_delivery_address(request, address_id):
+        if request.method == 'DELETE' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                address = DeliveryAddress.objects.get(id=address_id, company=request.user.company)
+                address.delete()
+                return JsonResponse({'success': True})
+            except DeliveryAddress.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Адрес не найден'}, status=404)
+        return JsonResponse({'success': False}, status=405)

@@ -1,6 +1,14 @@
 {% extends "main/base.html" %}
 {% load static i18n %}
 
+{% block extra_head %}
+<!-- Предзагрузка первых 4 изображений -->
+{% for product in products|slice:":4" %}
+<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200&format=webp" as="image" type="image/webp" importance="high">
+<link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=200&height=200" as="image" importance="high">
+{% endfor %}
+{% endblock %}
+
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <!-- Хлебные крошки -->
@@ -28,10 +36,8 @@
 
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Боковая панель с фильтрами -->
-
-        <!-- Боковая панель с фильтрами -->
         <aside class="w-full lg:w-64 flex-shrink-0">
-    <div class="bg-white rounded-lg shadow p-6 sticky-column">
+            <div class="bg-white rounded-lg shadow p-6 sticky-column">
                 <!-- Фильтр по цене -->
                 <div class="mb-6">
                     <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
@@ -149,7 +155,7 @@
                                    class="size-filter mr-2" value="{{ size }}"
                                    {% if size in selected_sizes %}checked{% endif %}
                                    aria-labelledby="size_{{ forloop.counter }}_label">
-                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ sizes|length }} </label>
+                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ size }}</label>
                         </div>
                         {% endfor %}
                     </div>
@@ -196,19 +202,6 @@
                                    {% if 'unisex' in selected_genders %}checked{% endif %}
                                    aria-labelledby="gender_unisex_label">
                             <label for="gender_unisex" id="gender_unisex_label">{% trans "Унисекс" %}</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Фильтр по возрасту -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Возраст" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="for_kids" class="age-filter mr-2" value="true"
-                                   {% if request.GET.for_kids == 'true' %}checked{% endif %}
-                                   aria-labelledby="for_kids_label">
-                            <label for="for_kids" id="for_kids_label">{% trans "Для детей" %}</label>
                         </div>
                     </div>
                 </div>
@@ -452,62 +445,73 @@
 
             <!-- Список товаров -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="products-container">
-    {% for product in products %}
-    <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition flex flex-col h-full">
-        <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
-            <!-- Placeholder для изображения -->
-            <div class="image-container w-full h-64">
-    <div class="image-placeholder"></div>
-    <img
-        src="{% static 'images/placeholder.jpg' %}"
-        data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
-        alt="{{ product.name }}"
-        class="lazy-load w-full h-full object-cover absolute top-0 left-0"
-        loading="lazy"
-    >
-</div>
-            <div class="p-4 flex-grow">
-                <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
-                <div class="flex items-center justify-between mt-auto">
-                    <div>
-                        {% if product.has_discount %}
-                        <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
-                        <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
-                        {% else %}
-                        <span class="font-bold">{{ product.price }} ₽</span>
-                        {% endif %}
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition flex flex-col h-full">
+                    <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
+                        <div class="image-container w-full h-64 relative">
+                            <!-- Заглушка для ленивой загрузки -->
+                            <img
+                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+                                data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
+                                loading="{% if forloop.counter <= 4 %}eager{% else %}lazy{% endif %}"
+                                class="lazy-load w-full h-full object-cover"
+                                alt="{{ product.name }}"
+                                width="400"
+                                height="400"
+                                {% if forloop.counter <= 4 %}fetchpriority="high"{% endif %}
+                            >
+                        </div>
+                        <div class="p-4 flex-grow">
+                            <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                            <div class="flex items-center justify-between mt-auto">
+                                <div style="margin-bottom: 2px">
+                                    {% if product.has_discount %}
+                                    <div class="flex items-center">
+                                        <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
+                                        <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="font-bold">{{ product.price }} ₽</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex items-center">
+                                    {% if product.status == 'new' %}
+                                    <span class="product-badge badge-new badge-pulse">{% trans "Новинка" %}</span>
+                                    {% elif product.status == 'limited' %}
+                                    <span class="product-badge badge-limited">{% trans "Лимит" %}</span>
+                                    {% endif %}
+                                    {% if product.is_featured %}
+                                    <span class="product-badge badge-featured">{% trans "Топ" %}</span>
+                                    {% endif %}
+                                    {% if product.has_discount %}
+                                    <span class="product-badge badge-discount">{% trans "Скидка" %}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="px-4 pb-4 mt-auto">
+                        <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                                data-product-id="{{ product.product_id }}"
+                                aria-label="Добавить {{ product.name }} в корзину">
+                            {% trans "В корзину" %}
+                        </button>
                     </div>
-                    {% if product.status == 'new' %}
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{% trans "Новинка" %}</span>
-                    {% elif product.status == 'limited' %}
-                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">{% trans "Ограниченный тираж" %}</span>
-                    {% endif %}
-                    {% if product.is_featured %}
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ml-2">{% trans "Рекомендуемый" %}</span>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
+                    {% if request.GET %}
+                    <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}{% endif %}" class="text-blue-600 hover:underline mt-2 inline-block"
+                       aria-label="Сбросить фильтры">
+                        {% trans "Сбросить фильтры" %}
+                    </a>
                     {% endif %}
                 </div>
+                {% endfor %}
             </div>
-        </a>
-        <div class="px-4 pb-4 mt-auto">
-            <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                    data-product-id="{{ product.product_id }}"
-                    aria-label="Добавить {{ product.name }} в корзину">
-                {% trans "В корзину" %}
-            </button>
-        </div>
-    </div>
-    {% empty %}
-    <div class="col-span-full text-center py-12">
-        <p class="text-gray-500">{% trans "Товары не найдены" %}</p>
-        {% if request.GET %}
-        <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}{% endif %}" class="text-blue-600 hover:underline mt-2 inline-block"
-           aria-label="Сбросить фильтры">
-            {% trans "Сбросить фильтры" %}
-        </a>
-        {% endif %}
-    </div>
-    {% endfor %}
-</div>
+
             <!-- Кнопка загрузки дополнительных товаров -->
             {% if products.has_next %}
             <div id="load-more-container" class="mt-8 text-center">
@@ -528,13 +532,64 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Кэш для изображений
-    const imageCache = {};
-    let activeRequests = 0;
-    const MAX_PARALLEL_REQUESTS = 5;
-    const REQUEST_DELAY = 200;
+    // Оптимизированная ленивая загрузка изображений
+    const lazyLoadImages = () => {
+        const images = document.querySelectorAll('.lazy-load:not(.loaded)');
+        const VISIBLE_IMAGES = 12; // Первые 4 грузим сразу
+        const REQUEST_DELAY = 100; // 200ms = 5 запр./сек
+        let loadedCount = 0;
 
-    // 1. Функции для работы с фильтрами
+        // 1. Загружаем видимые изображения сразу
+        const loadVisible = () => {
+            const visible = Array.from(images).slice(0, VISIBLE_IMAGES);
+            visible.forEach(img => loadImage(img));
+            loadedCount = visible.length;
+        };
+
+        // 2. Ленивая загрузка остальных с задержкой
+        const lazyLoad = () => {
+            if (loadedCount >= images.length) return;
+
+            loadImage(images[loadedCount]);
+            loadedCount++;
+            setTimeout(lazyLoad, REQUEST_DELAY);
+        };
+
+        // 3. Упрощенная загрузка с кэшированием
+        function loadImage(img) {
+            if (!img.dataset.src) {
+                img.src = '{% static 'images/no-image.jpg' %}';
+                return;
+            }
+
+            // Используем браузерный кэш вместо ручного
+            img.src = img.dataset.src;
+            img.onload = () => img.classList.add('loaded');
+            img.onerror = () => {
+                img.src = '{% static 'images/no-image.jpg' %}';
+            };
+        }
+
+        // Запуск
+        loadVisible();
+
+        // Дополнительно: загружаем при скролле
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    loadImage(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {threshold: 0.1});
+
+        // Наблюдаем за оставшимися изображениями
+        Array.from(images).slice(VISIBLE_IMAGES).forEach(img => {
+            observer.observe(img);
+        });
+    };
+
+    // Функции для работы с фильтрами
     function updateUrlParams(params) {
         params.set('page', '1');
         window.location.search = params.toString();
@@ -643,70 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('per_page').value = params.get('per_page') || '12';
     }
 
-    // 2. Функции для работы с изображениями
-    function loadImage(img) {
-        try {
-            if (!img.dataset.src) {
-                img.src = '{% static 'images/no-image.jpg' %}';
-                return;
-            }
-
-            if (imageCache[img.dataset.src]) {
-                img.src = imageCache[img.dataset.src];
-                img.classList.add('loaded');
-                return;
-            }
-
-            if (activeRequests >= MAX_PARALLEL_REQUESTS) {
-                setTimeout(() => loadImage(img), REQUEST_DELAY);
-                return;
-            }
-
-            activeRequests++;
-
-            const tempImg = new Image();
-            tempImg.onload = function() {
-                imageCache[img.dataset.src] = img.dataset.src;
-                img.src = this.src;
-                img.classList.add('loaded');
-                activeRequests--;
-            };
-            tempImg.onerror = function() {
-                img.src = '{% static 'images/no-image.jpg' %}';
-                activeRequests--;
-            };
-            tempImg.src = img.dataset.src;
-        } catch (e) {
-            console.error('Error loading image:', e);
-            img.src = '{% static 'images/no-image.jpg' %}';
-        }
-    }
-
-    function initLazyLoading() {
-        const lazyImages = document.querySelectorAll('.lazy-load:not(.loaded)');
-
-        const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    // Загружаем первые 4 изображения сразу, остальные с задержкой
-                    if (index < 4) {
-                        loadImage(img);
-                    } else {
-                        setTimeout(() => loadImage(img), (index - 3) * REQUEST_DELAY);
-                    }
-                    observer.unobserve(img);
-                }
-            });
-        }, {
-            rootMargin: '300px',
-            threshold: 0.01
-        });
-
-        lazyImages.forEach(img => lazyLoadObserver.observe(img));
-    }
-
-    // 3. Функции для работы с корзиной
+    // Функции для работы с корзиной
     function initCartHandlers() {
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', function(e) {
@@ -731,15 +723,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     if (data.success) {
-                        showNotification(data.message, 'success');
+                        showNotification('{% trans "Товар добавлен в корзину" %}', 'success');
                         updateCartCounter(data.cart_total);
                     } else {
-                        showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
+                        showNotification(data.error || '{% trans "Ошибка при добавлении в корзину" %}', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Произошла ошибка', 'error');
+                    showNotification('{% trans "Произошла ошибка" %}', 'error');
                 })
                 .finally(() => {
                     this.disabled = false;
@@ -760,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 4. Функция для подгрузки товаров
+    // Функция для подгрузки товаров
     function loadMoreProducts() {
         const params = new URLSearchParams(window.location.search);
         const nextPage = parseInt(params.get('page') || '1') + 1;
@@ -789,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newProducts = temp.querySelector('#products-container');
             if (newProducts) {
                 productsContainer.innerHTML += newProducts.innerHTML;
-                initLazyLoading();
+                lazyLoadImages();
                 initCartHandlers();
             }
 
@@ -813,13 +805,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 5. Вспомогательные функции
+    // Вспомогательные функции
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
-        notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
+        notification.className = `fixed bottom-4 right-4 px-4 py-3 rounded-md shadow-lg text-white ${
             type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        }`;
-        notification.textContent = message;
+        } flex flex-col items-start`;
+        notification.style.maxWidth = '300px';
+
+        const messageText = document.createElement('div');
+        messageText.className = 'mb-2';
+        messageText.textContent = message;
+        notification.appendChild(messageText);
+
+        if (type === 'success') {
+            const cartLink = document.createElement('a');
+            cartLink.href = '{% url "main:cart_view" %}';
+            cartLink.className = 'text-white text-sm font-medium hover:underline';
+            cartLink.textContent = '{% trans "Перейти в корзину" %}';
+            notification.appendChild(cartLink);
+        }
+
         notification.setAttribute('role', 'alert');
         document.body.appendChild(notification);
 
@@ -829,7 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // 6. Инициализация обработчиков событий
+    // Инициализация обработчиков событий
     function initEventHandlers() {
         // Фильтры
         document.getElementById('reset_filters')?.addEventListener('click', () => {
@@ -867,13 +873,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Инициализация при загрузке страницы
+    lazyLoadImages();
     setCurrentFilters();
-    initLazyLoading();
     initCartHandlers();
     initEventHandlers();
-
 });
-
 </script>
 
 <style>
@@ -887,8 +891,8 @@ document.addEventListener('DOMContentLoaded', function() {
     top: calc(var(--total-header-height) + 4.0rem);
     position: sticky;
     height: fit-content;
-    align-self: flex-start; /* Добавлено для правильного позиционирования */
-    margin-bottom: 1rem; /* Добавлено для отступа в мобильной версии */
+    align-self: flex-start;
+    margin-bottom: 1rem;
 }
 
 @media (max-width: 767px) {
@@ -897,54 +901,75 @@ document.addEventListener('DOMContentLoaded', function() {
         top: auto;
     }
 }
-  .sticky-header {
-        position: sticky;
-        top: 0;
-        z-index: 40;
-        background-color: white;
-        padding: 1rem 0;
-        transition: all 0.3s ease;
-    }
 
-    .sticky-header.scrolled {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 0.5rem 0;
-    }
-
-    /* Остальные стили остаются без изменений */
-    .image-container {
-        min-height: 250px;
-        position: relative;
-        background-color: #f5f5f5;
-    }
+/* Стили для изображений */
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    background-color: #f5f5f5;
+    overflow: hidden;
+}
 
 .lazy-load {
     opacity: 0;
     transition: opacity 0.3s ease;
-    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
 }
 
 .lazy-load.loaded {
     opacity: 1;
 }
 
-/* Анимация placeholder */
-@keyframes placeholderShimmer {
-    0% { background-position: -468px 0 }
-    100% { background-position: 468px 0 }
+/* Стили для статусных меток */
+.product-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-left: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.image-placeholder {
-    animation: placeholderShimmer 1.5s linear infinite;
-    background: linear-gradient(to right, #f5f5f5 8%, #e0e0e0 18%, #f5f5f5 33%);
-    background-size: 800px 104px;
-    position: relative;
-    height: 100%;
-    width: 100%;
+.badge-new {
+    background-color: #10B981;
+    color: white;
 }
 
+.badge-limited {
+    background-color: #F59E0B;
+    color: white;
+}
+
+.badge-featured {
+    background: linear-gradient(135deg, #3B82F6, #6366F1);
+    color: white;
+}
+
+.badge-discount {
+    background: linear-gradient(135deg, #EC4899, #F43F5E);
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.badge-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Стили для индикатора загрузки */
 .spinner {
     display: inline-block;
     width: 1.5rem;
@@ -959,6 +984,35 @@ document.addEventListener('DOMContentLoaded', function() {
     to { transform: rotate(360deg); }
 }
 
+/* Адаптивные стили */
+@media (max-width: 640px) {
+    .image-container {
+        height: 180px;
+    }
+}
+
+/* Стили для уведомлений */
+.notification {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 50;
+}
+
+.notification-success {
+    background-color: #10B981;
+    color: white;
+}
+
+.notification-error {
+    background-color: #EF4444;
+    color: white;
+}
+
+/* Стили для кнопки "Загрузить еще" */
 #load-more {
     transition: all 0.3s ease;
 }
@@ -968,19 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.sticky-header.scrolled {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
+/* Скрытие элементов для скринридеров */
 .sr-only {
     position: absolute;
     width: 1px;

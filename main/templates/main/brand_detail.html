@@ -107,6 +107,7 @@
             padding: 2rem 0;
         }
 
+        /* Обновленные стили карточек товаров как в category_detail.html */
         .product-card {
             background: white;
             border-radius: 16px;
@@ -114,6 +115,9 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .product-card:hover {
@@ -131,6 +135,12 @@
             overflow: hidden;
         }
 
+        .product-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .product-placeholder {
             width: 80%;
             height: 80%;
@@ -138,8 +148,39 @@
             opacity: 0.8;
         }
 
+        /* Lazy load изображений */
+        .lazy-load {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+
+        .lazy-load.loaded {
+            opacity: 1;
+        }
+
+        /* Анимация placeholder */
+        @keyframes placeholderShimmer {
+            0% { background-position: -468px 0 }
+            100% { background-position: 468px 0 }
+        }
+
+        .image-placeholder {
+            animation: placeholderShimmer 1.5s linear infinite;
+            background: linear-gradient(to right, #f5f5f5 8%, #e0e0e0 18%, #f5f5f5 33%);
+            background-size: 800px 104px;
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
         .product-info {
             padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-title {
@@ -189,26 +230,26 @@
         }
 
         /* Кнопки */
-        .quick-view-btn {
-            position: absolute;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.9);
-            color: var(--primary-blue);
+        .add-to-cart {
+            width: 100%;
+            background: var(--primary-blue);
+            color: white;
             border: none;
-            padding: 0.5rem 1.25rem;
-            border-radius: 999px;
+            padding: 0.75rem;
+            border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            opacity: 0;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: auto;
         }
 
-        .product-card:hover .quick-view-btn {
-            opacity: 1;
-            transform: translateX(-50%) translateY(-5px);
+        .add-to-cart:hover {
+            background: var(--dark-blue);
+        }
+
+        .add-to-cart:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
         }
 
         /* Липкая панель */
@@ -228,101 +269,6 @@
             backdrop-filter: blur(10px);
             background: rgba(255,255,255,0.9);
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-
-        /* Модальное окно */
-        .quick-view-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .quick-view-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-        }
-
-        .quick-view-modal.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #64748b;
-        }
-
-        /* Индикатор загрузки */
-        .loader {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-
-        .loader-circle {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--primary-blue);
-            animation: loader 1.2s linear infinite;
-        }
-
-        .loader-circle:nth-child(1) {
-            top: 8px;
-            left: 8px;
-            animation-delay: 0s;
-        }
-
-        .loader-circle:nth-child(2) {
-            top: 8px;
-            left: 32px;
-            animation-delay: -0.4s;
-        }
-
-        .loader-circle:nth-child(3) {
-            top: 8px;
-            left: 56px;
-            animation-delay: -0.8s;
-        }
-
-        @keyframes loader {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(0.5);
-                opacity: 0.5;
-            }
         }
 
         /* Хлебные крошки */
@@ -348,28 +294,30 @@
         .breadcrumbs span {
             margin: 0 0.5rem;
         }
-        .product-image-container {
-    height: 240px;
-    background: var(--gradient-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
 
-.product-image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+        /* Стили для статусов товаров */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
 
-.product-placeholder {
-    width: 80%;
-    height: 80%;
-    object-fit: contain;
-    opacity: 0.8;
-}
+        .status-new {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-limited {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+
+        .status-featured {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
     </style>
 </head>
 <body>
@@ -378,8 +326,6 @@
         <div class="breadcrumbs animate-fadeIn">
             <a href="{% url 'main:home' %}">Главная</a>
             <span>/</span>
-
-
             <span class="text-gray-800 font-medium">{{ brand.name }}</span>
         </div>
     </div>
@@ -387,48 +333,14 @@
     <!-- Шапка бренда -->
     <section class="brand-header animate-fadeIn">
         <div class="container mx-auto px-4 text-center">
-            <!-- На этот (аналог xml_product_detail.html) -->
-<div class="swiper-container main-swiper">
-    <div class="swiper-wrapper">
-        {% if brand.logo %}
-            <div class="swiper-slide">
-                <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="object-cover w-full h-full">
+            <div class="brand-logo-container animate-float">
+                {% if brand.logo %}
+                    <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="brand-logo">
+                {% else %}
+                    <img src="{% static 'images/brand-placeholder.svg' %}" alt="{{ brand.name }}" class="brand-logo">
+                {% endif %}
             </div>
-        {% else %}
-            <div class="swiper-slide">
-                <img src="{% static 'images/brand-placeholder.svg' %}" alt="{{ brand.name }}" class="product-placeholder">
-            </div>
-        {% endif %}
 
-        <!-- Дополнительные изображения, если есть -->
-        {% if brand.additional_images %}
-            {% for image in brand.additional_images %}
-                <div class="swiper-slide">
-                    <img src="{{ image.url }}" alt="{{ brand.name }} - дополнительное фото {{ forloop.counter }}">
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-    <!-- Стрелки навигации -->
-    <div class="swiper-button-next"></div>
-    <div class="swiper-button-prev"></div>
-</div>
-
-<!-- Миниатюры (если изображений больше одного) -->
-{% if brand.logo and brand.additional_images %}
-    <div class="swiper-container thumbs-swiper mt-4">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide">
-                <img src="{{ brand.logo.url }}" alt="{{ brand.name }} - миниатюра">
-            </div>
-            {% for image in brand.additional_images %}
-                <div class="swiper-slide">
-                    <img src="{{ image.url }}" alt="{{ brand.name }} - миниатюра {{ forloop.counter }}">
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
             <h1 class="brand-title">{{ brand.name }}</h1>
             {% if brand.description %}
                 <p class="brand-description">{{ brand.description }}</p>
@@ -442,11 +354,13 @@
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800">Товары {{ brand.name }}</h2>
                 <div class="relative">
-                    <select class="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Сортировка: по популярности</option>
-                        <option>По цене (сначала дешевые)</option>
-                        <option>По цене (сначала дорогие)</option>
-                        <option>По новизне</option>
+                    <select id="sort_by" class="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="default">Сортировка: по популярности</option>
+                        <option value="price_asc">По цене (сначала дешевые)</option>
+                        <option value="price_desc">По цене (сначала дорогие)</option>
+                        <option value="name_asc">По названию (А-Я)</option>
+                        <option value="name_desc">По названию (Я-А)</option>
+                        <option value="newest">По новизне</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <i class="fas fa-chevron-down"></i>
@@ -461,113 +375,56 @@
         <div class="products-grid">
             {% for product in products %}
             <div class="product-card animate-fadeIn" style="animation-delay: {{ forloop.counter|add:"0.1" }}s">
-                <div class="product-image-container">
-    {% if product.main_image %}
-        <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="object-cover w-full h-full">
-    {% else %}
-        <img src="{% static 'images/product-placeholder.svg' %}" alt="{{ product.name }}" class="product-placeholder">
-    {% endif %}
+                <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
+                    <div class="product-image-container">
+                        {% if product.main_image %}
+                            <img
+                                src="{% static 'images/placeholder.jpg' %}"
+                                data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
+                                alt="{{ product.name }}"
+                                class="lazy-load w-full h-full object-cover absolute top-0 left-0"
+                                loading="lazy"
+                            >
+                        {% else %}
+                            <img src="{% static 'images/product-placeholder.svg' %}" alt="{{ product.name }}" class="product-placeholder">
+                        {% endif %}
 
-                    <div class="absolute top-4 right-4 flex flex-col gap-2">
-                        {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
-                        {% if product.discount_price %}<span class="badge badge-discount">-{{ product.get_discount_percentage }}%</span>{% endif %}
+                        <div class="absolute top-4 right-4 flex flex-col gap-2">
+                            {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
+                            {% if product.discount_price %}<span class="badge badge-discount">-{{ product.get_discount_percentage }}%</span>{% endif %}
+                        </div>
                     </div>
 
-                    <button class="quick-view-btn">
-                        <i class="fas fa-eye mr-2"></i> Быстрый просмотр
+                    <div class="product-info">
+                        <h3 class="product-title">{{ product.name }}</h3>
+                        <div class="price-block mt-auto">
+                            {% if product.discount_price %}
+                            <span class="current-price">{{ product.discount_price }} ₽</span>
+                            <span class="old-price">{{ product.price }} ₽</span>
+                            {% else %}
+                            <span class="current-price">{{ product.price }} ₽</span>
+                            {% endif %}
+                        </div>
+                        <div class="mt-3 text-sm text-gray-500">
+                            {% if product.in_stock %}
+                            <i class="fas fa-check-circle text-green-500 mr-1"></i> В наличии
+                            {% else %}
+                            <i class="fas fa-times-circle text-red-500 mr-1"></i> Нет в наличии
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                <div class="px-4 pb-4">
+                    <button class="add-to-cart"
+                            data-product-id="{{ product.product_id }}"
+                            {% if not product.in_stock %}disabled{% endif %}>
+                        {% if product.in_stock %}В корзину{% else %}Нет в наличии{% endif %}
                     </button>
-                </div>
-
-                <div class="product-info">
-                    <h3 class="product-title">{{ product.name }}</h3>
-                    <div class="price-block">
-                        {% if product.discount_price %}
-                        <span class="current-price">{{ product.discount_price }} ₽</span>
-                        <span class="old-price">{{ product.price }} ₽</span>
-                        {% else %}
-                        <span class="current-price">{{ product.price }} ₽</span>
-                        {% endif %}
-                    </div>
-                    <div class="mt-3 text-sm text-gray-500">
-                        {% if product.in_stock %}
-                        <i class="fas fa-check-circle text-green-500 mr-1"></i> В наличии
-                        {% else %}
-                        <i class="fas fa-times-circle text-red-500 mr-1"></i> Нет в наличии
-                        {% endif %}
-                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     </section>
-
-    <!-- Quick View модальное окно -->
-    <div id="quickViewModal" class="quick-view-modal">
-        <div class="modal-content">
-            <button class="close-modal">&times;</button>
-            <div class="grid md:grid-cols-2 gap-8 p-6">
-                <div class="image-container bg-gray-50 rounded-xl flex items-center justify-center p-8">
-                    <img src="{% static 'images/product-placeholder.svg' %}" alt="Product" class="w-full max-h-96 object-contain">
-                </div>
-                <div class="product-details">
-                    <h3 class="text-2xl font-bold mb-2">Название товара</h3>
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400 mr-2">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <span class="text-gray-500 text-sm">(24 отзыва)</span>
-                    </div>
-
-                    <div class="price-block mb-6">
-                        <span class="current-price text-3xl font-bold">4 999 ₽</span>
-                        <span class="old-price text-xl ml-3">6 499 ₽</span>
-                        <span class="badge badge-discount ml-3">-23%</span>
-                    </div>
-
-                    <div class="mb-6">
-                        <p class="text-gray-700 mb-4">Краткое описание товара и его основные характеристики, которые будут важны для покупателя при быстром просмотре.</p>
-
-                        <div class="flex items-center mb-2">
-                            <span class="text-gray-600 w-24">Бренд:</span>
-                            <span class="font-medium">{{ brand.name }}</span>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <span class="text-gray-600 w-24">Артикул:</span>
-                            <span class="font-medium">ABC12345</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="text-gray-600 w-24">Наличие:</span>
-                            <span class="font-medium text-green-500"><i class="fas fa-check-circle mr-1"></i> В наличии</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                            <button class="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200">-</button>
-                            <span class="px-4">1</span>
-                            <button class="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200">+</button>
-                        </div>
-                        <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-colors">
-                            <i class="fas fa-shopping-cart mr-2"></i> Добавить в корзину
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Индикатор загрузки -->
-    <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="loader">
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-        </div>
-    </div>
 
     <script>
         // Липкая панель сортировки
@@ -582,35 +439,124 @@
             }
         });
 
-        // Quick View
-        document.querySelectorAll('.quick-view-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('quickViewModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        });
+        // Сортировка товаров
+        document.getElementById('sort_by').addEventListener('change', function() {
+            const params = new URLSearchParams(window.location.search);
+            const sortValue = this.value;
 
-        // Закрытие модального окна
-        document.querySelector('.close-modal').addEventListener('click', () => {
-            document.getElementById('quickViewModal').classList.remove('active');
-            document.body.style.overflow = '';
-        });
-
-        // Закрытие по клику вне модального окна
-        document.getElementById('quickViewModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('quickViewModal')) {
-                document.getElementById('quickViewModal').classList.remove('active');
-                document.body.style.overflow = '';
+            if (sortValue === 'default') {
+                params.delete('sort');
+            } else {
+                params.set('sort', sortValue);
             }
+
+            window.location.search = params.toString();
         });
 
-        // Плавное появление элементов при загрузке
+        // Lazy load изображений
         document.addEventListener('DOMContentLoaded', () => {
+            const lazyImages = [].slice.call(document.querySelectorAll('.lazy-load'));
+
+            if ('IntersectionObserver' in window) {
+                let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            lazyImage.classList.add('loaded');
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                }, {
+                    rootMargin: '200px',
+                    threshold: 0.01
+                });
+
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback для браузеров без поддержки IntersectionObserver
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImage.src = lazyImage.dataset.src;
+                });
+            }
+
+            // Анимация появления элементов
             const animatedElements = document.querySelectorAll('.animate-fadeIn');
             animatedElements.forEach((el, index) => {
                 el.style.animationDelay = `${index * 0.1}s`;
             });
+
+            // Обработчик добавления в корзину
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const productId = this.getAttribute('data-product-id');
+
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner"></span>';
+
+                    fetch(`/ru/add-to-cart/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `quantity=1`
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Ошибка сети');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message, 'success');
+                            updateCartCounter(data.cart_total);
+                        } else {
+                            showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Произошла ошибка', 'error');
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                        this.textContent = this.getAttribute('data-original-text') || 'В корзину';
+                    });
+                });
+            });
         });
+
+        // Функция для показа уведомлений
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            notification.setAttribute('role', 'alert');
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Обновление счетчика корзины
+        function updateCartCounter(count) {
+            const cartCount = document.getElementById('cart-count');
+            if (cartCount) {
+                cartCount.textContent = count;
+                cartCount.classList.add('animate-bounce', 'scale-110');
+                setTimeout(() => {
+                    cartCount.classList.remove('animate-bounce', 'scale-110');
+                }, 1000);
+            }
+        }
     </script>
 </body>
 </html>

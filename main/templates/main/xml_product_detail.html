@@ -2,9 +2,9 @@
 {% load custom_filters %}
 {% block title %}{{ product.name }} | RealEstatePro{% endblock %}
 {% load static %}
-
+{% load static i18n %}
 {% block content %}
-
+{% load custom_filters %}
 <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
 <style>
 :root {
@@ -12,7 +12,21 @@
     --main-header-height: 20px;
     --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
 }
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 .sticky-column {
     top: calc(var(--total-header-height) + 4.0rem);
     position: sticky;
@@ -379,20 +393,119 @@
     opacity: 0.8;
     margin-left: 4px;
 }
+
+.list-disc {
+    list-style-type: disc;
+}
+.pl-5 {
+    padding-left: 1.25rem;
+}
+
+/* Новые стили для раздела размеров */
+.size-info-section {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.size-info-section .size-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.size-info-section .size-table th,
+.size-info-section .size-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 1px solid #e5e7eb;
+}
+
+.size-info-section .size-table th {
+    background-color: #f3f4f6;
+    font-weight: 500;
+}
+
+.size-info-section .size-table tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+.size-info-section .size-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem; /* Уменьшенный размер шрифта */
+}
+
+.size-info-section .size-table th,
+.size-info-section .size-table td {
+    padding: 6px 8px; /* Уменьшенные отступы */
+    text-align: center;
+    border: 1px solid #e5e7eb;
+}
+
+.size-info-section .size-table th {
+    background-color: #f3f4f6;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.size-info-section img {
+ max-height: 150px;
+    width: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .size-info-section .flex-col {
+        flex-direction: column;
+    }
+    .size-info-section .md\:w-1\/2 {
+        width: 100%;
+    }
+
+    .size-info-section .size-table th,
+    .size-info-section .size-table td {
+        padding: 4px 6px; /* Еще меньше отступы на мобильных */
+        font-size: 0.8rem;
+    }
+
+    }.size-info-section img {
+    width: 110%;
+    max-width: 200px; /* Можно регулировать по необходимости */
+    height: 150px;
+}
+
+@media (max-width: 767px) {
+    .size-info-section .flex-col {
+        flex-direction: column;
+    }
+    .size-info-section .md\:w-1\/2 {
+        width: 100%;
+    }
+}
+.tabs {
+    margin-bottom: 1px; /* Добавляем отступ снизу */
+}
 </style>
 
 {% with excluded_filters="Спецфильтр,Новинки"  %}
 <div class="container py-8">
-    <nav class="breadcrumbs">
-        <a href="{% url 'main:home' %}">Главная</a>
-        <span class="separator">/</span>
-        {% if brand and brand.slug %}
-            <a href="{% url 'main:brand_detail' slug=brand.slug %}">{{ brand.name }}</a>
+   <nav class="breadcrumbs">
+    <a href="{% url 'main:home' %}">Главная</a>
+    <span class="separator">/</span>
+    {% if product.categories.exists %}
+        {% with category=product.categories.first %}
+            <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
             <span class="separator">/</span>
-        {% endif %}
-        <span>{{ product.name }}</span>
-    </nav>
-
+        {% endwith %}
+    {% endif %}
+    {% if brand and brand.slug %}
+        <a href="{% url 'main:brand_detail' slug=brand.slug %}">{{ brand.name }}</a>
+        <span class="separator">/</span>
+    {% endif %}
+    <span>{{ product.name }}</span>
+</nav>
     <div class="bg-white rounded-xl shadow-sm p-4 md:p-8 border-2 border-gray-100">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             <div class="lg:col-span-5">
@@ -424,46 +537,44 @@
                                 <h3 class="text-lg md:text-xl font-bold">Оформление заказа</h3>
                             </div>
 
-                            <form action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
+                            <form id="add-to-cart-form" action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
                                 {% csrf_token %}
                                 <input type="hidden" name="product_type" value="xml">
 
-<div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-    <h4 style="margin-top: 0;">Отладочная информация:</h4>
-    <pre>
-Product ID: {{ product.product_id }}
-Has variants: {{ product.variants.exists }}
-Available sizes: {{ product.available_sizes|default:"Нет данных" }}
-Variants count: {{ product.variants.count }}
-First variant: {% if product.variants.first %}{{ product.variants.first.size }} - {{ product.variants.first.quantity }}{% else %}Нет вариантов{% endif %}
-Sizes available: {{ product.sizes_available|default:"Не указано" }}
-    </pre>
-</div>
-  {% if sizes_with_quantities %}
-    <div class="size-selector mb-4">
-        <div class="printing-info-label">Размер</div>
-        <div class="size-options">
-            {% for item in sizes_with_quantities %}
-                <div class="size-option {% if forloop.first %}selected{% endif %}"
-                     data-size="{{ item.size }}"
-                     data-quantity="{{ item.quantity }}">
-                    {{ item.size }}
-                    <span class="quantity-indicator">
-                        ({{ item.quantity }} шт.)
-                    </span>
-                </div>
-            {% endfor %}
-        </div>
-        <input type="hidden" name="selected_size" id="selected-size"
-               value="{{ sizes_with_quantities.0.size }}">
-    </div>
-{% endif %}
+                                <!-- Блок выбора размера -->
+                                {% if size_data.available_sizes %}
+                                <div class="size-selector mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
+                                    <div class="size-options flex flex-wrap gap-2">
+                                        {% for size in size_data.available_sizes %}
+                                        <button type="button"
+                                                class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
+                                                data-size="{{ size }}">
+                                            {{ size }}
+                                            {% if product.variants.exists %}
+                                                {% for variant in product.variants.all %}
+                                                    {% if variant.size == size %}
+                                                    <span class="quantity-indicator">({{ variant.quantity }} шт.)</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="quantity-indicator">({{ product.quantity }} шт.)</span>
+                                            {% endif %}
+                                        </button>
+                                        {% endfor %}
+                                        <input type="hidden" name="selected_size" id="selected-size" value="{{ size_data.available_sizes.0 }}">
+                                    </div>
+                                </div>
+                                {% endif %}
 
+                                <!-- Поле для выбора количества -->
                                 <div class="flex items-center">
                                     <input type="number" name="quantity" value="1" min="1"
                                            max="{% if product.variants.exists %}{{ product.variants.first.quantity }}{% else %}{{ product.quantity }}{% endif %}"
                                            class="border rounded px-3 py-2 w-20 mr-4">
-                                    <button type="submit" class="btn-primary hover:bg-blue-700 transition" {% if not product.in_stock %}disabled{% endif %}>
+                                    <button type="submit" class="add-to-cart btn-primary hover:bg-blue-700 transition"
+                                            data-product-id="{{ product.product_id }}"
+                                            {% if not product.in_stock %}disabled{% endif %}>
                                         {% if product.in_stock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
                                     </button>
                                 </div>
@@ -500,185 +611,166 @@ Sizes available: {{ product.sizes_available|default:"Не указано" }}
                     </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Артикул</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
-                    </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Артикул</div>
+        <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
+    </div>
 
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Наличие</div>
-                        <div class="text-lg md:text-xl font-bold">
-                            {% if product.in_stock %}
-                                В наличии ({% if product.variants.exists %}{{ product.variants.count }} размеров{% else %}{{ product.quantity }} шт.{% endif %})
-                            {% else %}
-                                Нет в наличии
-                            {% endif %}
-                        </div>
-                    </div>
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Наличие</div>
+        <div class="text-lg md:text-xl font-bold">
+            {% if product.in_stock %}
+                В наличии ({% if product.variants.exists %}{{ product.variants.count }} размеров{% else %}{{ product.quantity }} шт.{% endif %})
+            {% else %}
+                Нет в наличии
+            {% endif %}
+        </div>
+    </div>
 
-                    {% if product.brand %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Бренд</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.brand }}</div>
-                    </div>
-                    {% endif %}
+    {% if product.brand %}
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Бренд</div>
+        <div class="text-lg md:text-xl font-bold">{{ product.brand }}</div>
+    </div>
+    {% endif %}
 
-                    {% if product.material or product.xml_data.material_composition %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Материал и состав</div>
-                        <div class="text-lg md:text-xl font-bold">
-                            {% if product.material %}{{ product.material }}{% endif %}
-                            {% if product.xml_data.material_composition %}
-                                {% if product.material %}<br>{% endif %}
-                                {{ product.xml_data.material_composition }}
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
+    {% if product.material or product.xml_data.material_composition %}
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Материал и состав</div>
+        <div class="text-lg md:text-xl font-bold">
+            {% if product.material %}{{ product.material }}{% endif %}
+            {% if product.xml_data.material_composition %}
+                {% if product.material %}<br>{% endif %}
+                {{ product.xml_data.material_composition }}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
-                    {% if product.weight %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Вес</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
-                    </div>
-                    {% endif %}
+    {% if product.weight %}
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Вес</div>
+        <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
+    </div>
+    {% endif %}
 
-                    {% if product.volume %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Объем</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.volume }} см³</div>
-                    </div>
-                    {% endif %}
+    {% if product.volume %}
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="text-xs md:text-sm text-gray-500">Объем</div>
+        <div class="text-lg md:text-xl font-bold">{{ product.volume }} см³</div>
+    </div>
+    {% endif %}
+</div>
 
-                    {% if product.xml_data.attributes.size %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="text-xs md:text-sm text-gray-500">Размер</div>
-                        <div class="text-lg md:text-xl font-bold">{{ product.xml_data.attributes.size }}</div>
-                    </div>
-                    {% endif %}
 
-                    {% if readable_filters %}
-                        {% for filter in readable_filters %}
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="text-xs md:text-sm text-gray-500">{{ filter.type }}</div>
-                            <div class="text-lg md:text-xl font-bold">{{ filter.value }}</div>
-                        </div>
+{% if size_data.available_sizes or product.xml_data.attributes.size_table %}
+<div class="size-info-section mt-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
+
+    {% if size_data.available_sizes %}
+    <div class="mb-4">
+        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
+        <div class="flex flex-wrap gap-2">
+            {% for size in size_data.available_sizes %}
+            <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Контейнер для изображения и таблицы -->
+    {% if product.xml_data.attributes.size_table %}
+    <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
+        <!-- Изображение с размерами -->
+        <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
+            <img src="//files.giftsoffer.ru/images/tablemer/Tshirt_with_sleeve.svg"
+                 alt="Схема размеров"
+                 class="object-contain h-auto">
+        </div>
+
+        <!-- Таблица размеров -->
+        <div class="md:w-3/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
+            <table class="size-table w-full">
+                <!-- Заголовок таблицы -->
+                <thead>
+                    <tr>
+                        <th>Размер</th>
+                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                        <th>{{ size }}</th>
                         {% endfor %}
-                    {% endif %}
-                </div>
+                    </tr>
+                </thead>
+                <!-- Тело таблицы -->
+                <tbody>
+                    {% for param in product.xml_data.attributes.size_table.parameters %}
+                    <tr>
+                        <td class="font-medium">{{ param }}</td>
+                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                        <td>{{ product.xml_data.attributes.size_table.data|get_item:size|get_item:param }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
 
-                <div class="tabs-container mt-6">
-                    {% if product.xml_data.size_table %}
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold mb-4">Таблица размеров</h3>
-                        <div class="overflow-x-auto">
-                            <table class="size-table">
-                                <thead>
-                                    <tr>
-                                        {% for header in product.xml_data.size_table.headers %}
-                                        <th>{{ header }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in product.xml_data.size_table.rows %}
-                                    <tr>
-                                        {% for cell in row %}
-                                        <td>{{ cell }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {% endif %}
+           <!-- В разделе с табами замените блок с таблицей размеров на следующий: -->
 
-                    <div class="tabs">
-                        <div class="tab active" data-tab="description">Описание</div>
-                        <div class="tab" data-tab="printing">Нанесение</div>
-                        {% if product.xml_data.video_link %}
-                        <div class="tab" data-tab="video">Видео</div>
-                        {% endif %}
-                    </div>
 
-                    <div class="tab-content active" id="description">
-                        <div class="scrollable-description prose max-w-none">
-                            {{ product.description|safe }}
-                        </div>
-                    </div>
+    <div class="tabs" style="margin-top: 30px;"> <!-- Добавлено margin-top -->
+    <div class="tab active" data-tab="description">Описание</div>
+    {% if printing_data.methods or printing_data.marking %}
+    <div class="tab" data-tab="printing">Нанесение</div>
+    {% endif %}
+    {% if product.xml_data.video_link %}
+    <div class="tab" data-tab="video">Видео</div>
+    {% endif %}
+</div>
 
-                    <div class="tab-content" id="printing">
-                        <div class="printing-info">
-                            {% if product.application_type %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Вид нанесения</div>
-                                <div class="printing-info-value">{{ product.get_application_type_display }}</div>
-                            </div>
-                            {% endif %}
+ <div class="tab-content active" id="description">
+    <div class="scrollable-description prose max-w-none">
+        {{ product.description|remove_tablemer|safe }}
+    </div>
+</div>
 
-                            {% if product.mechanism_type %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Механизм</div>
-                                <div class="printing-info-value">{{ product.mechanism_type }}</div>
-                            </div>
-                            {% endif %}
+    <!-- Остальные вкладки остаются без изменений -->
+    {% if printing_data.methods or printing_data.marking %}
+    <div class="tab-content" id="printing">
+        {% if printing_data.methods %}
+        <div class="printing-info">
+            <h4>Доступные методы нанесения</h4>
+            <ul class="list-disc pl-5">
+                {% for method in printing_data.methods %}
+                    <li>{{ method }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
-                            {% if product.ball_diameter %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Диаметр шарика</div>
-                                <div class="printing-info-value">{{ product.ball_diameter }}</div>
-                            </div>
-                            {% endif %}
+        {% if printing_data.marking %}
+        <div class="printing-info">
+            <h4>Маркировка</h4>
+            <p>{{ printing_data.marking }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
-                            {% if product.refill_type %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Тип стержня</div>
-                                <div class="printing-info-value">{{ product.refill_type }}</div>
-                            </div>
-                            {% endif %}
-
-                            {% if product.replaceable_refill %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Сменный стержень</div>
-                                <div class="printing-info-value">Да</div>
-                            </div>
-                            {% endif %}
-
-                            {% if readable_prints %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Доступные принты</div>
-                                <div class="printing-info-value">
-                                    <ul class="list-disc pl-5">
-                                        {% for print in readable_prints %}
-                                        <li>
-                                            <strong>{{ print.code }}</strong>: {{ print.description }}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if product.xml_data.attributes.printing_notes %}
-                            <div class="printing-info-item">
-                                <div class="printing-info-label">Примечания по нанесению</div>
-                                <div class="printing-info-value">{{ product.xml_data.attributes.printing_notes }}</div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if product.xml_data.video_link %}
-                    <div class="tab-content" id="video">
-                        <div class="video-container">
-                            <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
+    {% if product.xml_data.video_link %}
+    <div class="tab-content" id="video">
+        <div class="video-container">
+            <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+    {% endif %}
+</div>
 
                 {% if related_products %}
                 <div class="mt-12">
@@ -725,209 +817,220 @@ Sizes available: {{ product.sizes_available|default:"Не указано" }}
 
 <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
 <script>
-    // Анимация при скролле
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('reveal');
-            }
-        });
-    }, { threshold: 0.1 });
+// Анимация при скролле
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('reveal');
+        }
+    });
+}, { threshold: 0.1 });
 
-    document.querySelectorAll('.animate-block').forEach(element => {
-        observer.observe(element);
+document.querySelectorAll('.animate-block').forEach(element => {
+    observer.observe(element);
+});
+
+// Инициализация свайпера
+function initSwiper() {
+    return new Swiper('.swiper', {
+        loop: true,
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        keyboard: { enabled: true },
+        effect: 'slide',
+        speed: 500,
+        preloadImages: false,
+        lazy: {
+            loadPrevNext: true,
+        },
+    });
+}
+
+// Модальное окно для изображений
+function setupModal() {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('expandedImg');
+    const closeBtn = document.querySelector('.close-modal');
+
+    document.querySelectorAll('.swiper-slide img').forEach(img => {
+        img.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            modalImg.src = img.src;
+            modalImg.classList.add('modal-opened');
+        });
     });
 
-    // Инициализация свайпера
-    function initSwiper() {
-        const swiper = new Swiper('.swiper', {
-            loop: true,
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            keyboard: { enabled: true },
-            effect: 'slide',
-            speed: 500,
-            preloadImages: false,
-            lazy: {
-                loadPrevNext: true,
-            },
-        });
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        modalImg.classList.remove('modal-opened');
+    });
 
-        return swiper;
-    }
-
-    // Модальное окно для изображений
-    function setupModal() {
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('expandedImg');
-        const closeBtn = document.querySelector('.close-modal');
-
-        document.querySelectorAll('.swiper-slide img').forEach(img => {
-            img.addEventListener('click', () => {
-                modal.style.display = 'flex';
-                modalImg.src = img.src;
-                modalImg.classList.add('modal-opened');
-            });
-        });
-
-        closeBtn.addEventListener('click', () => {
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
             modal.style.display = 'none';
             modalImg.classList.remove('modal-opened');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                modalImg.classList.remove('modal-opened');
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.style.display === 'flex') {
-                modal.style.display = 'none';
-                modalImg.classList.remove('modal-opened');
-            }
-        });
-    }
-
-    // Обработка вкладок
-    function setupTabs() {
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-                tab.classList.add('active');
-                const tabId = tab.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-    }
-
-    function setupSizeSelection() {
-        const sizeOptions = document.querySelectorAll('.size-option');
-        const sizeInput = document.getElementById('selected-size');
-        const quantityInput = document.querySelector('input[name="quantity"]');
-
-        sizeOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                // Удаляем выделение у всех вариантов
-                sizeOptions.forEach(opt => opt.classList.remove('selected'));
-
-                // Добавляем выделение выбранному варианту
-                option.classList.add('selected');
-
-                // Устанавливаем значение в скрытое поле
-                sizeInput.value = option.getAttribute('data-size');
-
-                // Обновляем максимальное количество
-                const maxQuantity = parseInt(option.getAttribute('data-quantity'));
-                quantityInput.setAttribute('max', maxQuantity);
-
-                // Корректируем текущее значение, если оно превышает максимум
-                if (parseInt(quantityInput.value) > maxQuantity) {
-                    quantityInput.value = maxQuantity;
-                }
-            });
-        });
-
-        // Выбираем первый вариант по умолчанию
-        if (sizeOptions.length > 0 && !sizeInput.value) {
-            sizeOptions[0].click();
         }
-    }
+    });
 
-    // Обработка добавления в корзину
-    function setupCart() {
-        const form = document.querySelector('form[action*="add_to_cart"]');
-        if (!form) return;
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const button = form.querySelector('button[type="submit"]');
-            const selectedSize = document.getElementById('selected-size')?.value;
-            const quantity = form.querySelector('input[name="quantity"]').value;
-
-            // Проверка выбора размера для товаров с вариантами
-            if (document.querySelector('.size-options') && !selectedSize) {
-                showNotification('Пожалуйста, выберите размер', 'error');
-                return;
-            }
-
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner"></span>Обработка...';
-
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams(new FormData(form))
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    updateCartCounter(data.cart_total);
-                } else {
-                    showNotification(data.error || 'Ошибка при добавлении в корзину', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Произошла ошибка', 'error');
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.textContent = 'Добавить в корзину';
-            });
-        });
-    }
-
-    // Функция для показа уведомлений
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
-            type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } z-50`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    // Обновление счетчика корзины
-    function updateCartCounter(count) {
-        const cartCount = document.getElementById('cart-count');
-        if (cartCount) {
-            cartCount.textContent = count;
-            animateCartCounter(cartCount);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            modal.style.display = 'none';
+            modalImg.classList.remove('modal-opened');
         }
-    }
+    });
+}
 
-    // Анимация счетчика корзины
-    function animateCartCounter(element) {
-        element.classList.add('animate-bounce', 'scale-110');
+// Обработка вкладок
+function setupTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            tab.classList.add('active');
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // Активируем первую вкладку, если нет активной
+    if (!document.querySelector('.tab.active') && tabs.length > 0) {
+        tabs[0].click();
+    }
+}
+
+// Обновленная функция для обработки выбора размера
+function setupSizeSelection() {
+    const sizeOptions = document.querySelectorAll('.size-option');
+    const sizeInput = document.getElementById('selected-size');
+
+    sizeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Удаляем класс selected у всех вариантов
+            sizeOptions.forEach(opt => opt.classList.remove('selected', 'bg-blue-100', 'border-blue-300'));
+
+            // Добавляем класс selected к выбранному варианту
+            option.classList.add('selected', 'bg-blue-100', 'border-blue-300');
+
+            // Устанавливаем значение в скрытое поле
+            sizeInput.value = option.getAttribute('data-size');
+        });
+    });
+
+    // Выбираем первый размер по умолчанию
+    if (sizeOptions.length > 0) {
+        sizeOptions[0].click();
+    }
+}
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-md shadow-lg text-white ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    notification.textContent = message;
+    notification.setAttribute('role', 'alert');
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Обновление счетчика корзины
+function updateCartCounter(count) {
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) {
+        cartCount.textContent = count;
+        cartCount.classList.add('animate-bounce', 'scale-110');
         setTimeout(() => {
-            element.classList.remove('animate-bounce', 'scale-110');
+            cartCount.classList.remove('animate-bounce', 'scale-110');
         }, 1000);
     }
+}
 
-    // Основная инициализация
-    document.addEventListener('DOMContentLoaded', function() {
+// Обработка добавления в корзину
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка выбора размера
+    document.querySelectorAll('.size-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.size-option').forEach(opt => {
+                opt.classList.remove('selected', 'bg-blue-100', 'border-blue-300');
+            });
+            this.classList.add('selected', 'bg-blue-100', 'border-blue-300');
+            document.getElementById('selected-size').value = this.dataset.size;
+
+            // Обновляем максимальное количество для выбранного размера
+            const quantityInput = document.querySelector('input[name="quantity"]');
+            const quantityIndicator = this.querySelector('.quantity-indicator');
+            if (quantityIndicator) {
+                const available = parseInt(quantityIndicator.textContent.match(/\d+/)[0]);
+                quantityInput.max = available;
+            }
+        });
+    });
+
+    // Обработка отправки формы
+    const form = document.getElementById('add-to-cart-form');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner"></span> Добавление...';
+
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new FormData(this)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Обновляем счетчик корзины
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount) {
+                    cartCount.textContent = data.cart_total;
+                    cartCount.classList.add('animate-bounce');
+                    setTimeout(() => cartCount.classList.remove('animate-bounce'), 1000);
+                }
+                window.location.href = "{% url 'main:cart_view' %}";
+            } else {
+                alert(data.errors || 'Ошибка при добавлении в корзину');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Добавить в корзину';
+        });
+    });
+});
+
+// Основная инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM полностью загружен, начинаем инициализацию');
+
+    try {
         initSwiper();
         setupModal();
         setupTabs();
         setupSizeSelection();
-        setupCart();
-    });
+        console.log('Все компоненты успешно инициализированы');
+    } catch (error) {
+        console.error('Ошибка при инициализации:', error);
+    }
+});
 </script>
 {% endblock %}

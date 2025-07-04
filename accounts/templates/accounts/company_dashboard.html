@@ -72,43 +72,43 @@
         min-width: 100%;
         min-height: 100%;
     }
-    /* Добавьте в секцию стилей */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
 
-.modal-content {
-    background: white;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
-.modal-close-btn {
-    margin-top: 1rem;
-    width: 100%;
-    padding: 0.5rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
-}
+    .modal-content {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-.modal-close-btn:hover {
-    background: #2563eb;
-}
+    .modal-close-btn {
+        margin-top: 1rem;
+        width: 100%;
+        padding: 0.5rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .modal-close-btn:hover {
+        background: #2563eb;
+    }
 
     .dashboard-avatar-fallback {
         @apply w-full h-full bg-blue-50 flex items-center justify-center rounded-full;
@@ -383,6 +383,17 @@
         @apply w-[calc(100%-2rem)];
     }
 
+    /* Новый стиль для верхнего блока компании */
+    .company-header-block {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
     /* Мобильные стили */
     @media (max-width: 640px) {
         /* Панель разделов для мобильных */
@@ -494,6 +505,12 @@
         .broker-form select {
             width: 100%;
         }
+
+        /* Адаптация верхнего блока компании */
+        .company-header-block {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
     }
 
     /* Десктопные стили */
@@ -549,7 +566,7 @@
         }
     }
 
-     /* Мобильные стили */
+    /* Мобильные стили */
     @media (max-width: 767px) {
         .hero-slider {
             height: 50vh !important;
@@ -667,24 +684,46 @@
             height: 200px !important;
         }
     }
+      /* Добавьте эти стили в ваш существующий блок <style> */
+    .company-header-block {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-bottom: 0.5rem; /* Уменьшаем отступ снизу */
+        padding: 1rem; /* Уменьшаем внутренние отступы */
+        background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+        border-radius: 0.75rem; /* Уменьшаем скругление углов */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Уменьшаем тень */
+    }
+
+    /* Для заголовка компании */
+    .company-header-block h1 {
+        font-size: 1.5rem !important; /* Уменьшаем размер шрифта */
+        margin-bottom: 0.5rem !important; /* Уменьшаем отступ снизу */
+    }
+
+    /* Для текста ИНН */
+    .company-header-block p {
+        font-size: 0.875rem !important; /* Уменьшаем размер шрифта */
+    }
 </style>
 
 <div class="container mx-auto px-2 sm:px-4 py-4 lg:py-8">
+    <!-- Верхний блок с названием компании и ИНН -->
+    <div class="company-header-block">
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-1">
+            <i class="fas fa-building mr-2 text-blue-600"></i>
+            {{ company.legal_name }}
+        </h1>
+        <p class="text-sm text-gray-600">
+            <i class="fas fa-id-card-alt mr-1"></i>
+            ИНН: {{ company.inn }}
+        </p>
+    </div>
+
+
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
         <!-- Боковая панель (1 колонка) -->
         <div class="lg:col-span-1 space-y-4 lg:space-y-8">
-            <!-- 1. Блок компании (самый верхний) -->
-            <div class="dashboard-section p-4 lg:p-6 text-center bg-gradient-to-r from-blue-50 to-indigo-50">
-                <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-1">
-                    <i class="fas fa-building mr-2 text-blue-600"></i>
-                    {{ company.legal_name }}
-                </h1>
-                <p class="text-sm text-gray-600">
-                    <i class="fas fa-id-card-alt mr-1"></i>
-                    ИНН: {{ company.inn }}
-                </p>
-            </div>
-
             <!-- 2. Отдельный блок роли (новый, между компанией и пользователем) -->
             <div class="dashboard-section p-3 text-center bg-blue-50 rounded-xl">
                 <p class="text-xs uppercase tracking-wider text-blue-600 mb-1">Ваша роль в системе</p>
@@ -702,75 +741,118 @@
             <!-- 3. Блок пользователя (теперь только ФИО и контакты) -->
             <div class="dashboard-section p-4 lg:p-6">
                 <div class="text-center">
-
                     <h2 class="text-xl lg:text-2xl font-semibold text-gray-800 mb-4">{{ user.get_full_name }}</h2>
-
                     <div class="space-y-3 text-center text-gray-600">
-    <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
-        <i class="fas fa-envelope text-blue-600 text-lg"></i>
-        <span class="text-gray-800">{{ user.email }}</span>
-    </div>
-    {% if user.phone %}
-    <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
-        <i class="fas fa-phone text-blue-600 text-lg"></i>
-        <span class="text-gray-800">{{ user.phone }}</span>
-    </div>
-    {% endif %}
-</div>
+                        <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
+                            <i class="fas fa-envelope text-blue-600 text-lg"></i>
+                            <span class="text-gray-800">{{ user.email }}</span>
+                        </div>
+                        {% if user.phone %}
+                        <div class="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg max-w-xs mx-auto">
+                            <i class="fas fa-phone text-blue-600 text-lg"></i>
+                            <span class="text-gray-800">{{ user.phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        <!-- 4. Секция "Связаться с нами" -->
+
+            <!-- 4. Секция "Связаться с нами" -->
             <div class="dashboard-section p-4 lg:p-6">
                 <div class="text-center">
                     <p class="text-gray-600 mb-4 font-medium">Есть проблема или вопрос?</p>
                     <a href="{% url 'accounts:support_ticket' %}" class="text-btn w-full justify-center">
-    <i class="fas fa-headset mr-2"></i>Связаться с нами
-</a>
+                        <i class="fas fa-headset mr-2"></i>Связаться с нами
+                    </a>
                 </div>
             </div>
-        <div class="dashboard-section p-4 lg:p-6">
-    <h3 class="font-bold mb-4 text-center">Реквизиты компании</h3>
-    <form id="company-details-form" method="post" action="{% url 'accounts:company_profile' %}">
-        {% csrf_token %}
-        <div class="space-y-3">
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Юридический адрес</label>
-                <input type="text" name="legal_address" value="{{ company.legal_address|default:'' }}"
-                    class="w-full border rounded-lg px-3 py-2 text-sm" id="legal_address">
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Расчетный счет</label>
-                <input type="text" name="bank_account" value="{{ company.bank_account|default:'' }}"
-                    class="w-full border rounded-lg px-3 py-2 text-sm" id="bank_account">
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">БИК</label>
-                <input type="text" name="bank_bik" value="{{ company.bank_bik|default:'' }}"
-                    class="w-full border rounded-lg px-3 py-2 text-sm" id="bank_bik">
-            </div>
-            <button type="submit" class="save-btn">
-                <i class="fas fa-save mr-2"></i> Сохранить
-            </button>
-        </div>
-    </form>
-</div>
 
+            <!-- Раздел с адресами доставки (перемещенный выше реквизитов) -->
+            <div class="dashboard-section p-4 lg:p-6">
+                <h3 class="font-bold mb-4 text-center">Адреса доставки</h3>
+                <form id="delivery-address-form" method="post" action="{% url 'accounts:add_delivery_address' %}">
+                    {% csrf_token %}
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Адрес доставки</label>
+                            {{ delivery_address_form.address }}
+                        </div>
+                        <div class="flex items-center">
+                            {{ delivery_address_form.is_default }}
+                            <label for="{{ delivery_address_form.is_default.id_for_label }}" class="ml-2 text-sm text-gray-600">
+                                Сделать адресом по умолчанию
+                            </label>
+                        </div>
+                        <button type="submit" class="save-btn">
+                            <i class="fas fa-plus mr-2"></i> Добавить адрес
+                        </button>
+                    </div>
+                </form>
 
+                <!-- Список добавленных адресов -->
+                <div class="mt-6">
+                    <h4 class="text-sm font-medium text-gray-600 mb-3">Сохранённые адреса:</h4>
+                    <div id="delivery-addresses-list" class="space-y-2">
+                        {% for address in delivery_addresses %}
+                            <div class="delivery-address-item bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center" data-address-id="{{ address.id }}">
+                                <div>
+                                    <p class="text-gray-800">{{ address.address }}</p>
+                                    {% if address.is_default %}
+                                        <span class="text-xs text-blue-600">(по умолчанию)</span>
+                                    {% endif %}
+                                </div>
+                                <button class="delete-address text-red-500 hover:text-red-700" data-address-id="{{ address.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500 text-sm">Нет сохранённых адресов</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
 
+            <!-- Раздел с реквизитами компании (теперь идет после адресов) -->
+            <div class="dashboard-section p-4 lg:p-6">
+                <h3 class="font-bold mb-4 text-center">Реквизиты компании</h3>
+                <form id="company-details-form" method="post" action="{% url 'accounts:company_profile' %}">
+                    {% csrf_token %}
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Юридический адрес</label>
+                            <input type="text" name="legal_address" value="{{ company.legal_address|default:'' }}"
+                                class="w-full border rounded-lg px-3 py-2 text-sm" id="legal_address">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Расчетный счет</label>
+                            <input type="text" name="bank_account" value="{{ company.bank_account|default:'' }}"
+                                class="w-full border rounded-lg px-3 py-2 text-sm" id="bank_account">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">БИК</label>
+                            <input type="text" name="bank_bik" value="{{ company.bank_bik|default:'' }}"
+                                class="w-full border rounded-lg px-3 py-2 text-sm" id="bank_bik">
+                        </div>
+                        <button type="submit" class="save-btn">
+                            <i class="fas fa-save mr-2"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Основной контент -->
         <div class="lg:col-span-3 space-y-4 lg:space-y-8 main-content-mobile">
-    <!-- Статистика компании -->
-    <div class="dashboard-section p-4 lg:p-8">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 lg:mb-8">
-            <h3 class="section-title">
-                <i class="fas fa-chart-line text-green-500/80"></i>
-                Основные разделы
-            </h3>
-        </div>
+            <!-- Статистика компании -->
+            <div class="dashboard-section p-4 lg:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 lg:mb-8">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line text-green-500/80"></i>
+                        Основные разделы
+                    </h3>
+                </div>
 
-         <!-- Панель разделов -->
+                <!-- Панель разделов -->
                 <div class="grid grid-cols-6 gap-2 mb-6">
                     <button class="role-card active" data-section="stats">Статистика</button>
                     <button class="role-card" data-section="orders">Заказы</button>
@@ -780,180 +862,180 @@
                     <button class="role-card" data-section="team">Сотрудники</button>
                 </div>
 
-        <!-- Мобильная панель разделов (появится только на мобильных) -->
-        <div class="mobile-role-section role-section-mobile">
-            <button class="role-card-mobile active" data-section="stats">Статистика</button>
-            <button class="role-card-mobile" data-section="orders">Заказы</button>
-            <button class="role-card-mobile" data-section="documents">Документы</button>
-            <button class="role-card-mobile" data-section="activity">Активность</button>
-            <button class="role-card-mobile" data-section="finance">Финансы</button>
-            <button class="role-card-mobile" data-section="team">Сотрудники</button>
-        </div>
+                <!-- Мобильная панель разделов (появится только на мобильных) -->
+                <div class="mobile-role-section role-section-mobile">
+                    <button class="role-card-mobile active" data-section="stats">Статистика</button>
+                    <button class="role-card-mobile" data-section="orders">Заказы</button>
+                    <button class="role-card-mobile" data-section="documents">Документы</button>
+                    <button class="role-card-mobile" data-section="activity">Активность</button>
+                    <button class="role-card-mobile" data-section="finance">Финансы</button>
+                    <button class="role-card-mobile" data-section="team">Сотрудники</button>
+                </div>
 
                 <div class="section-content active" id="stats-content">
-              <!-- Статистика -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Карточка общей статистики -->
-        <div class="dashboard-section p-5">
-            <h2 class="text-xl font-bold mb-4">Общая статистика</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Демо-данные -->
-                <div class="stat-card stat-card-mobile">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-gray-500 text-sm">Всего заказов</p>
-                            <p class="text-2xl font-bold">47</p>
-                            <p class="text-xs text-green-500 mt-1">↑ 12% за месяц</p>
+                    <!-- Статистика -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Карточка общей статистики -->
+                        <div class="dashboard-section p-5">
+                            <h2 class="text-xl font-bold mb-4">Общая статистика</h2>
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Демо-данные -->
+                                <div class="stat-card stat-card-mobile">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-gray-500 text-sm">Всего заказов</p>
+                                            <p class="text-2xl font-bold">47</p>
+                                            <p class="text-xs text-green-500 mt-1">↑ 12% за месяц</p>
+                                        </div>
+                                        <div class="stat-icon">
+                                            <i class="fas fa-shopping-cart stat-icon-mobile"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card stat-card-mobile">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-gray-500 text-sm">Средний чек</p>
+                                            <p class="text-2xl font-bold">24 500 ₽</p>
+                                            <p class="text-xs text-red-500 mt-1">↓ 5% за месяц</p>
+                                        </div>
+                                        <div class="stat-icon">
+                                            <i class="fas fa-receipt stat-icon-mobile"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card stat-card-mobile">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-gray-500 text-sm">Конверсия</p>
+                                            <p class="text-2xl font-bold">38%</p>
+                                            <p class="text-xs text-green-500 mt-1">↑ 8% за месяц</p>
+                                        </div>
+                                        <div class="stat-icon">
+                                            <i class="fas fa-percentage stat-icon-mobile"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card stat-card-mobile">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-gray-500 text-sm">Новых клиентов</p>
+                                            <p class="text-2xl font-bold">14</p>
+                                            <p class="text-xs text-green-500 mt-1">↑ 22% за месяц</p>
+                                        </div>
+                                        <div class="stat-icon">
+                                            <i class="fas fa-user-plus stat-icon-mobile"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-shopping-cart stat-icon-mobile"></i>
+
+                        <!-- График активности -->
+                        <div class="dashboard-section p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold">Динамика заказов</h2>
+                                <select class="border rounded-lg px-3 py-2 text-sm bg-white">
+                                    <option>Последние 30 дней</option>
+                                    <option>3 месяца</option>
+                                    <option>Год</option>
+                                </select>
+                            </div>
+
+                            <!-- График с обводкой дней -->
+                            <div class="relative h-64">
+                                <div class="absolute bottom-10 left-0 right-0 flex items-end justify-between px-4 h-3/4">
+                                    <!-- Столбцы графика -->
+                                    <div class="w-8 bg-blue-400 rounded-t" style="height: 30%"></div>
+                                    <div class="w-8 bg-blue-500 rounded-t" style="height: 45%"></div>
+                                    <div class="w-8 bg-blue-600 rounded-t" style="height: 70%"></div>
+                                    <div class="w-8 bg-blue-500 rounded-t" style="height: 60%"></div>
+                                    <div class="w-8 bg-blue-400 rounded-t" style="height: 40%"></div>
+                                    <div class="w-8 bg-blue-300 rounded-t" style="height: 25%"></div>
+                                    <div class="w-8 bg-blue-500 rounded-t" style="height: 55%"></div>
+                                </div>
+
+                                <!-- Подписи дней с черной обводкой -->
+                                <div class="absolute bottom-0 left-0 right-0 flex justify-between px-4">
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пн</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вт</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Ср</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Чт</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пт</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Сб</span>
+                                    <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вс</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительные отчеты -->
+                    <div class="dashboard-section p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">Топ товаров</h2>
+                            <button class="btn-custom">
+                                <i class="fas fa-download mr-2"></i> Экспорт
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-4 py-2 text-left text-xs text-gray-500">Товар</th>
+                                        <th class="px-4 py-2 text-left text-xs text-gray-500">Кол-во</th>
+                                        <th class="px-4 py-2 text-left text-xs text-gray-500">Выручка</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Демо-данные -->
+                                    <tr class="border-b">
+                                        <td class="px-4 py-3">Подарочный набор "Премиум"</td>
+                                        <td class="px-4 py-3">28</td>
+                                        <td class="px-4 py-3">686 000 ₽</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-3">Корпоративный календарь</td>
+                                        <td class="px-4 py-3">45</td>
+                                        <td class="px-4 py-3">427 500 ₽</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-3">Фирменная ручка</td>
+                                        <td class="px-4 py-3">120</td>
+                                        <td class="px-4 py-3">360 000 ₽</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-
-                <div class="stat-card stat-card-mobile">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-gray-500 text-sm">Средний чек</p>
-                            <p class="text-2xl font-bold">24 500 ₽</p>
-                            <p class="text-xs text-red-500 mt-1">↓ 5% за месяц</p>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-receipt stat-icon-mobile"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-card-mobile">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-gray-500 text-sm">Конверсия</p>
-                            <p class="text-2xl font-bold">38%</p>
-                            <p class="text-xs text-green-500 mt-1">↑ 8% за месяц</p>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-percentage stat-icon-mobile"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-card-mobile">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-gray-500 text-sm">Новых клиентов</p>
-                            <p class="text-2xl font-bold">14</p>
-                            <p class="text-xs text-green-500 mt-1">↑ 22% за месяц</p>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-user-plus stat-icon-mobile"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- График активности -->
-       <div class="dashboard-section p-5">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Динамика заказов</h2>
-        <select class="border rounded-lg px-3 py-2 text-sm bg-white">
-            <option>Последние 30 дней</option>
-            <option>3 месяца</option>
-            <option>Год</option>
-        </select>
-    </div>
-
-    <!-- График с обводкой дней -->
-    <div class="relative h-64">
-        <div class="absolute bottom-10 left-0 right-0 flex items-end justify-between px-4 h-3/4">
-            <!-- Столбцы графика -->
-            <div class="w-8 bg-blue-400 rounded-t" style="height: 30%"></div>
-            <div class="w-8 bg-blue-500 rounded-t" style="height: 45%"></div>
-            <div class="w-8 bg-blue-600 rounded-t" style="height: 70%"></div>
-            <div class="w-8 bg-blue-500 rounded-t" style="height: 60%"></div>
-            <div class="w-8 bg-blue-400 rounded-t" style="height: 40%"></div>
-            <div class="w-8 bg-blue-300 rounded-t" style="height: 25%"></div>
-            <div class="w-8 bg-blue-500 rounded-t" style="height: 55%"></div>
-        </div>
-
-        <!-- Подписи дней с черной обводкой -->
-        <div class="absolute bottom-0 left-0 right-0 flex justify-between px-4">
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пн</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вт</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Ср</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Чт</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Пт</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Сб</span>
-            <span class="text-xs text-gray-800 font-medium border border-black rounded-full px-2 py-1 bg-white">Вс</span>
-        </div>
-    </div>
-</div>
-    </div>
-
-    <!-- Дополнительные отчеты -->
-    <div class="dashboard-section p-5">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Топ товаров</h2>
-            <button class="btn-custom">
-                <i class="fas fa-download mr-2"></i> Экспорт
-            </button>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="min-w-full">
-                <thead>
-                    <tr class="bg-gray-50">
-                        <th class="px-4 py-2 text-left text-xs text-gray-500">Товар</th>
-                        <th class="px-4 py-2 text-left text-xs text-gray-500">Кол-во</th>
-                        <th class="px-4 py-2 text-left text-xs text-gray-500">Выручка</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Демо-данные -->
-                    <tr class="border-b">
-                        <td class="px-4 py-3">Подарочный набор "Премиум"</td>
-                        <td class="px-4 py-3">28</td>
-                        <td class="px-4 py-3">686 000 ₽</td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="px-4 py-3">Корпоративный календарь</td>
-                        <td class="px-4 py-3">45</td>
-                        <td class="px-4 py-3">427 500 ₽</td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="px-4 py-3">Фирменная ручка</td>
-                        <td class="px-4 py-3">120</td>
-                        <td class="px-4 py-3">360 000 ₽</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
                 <div class="section-content" id="orders-content">
                     <!-- Заказы -->
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <h2 class="text-xl font-bold">Активные заказы</h2>
-        <div class="flex gap-2">
-            <div class="relative">
-                <input type="text" id="order-search" placeholder="Поиск..."
-                       class="border rounded-lg px-3 py-2 text-sm">
-            </div>
-            <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
-                <option value="">Все статусы</option>
-                <option value="new">Новый</option>
-                <option value="processing">В обработке</option>
-                <option value="completed">Завершен</option>
-            </select>
-            <button id="export-orders" class="btn-custom">
-                <i class="fas fa-file-export mr-2"></i> Экспорт
-            </button>
-            <button class="btn-custom">
-                <i class="fas fa-plus mr-2"></i> Создать заказ
-            </button>
-        </div>
-    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h2 class="text-xl font-bold">Активные заказы</h2>
+                        <div class="flex gap-2">
+                            <div class="relative">
+                                <input type="text" id="order-search" placeholder="Поиск..."
+                                    class="border rounded-lg px-3 py-2 text-sm">
+                            </div>
+                            <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
+                                <option value="">Все статусы</option>
+                                <option value="new">Новый</option>
+                                <option value="processing">В обработке</option>
+                                <option value="completed">Завершен</option>
+                            </select>
+                            <button id="export-orders" class="btn-custom">
+                                <i class="fas fa-file-export mr-2"></i> Экспорт
+                            </button>
+                            <button class="btn-custom">
+                                <i class="fas fa-plus mr-2"></i> Создать заказ
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="table-container">
                         <table class="table">
@@ -1159,21 +1241,21 @@
                         </div>
 
                         <div class="px-6 py-4 hover:bg-gray-50">
-    <div class="flex items-start">
-        <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-green-300">
-            <i class="fas fa-money-bill-wave"></i>
-        </div>
-        <div class="ml-4">
-            <p class="text-sm font-medium text-gray-900">Получен платеж 25 000 ₽</p>
-            <p class="text-sm text-gray-500 mt-1">
-                <i class="fas fa-user mr-1"></i>
-                {{ user.get_full_name }}
-                <i class="fas fa-clock ml-3 mr-1"></i>
-                26.05.2025 16:20
-            </p>
-        </div>
-    </div>
-</div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-green-300">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">Получен платеж 25 000 ₽</p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <i class="fas fa-user mr-1"></i>
+                                        {{ user.get_full_name }}
+                                        <i class="fas fa-clock ml-3 mr-1"></i>
+                                        26.05.2025 16:20
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1226,41 +1308,41 @@
                         </div>
                     </div>
 
- <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Заглушка истории платежей -->
-        <div class="dashboard-section p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">История платежей</h2>
-                <button class="btn-custom">
-                    <i class="fas  mr-2"></i> Период
-                </button>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-8 text-center">
-                <i class="fas fa-chart-line text-gray-300 text-4xl mb-3"></i>
-                <p class="text-gray-400 font-medium">График платежей будет доступен после первых операций</p>
-                <p class="text-gray-400 text-sm mt-2">Здесь будет отображаться динамика платежей по месяцам</p>
-            </div>
-        </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Заглушка истории платежей -->
+                        <div class="dashboard-section p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold">История платежей</h2>
+                                <button class="btn-custom">
+                                    <i class="fas  mr-2"></i> Период
+                                </button>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-8 text-center">
+                                <i class="fas fa-chart-line text-gray-300 text-4xl mb-3"></i>
+                                <p class="text-gray-400 font-medium">График платежей будет доступен после первых операций</p>
+                                <p class="text-gray-400 text-sm mt-2">Здесь будет отображаться динамика платежей по месяцам</p>
+                            </div>
+                        </div>
 
-        <!-- Заглушка финансовых отчетов -->
-        <div class="dashboard-section p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Финансовые отчеты</h2>
-                <button class="btn-custom">
-                    <i class="fas fa-file-export mr-2"></i> Экспорт
-                </button>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-8 text-center">
-                <i class="fas fa-file-invoice-dollar text-gray-300 text-4xl mb-3"></i>
-                <p class="text-gray-400 font-medium">Отчеты будут генерироваться автоматически</p>
-                <p class="text-gray-400 text-sm mt-2">Доступны будут: ежемесячные отчеты, налоговые ведомости</p>
-                <button class="btn-gradient mt-4 px-4 py-2 rounded-lg">
-                    <i class="fas fa-plus mr-2"></i> Создать отчет вручную
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+                        <!-- Заглушка финансовых отчетов -->
+                        <div class="dashboard-section p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold">Финансовые отчеты</h2>
+                                <button class="btn-custom">
+                                    <i class="fas fa-file-export mr-2"></i> Экспорт
+                                </button>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-8 text-center">
+                                <i class="fas fa-file-invoice-dollar text-gray-300 text-4xl mb-3"></i>
+                                <p class="text-gray-400 font-medium">Отчеты будут генерироваться автоматически</p>
+                                <p class="text-gray-400 text-sm mt-2">Доступны будут: ежемесячные отчеты, налоговые ведомости</p>
+                                <button class="btn-gradient mt-4 px-4 py-2 rounded-lg">
+                                    <i class="fas fa-plus mr-2"></i> Создать отчет вручную
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="section-content" id="team-content">
                     <!-- Сотрудники -->
@@ -1344,7 +1426,7 @@
 </div>
 
 <script>
-     // Обновленный скрипт для работы с мобильной панелью
+    // Обновленный скрипт для работы с мобильной панелью
     document.querySelectorAll('.role-card, .role-card-mobile').forEach(button => {
         button.addEventListener('click', function() {
             // Удаляем класс active у всех кнопок
@@ -1393,44 +1475,108 @@
             card.style.boxShadow = 'none';
         });
     });
+
     // В блок script
-document.getElementById('order-search').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    filterOrders(searchTerm, document.getElementById('status-filter').value);
-});
-
-document.getElementById('status-filter').addEventListener('change', function() {
-    filterOrders(document.getElementById('order-search').value, this.value);
-});
-
-document.getElementById('export-orders').addEventListener('click', function() {
-    // Здесь будет код для экспорта
-    exportOrdersToExcel();
-});
-
-function filterOrders(searchTerm, statusFilter) {
-    const rows = document.querySelectorAll('.table tbody tr');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
-        const matchesSearch = text.includes(searchTerm);
-        const matchesStatus = !statusFilter || rowStatus.includes(statusFilter);
-
-        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+    document.getElementById('order-search').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        filterOrders(searchTerm, document.getElementById('status-filter').value);
     });
-}
 
-function exportOrdersToExcel() {
-    // Здесь будет реализация экспорта через API
-    alert('Экспорт заказов в Excel (реализация через бэкенд)');
-}
-   document.getElementById('company-details-form').addEventListener('submit', function(e) {
+    document.getElementById('status-filter').addEventListener('change', function() {
+        filterOrders(document.getElementById('order-search').value, this.value);
+    });
+
+    document.getElementById('export-orders').addEventListener('click', function() {
+        // Здесь будет код для экспорта
+        exportOrdersToExcel();
+    });
+
+    function filterOrders(searchTerm, statusFilter) {
+        const rows = document.querySelectorAll('.table tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
+            const matchesSearch = text.includes(searchTerm);
+            const matchesStatus = !statusFilter || rowStatus.includes(statusFilter);
+
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    function exportOrdersToExcel() {
+        // Здесь будет реализация экспорта через API
+        alert('Экспорт заказов в Excel (реализация через бэкенд)');
+    }
+
+    document.getElementById('company-details-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Создаем модальное окно с сохраненными данными
+                const modalHtml = `
+                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                            <h3 class="text-xl font-bold mb-4 text-center">Сохраненные реквизиты</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm text-gray-600 mb-1">Юридический адрес</label>
+                                    <p class="bg-gray-100 p-2 rounded">${data.legal_address || 'Не указан'}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-600 mb-1">Расчетный счет</label>
+                                    <p class="bg-gray-100 p-2 rounded">${data.bank_account || 'Не указан'}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-600 mb-1">БИК</label>
+                                    <p class="bg-gray-100 p-2 rounded">${data.bank_bik || 'Не указан'}</p>
+                                </div>
+                                <button onclick="this.closest('div[class^=fixed]').remove()"
+                                        class="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                                    Закрыть
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Вставляем модальное окно в DOM
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            } else {
+                alert('Ошибка при сохранении: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при отправке данных');
+        });
+    });
+
+   // Обработка формы добавления адреса
+document.getElementById('delivery-address-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const form = e.target;
     const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
 
-    fetch(form.action, {
+    // Блокируем кнопку на время отправки
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Добавление...';
+
+    fetch("{% url 'accounts:add_delivery_address' %}", {
         method: 'POST',
         body: formData,
         headers: {
@@ -1438,46 +1584,102 @@ function exportOrdersToExcel() {
             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            // Создаем модальное окно с сохраненными данными
-            const modalHtml = `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 class="text-xl font-bold mb-4 text-center">Сохраненные реквизиты</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">Юридический адрес</label>
-                                <p class="bg-gray-100 p-2 rounded">${data.legal_address || 'Не указан'}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">Расчетный счет</label>
-                                <p class="bg-gray-100 p-2 rounded">${data.bank_account || 'Не указан'}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">БИК</label>
-                                <p class="bg-gray-100 p-2 rounded">${data.bank_bik || 'Не указан'}</p>
-                            </div>
-                            <button onclick="this.closest('div[class^=fixed]').remove()"
-                                    class="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                                Закрыть
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Добавляем новый адрес в список
+            const addressesList = document.getElementById('delivery-addresses-list');
 
-            // Вставляем модальное окно в DOM
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            // Если нет адресов (отображается сообщение "Нет сохранённых адресов")
+            if (addressesList.querySelector('.text-gray-500')) {
+                addressesList.innerHTML = data.html;
+            } else {
+                addressesList.insertAdjacentHTML('beforeend', data.html);
+            }
+
+            // Очищаем форму
+            form.reset();
+
+            // Показываем уведомление об успехе
+            showNotification('Адрес успешно добавлен', 'success');
         } else {
-            alert('Ошибка при сохранении: ' + (data.error || 'Неизвестная ошибка'));
+            // Показываем ошибки валидации
+            if (data.errors) {
+                let errorMessages = [];
+                for (const field in data.errors) {
+                    errorMessages.push(...data.errors[field]);
+                }
+                showNotification(errorMessages.join('\n'), 'error');
+            } else {
+                showNotification('Произошла ошибка при добавлении адреса', 'error');
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Произошла ошибка при отправке данных');
+        showNotification('Произошла ошибка при отправке данных', 'error');
+    })
+    .finally(() => {
+        // Разблокируем кнопку
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-plus mr-2"></i> Добавить адрес';
     });
+});
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+// Обработка удаления адреса
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-address')) {
+        const button = e.target.closest('.delete-address');
+        const addressId = button.dataset.addressId;
+
+        if (confirm('Вы уверены, что хотите удалить этот адрес?')) {
+            fetch(`/accounts/delete_delivery_address/${addressId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Удаляем элемент из DOM
+                    document.querySelector(`.delivery-address-item[data-address-id="${addressId}"]`).remove();
+
+                    // Если список пуст, показываем сообщение
+                    const addressesList = document.getElementById('delivery-addresses-list');
+                    if (addressesList.children.length === 0) {
+                        addressesList.innerHTML = '<p class="text-gray-500 text-sm">Нет сохранённых адресов</p>';
+                    }
+                } else {
+                    alert('Ошибка при удалении адреса');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при удалении адреса');
+            });
+        }
+    }
 });
 </script>
 {% endblock %}

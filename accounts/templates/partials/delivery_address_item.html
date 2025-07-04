@@ -1,0 +1,11 @@
+<div class="delivery-address-item bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center" data-address-id="{{ address.id }}">
+    <div>
+        <p class="text-gray-800">{{ address.address }}</p>
+        {% if address.is_default %}
+            <span class="text-xs text-blue-600">(по умолчанию)</span>
+        {% endif %}
+    </div>
+    <button class="delete-address text-red-500 hover:text-red-700" data-address-id="{{ address.id }}">
+        <i class="fas fa-trash"></i>
+    </button>
+</div>

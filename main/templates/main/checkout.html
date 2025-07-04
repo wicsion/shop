@@ -1,0 +1,216 @@
+{% extends "main/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">{% trans "Оформление заказа" %}</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Информация о заказе -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">{% trans "Ваш заказ" %}</h2>
+
+                <div class="divide-y divide-gray-200">
+                    {% for item in cart_items %}
+                    <div class="py-4 flex items-start">
+                        <div class="w-20 h-20 flex-shrink-0 rounded overflow-hidden mr-4">
+                            <img src="{% url 'main:resize_image' %}?url={{ item.image|urlencode }}&width=80&height=80"
+                                 alt="{{ item.product.name }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium">{{ item.product.name }}</h3>
+                            {% if item.size %}
+                            <p class="text-sm text-gray-600 mt-1">
+                                {% trans "Размер" %}: {{ item.size }}
+                            </p>
+                            {% endif %}
+                            <p class="text-gray-800 font-medium mt-1">
+                                {{ item.quantity }} × {{ item.product.price }} ₽ = {{ item.total_price }} ₽
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">{% trans "Итого" %}:</span>
+                        <span class="text-xl font-bold">{{ cart.total_price }} ₽</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма оформления заказа -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">{% trans "Контактная информация" %}</h2>
+
+                <form method="post" action="{% url 'main:checkout' %}">
+                    {% csrf_token %}
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {% trans "Имя" %} *
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {% trans "Фамилия" %} *
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {% trans "Email" %} *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {% trans "Телефон" %} *
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                       <div>
+    <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+        {% trans "Адрес доставки" %} *
+    </label>
+
+    {% if request.user.is_authenticated and request.user.company.delivery_addresses.exists %}
+        <select name="delivery_address" id="delivery-address-select" class="w-full border rounded-lg px-3 py-2 text-sm mb-2">
+            <option value="">Выберите сохранённый адрес</option>
+            {% for address in request.user.company.delivery_addresses.all %}
+                <option value="{{ address.id }}" {% if address.is_default %}selected{% endif %}>
+                    {{ address.address }}{% if address.is_default %} (по умолчанию){% endif %}
+                </option>
+            {% endfor %}
+            <option value="new">Добавить новый адрес</option>
+        </select>
+    {% endif %}
+
+    {{ form.address }}
+    {% if form.address.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+    {% endif %}
+</div>
+
+                        <div>
+                            <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {% trans "Комментарий к заказу" %}
+                            </label>
+                            {{ form.comment }}
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition">
+                            {% trans "Подтвердить заказ" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Маска для телефона
+    const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let formattedValue = '';
+
+            if (value.length > 0) {
+                formattedValue = '+7 (' + value.substring(1, 4);
+            }
+            if (value.length >= 4) {
+                formattedValue += ') ' + value.substring(4, 7);
+            }
+            if (value.length >= 7) {
+                formattedValue += '-' + value.substring(7, 9);
+            }
+            if (value.length >= 9) {
+                formattedValue += '-' + value.substring(9, 11);
+            }
+
+            e.target.value = formattedValue;
+        });
+    }
+
+    // Проверка заполненности обязательных полей перед отправкой
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-red-500');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Пожалуйста, заполните все обязательные поля');
+            }
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const addressSelect = document.getElementById('delivery-address-select');
+    const addressField = document.getElementById('{{ form.address.id_for_label }}');
+
+    if (addressSelect) {
+        addressSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                addressField.style.display = 'block';
+                addressField.value = '';
+                addressField.required = true;
+            } else if (this.value) {
+                // Здесь можно добавить AJAX-запрос для получения полного адреса по ID
+                addressField.style.display = 'none';
+                addressField.required = false;
+            } else {
+                addressField.style.display = 'block';
+                addressField.required = true;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.border-red-500 {
+    border-color: #ef4444;
+}
+</style>
+{% endblock %}

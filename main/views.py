@@ -20,33 +20,28 @@ from io import BytesIO
 from PIL import Image
 from django.views import View
 from django.core.cache import cache
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
 
 class ResizeImageView(View):
     def get(self, request):
-        # Получаем и декодируем URL
         image_url = unquote(request.GET.get('url', ''))
         width = int(request.GET.get('width', 200))
         height = int(request.GET.get('height', 200))
 
-        # Генерируем ключ для кэша
-        cache_key = f"resized_image_{image_url}_{width}_{height}"
+        # Проверяем поддержку WebP в заголовках запроса
+        accept_header = request.headers.get('Accept', '')
+        supports_webp = 'image/webp' in accept_header
 
-        # Проверяем кэш
+        cache_key = f"resized_image_{image_url}_{width}_{height}_{'webp' if supports_webp else 'jpeg'}"
         cached_response = cache.get(cache_key)
         if cached_response:
             return cached_response
 
-        if not image_url:
-            return self._serve_placeholder()
-
         try:
-            # Очищаем URL от существующих credentials
             clean_url = re.sub(r'https?://[^@]+@', 'https://', image_url)
-
-            # Загружаем изображение с базовой авторизацией
             response = requests.get(
                 clean_url,
                 auth=HTTPBasicAuth('87358_xmlexport', 'MGzXXSgD'),
@@ -55,29 +50,29 @@ class ResizeImageView(View):
             )
             response.raise_for_status()
 
-            # Обрабатываем изображение
             img = Image.open(BytesIO(response.content))
             img.thumbnail((width, height))
-
-            # Конвертируем в JPEG
             output = BytesIO()
-            img.save(output, format='JPEG', quality=90)
+
+            # Используем WebP если поддерживается, иначе JPEG
+            if supports_webp:
+                img.save(output, format='WEBP', quality=85)
+                content_type = 'image/webp'
+            else:
+                img.save(output, format='JPEG', quality=90)
+                content_type = 'image/jpeg'
+
             output.seek(0)
 
-            # Создаем HTTP ответ
-            http_response = HttpResponse(output.getvalue(), content_type='image/jpeg')
-
-            # Кэшируем результат на 24 часа
-            cache.set(cache_key, http_response, 60 * 60 * 24)
-
+            http_response = HttpResponse(output.getvalue(), content_type=content_type)
+            cache.set(cache_key, http_response, 60 * 60 * 24)  # Кэш на 24 часа
             return http_response
 
         except Exception as e:
-            print(f"Image processing error: {str(e)}")
-            return self._serve_placeholder()
+            logger.error(f"Error resizing image: {e}")
+            return HttpResponseRedirect(settings.STATIC_URL + 'images/no-image.jpg')
 
-    def _serve_placeholder(self):
-        return HttpResponseRedirect(settings.STATIC_URL + 'images/no-image.jpg')
+
 
 def get_cart(request):
     cart = None
@@ -171,11 +166,11 @@ class CategoryDetailView(DetailView):
         min_price = self.request.GET.get('min_price')
         max_price = self.request.GET.get('max_price')
         status = self.request.GET.get('status')
-        brands = [b for b in self.request.GET.get('brands', '').split(',') if b] if self.request.GET.get('brands') else []
-        materials = products.exclude(material='').values_list(
-            'material', flat=True
-        ).distinct().order_by('material')
-        sizes = self.request.GET.get('sizes', '').split(',') if self.request.GET.get('sizes') else []
+        brands = [b for b in self.request.GET.get('brands', '').split(',') if b] if self.request.GET.get(
+            'brands') else []
+        materials = [m for m in self.request.GET.get('materials', '').split(',') if m] if self.request.GET.get(
+            'materials') else []
+        sizes = [s for s in self.request.GET.get('sizes', '').split(',') if s] if self.request.GET.get('sizes') else []
         is_featured = self.request.GET.get('is_featured') == 'true'
         is_bestseller = self.request.GET.get('is_bestseller') == 'true'
         has_discount = self.request.GET.get('has_discount') == 'true'
@@ -191,14 +186,11 @@ class CategoryDetailView(DetailView):
         if brands:
             products = products.filter(brand__in=brands)
         if materials:
-            # Используем Q-объекты для поиска по частичному совпадению
             material_query = Q()
             for material in materials:
                 material_query |= Q(material__icontains=material)
             products = products.filter(material_query)
-
         if sizes:
-            # Аналогично для размеров
             size_query = Q()
             for size in sizes:
                 size_query |= Q(sizes_available__icontains=size)
@@ -227,19 +219,32 @@ class CategoryDetailView(DetailView):
         elif sort_by == 'newest':
             products = products.order_by('-created_at')
 
-        # Получаем уникальные бренды, материалы и размеры для фильтров
+        # Получаем уникальные бренды
         brands = products.exclude(brand='').values_list(
             'brand', flat=True
         ).distinct().order_by('brand')
 
-        # Get materials list
+        # Получаем уникальные материалы
         materials = products.exclude(material='').values_list(
             'material', flat=True
         ).distinct().order_by('material')
 
-        sizes = products.exclude(sizes_available='').values_list(
-            'sizes_available', flat=True
-        ).distinct().order_by('sizes_available')
+        # Получаем уникальные размеры
+        size_set = set()
+        for product in products:
+            if product.sizes_available:
+                # Разделяем строку с размерами и добавляем в множество
+                for size in product.sizes_available.split(','):
+                    size = size.strip()
+                    if size:
+                        size_set.add(size)
+
+        # Сортируем размеры по стандартному порядку
+        standard_sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL', '5XL']
+        sizes = sorted(size_set, key=lambda x: (
+            standard_sizes.index(x) if x in standard_sizes else len(standard_sizes),
+            x
+        ))
 
         # Пагинация
         per_page = int(self.request.GET.get('per_page', 12))
@@ -320,21 +325,10 @@ def add_to_cart(request, product_id):
     cart = get_cart(request)
 
     if request.method == 'POST':
-        form = AddToCartForm(request.POST)
+        form = AddToCartForm(request.POST, product=product)
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
-            selected_size = request.POST.get('selected_size')
-
-            # Проверка доступности количества
-            if selected_size:
-                if product.variants.exists():
-                    variant = product.variants.filter(size=selected_size).first()
-                    if variant and variant.quantity < quantity:
-                        messages.error(request, 'Недостаточное количество товара выбранного размера')
-                        return redirect(product.get_absolute_url())
-                elif product.quantity < quantity:
-                    messages.error(request, 'Недостаточное количество товара')
-                    return redirect(product.get_absolute_url())
+            selected_size = form.cleaned_data.get('selected_size')
 
             # Создаем или обновляем элемент корзины
             cart_item, created = CartItem.objects.get_or_create(
@@ -348,12 +342,25 @@ def add_to_cart(request, product_id):
                 cart_item.quantity += quantity
                 cart_item.save()
 
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Товар добавлен в корзину',
+                    'cart_total': cart.total_quantity
+                })
+
             messages.success(request, 'Товар добавлен в корзину')
             return redirect('main:cart_view')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors.as_json()
+                }, status=400)
+            messages.error(request, 'Ошибка при добавлении в корзину')
+            return redirect(product.get_absolute_url())
 
     return redirect(product.get_absolute_url())
-
-
 def remove_from_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id)
     cart = cart_item.cart
@@ -419,7 +426,8 @@ def cart_view(request):
                 'item': item,
                 'product': item.xml_product,
                 'image': item.xml_product.main_image,
-                'total_price': item.quantity * item.xml_product.price
+                'total_price': item.quantity * item.xml_product.price,
+                'size': item.size  # Добавляем размер в контекст
             })
 
     context = {
@@ -437,6 +445,18 @@ def checkout(request):
     if cart.items.count() == 0:
         messages.warning(request, _('Ваша корзина пуста'))
         return redirect('main:cart_view')
+
+    # Подготовка элементов корзины с данными о продуктах
+    cart_items = []
+    for item in cart.items.all():
+        if item.xml_product:
+            cart_items.append({
+                'item': item,
+                'product': item.xml_product,
+                'image': item.xml_product.main_image,
+                'total_price': item.quantity * item.xml_product.price,
+                'size': item.size  # Добавляем размер
+            })
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
@@ -468,10 +488,13 @@ def checkout(request):
             return redirect('main:order_success', order_id=order.id)
     else:
         if request.user.is_authenticated:
+            # Заполняем форму данными пользователя
             initial = {
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'email': request.user.email,
+                'phone': request.user.phone,
+                # Добавьте другие поля, если нужно
             }
             form = OrderForm(initial=initial)
         else:
@@ -479,6 +502,7 @@ def checkout(request):
 
     context = {
         'cart': cart,
+        'cart_items': cart_items,  # Передаем подготовленные элементы корзины
         'form': form,
         'search_form': SearchForm(),
     }
@@ -577,7 +601,7 @@ def search_suggestions(request):
                 'name': prod.name,
                 'url': reverse('main:xml_product_detail', kwargs={'product_id': prod.product_id}),
                 'price': str(prod.price),
-                'image': prod.main_image,
+                'image': f"{reverse('main:resize_image')}?url={quote(prod.main_image)}&width=100&height=100",
                 'type': 'product'
             }
             for prod in products
@@ -646,6 +670,7 @@ class XMLProductDetailView(DetailView):
     slug_field = 'product_id'
 
     def get_filter_type_name(self, filter_type):
+
         type_names = {
             '1': 'Тип товара',
             '5': 'Тип крепления',
@@ -659,6 +684,7 @@ class XMLProductDetailView(DetailView):
         return type_names.get(filter_type, f"Фильтр {filter_type}")
 
     def get_filter_value_name(self, filter_type, filter_id):
+
         filter_mapping = {
             '5': {'22': 'Кнопка', '51': 'Молния'},
             '8': {'229': 'Шелкография', '232': 'Термопечать'},
@@ -671,27 +697,93 @@ class XMLProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # Обработка фильтров
-        # Подготовим данные о размерах
-        size_data = []
+        # 1. Получаем полную информацию о размерах из модели
+        size_info = product.get_size_info()
+
+        # 2. Формируем удобную структуру sizes_info для шаблона
+        sizes_info = []
+
+        # Для товаров с вариантами размеров
         if product.variants.exists():
-            for variant in product.variants.all():
-                size_data.append({
+            for variant in product.variants.all().order_by('size'):
+                sizes_info.append({
                     'size': variant.size,
-                    'quantity': variant.quantity
+                    'normalized_size': size_info.get('normalized_sizes', [variant.size])[0],
+                    'quantity': variant.quantity,
+                    'price': variant.price if variant.price is not None else product.price,
+                    'old_price': variant.old_price if variant.old_price is not None else product.old_price,
+                    'in_stock': variant.quantity > 0,
+                    'is_variant': True
                 })
-        elif product.available_sizes:
-            for size in product.available_sizes:
-                size_data.append({
+
+        # Для товаров без вариантов, но с таблицей размеров
+        elif size_info.get('available_sizes'):
+            for i, size in enumerate(size_info['available_sizes']):
+                normalized_size = size_info['normalized_sizes'][i] if i < len(
+                    size_info.get('normalized_sizes', [])) else size
+                sizes_info.append({
                     'size': size,
-                    'quantity': product.quantity  # Общее количество, если нет вариантов
+                    'normalized_size': normalized_size,
+                    'quantity': product.quantity,
+                    'price': product.price,
+                    'old_price': product.old_price,
+                    'in_stock': product.quantity > 0,
+                    'is_variant': False
                 })
+
+        # 3. Подготовка данных для отображения
+        has_multiple_prices = any(s['price'] != product.price for s in sizes_info)
+        has_size_table = size_info.get('size_table') is not None
+
+        # 4. Добавляем данные в контекст
+        context.update({
+            'sizes_info': sizes_info,
+            'size_data': {
+                'available_sizes': [s['size'] for s in sizes_info],
+                'normalized_sizes': [s['normalized_size'] for s in sizes_info],
+                'size_table': size_info.get('size_table'),
+                'gender': size_info.get('gender'),
+                'has_size_table': has_size_table,
+                'has_multiple_prices': has_multiple_prices,
+                'all_sizes_out_of_stock': all(s['quantity'] <= 0 for s in sizes_info) if sizes_info else False
+            },
+            'printing_data': product.get_printing_info(),
+            'product_has_variants': product.variants.exists(),
+            'main_product_data': {
+                'price': product.price,
+                'old_price': product.old_price,
+                'quantity': product.quantity,
+                'in_stock': product.in_stock
+            }
+        })
+
+        # 5. Отладочная информация (можно убрать в production)
+        if settings.DEBUG:
+            context['debug_size_info'] = {
+                'source': 'variants' if product.variants.exists() else
+                'size_table' if has_size_table else
+                'sizes_available' if product.sizes_available else
+                'size_field',
+                'raw_data': size_info
+            }
+
+        return context
+
+
+
+    def _get_readable_filters(self, product):
+        """Преобразует фильтры из XML в читаемый формат"""
         readable_filters = []
         if product.xml_data and 'filters' in product.xml_data:
             for f in product.xml_data['filters']:
                 try:
                     filter_type = f.get('type_id', '') or f.get('type', '')
                     filter_id = f.get('filter_id', '') or f.get('id', '')
+
+                    # Пропускаем фильтры типа 8 (они обрабатываются в printing_info)
+                    if str(filter_type) == '8':
+                        continue
+
                     type_name = f.get('type_name', self.get_filter_type_name(filter_type))
                     value_name = f.get('filter_name', self.get_filter_value_name(filter_type, filter_id))
 
@@ -701,12 +793,12 @@ class XMLProductDetailView(DetailView):
                             'value': value_name
                         })
                 except (KeyError, AttributeError) as e:
-                    print(f"Error processing filter: {e}")
+                    logger.error(f"Error processing filter: {e}")
                     continue
+        return readable_filters
 
-        context['readable_filters'] = readable_filters
-
-        # Обработка принтов
+    def _get_readable_prints(self, product):
+        """Преобразует данные о принтах из XML в читаемый формат"""
         readable_prints = []
         if product.xml_data and 'prints' in product.xml_data:
             for p in product.xml_data['prints']:
@@ -718,12 +810,11 @@ class XMLProductDetailView(DetailView):
                         })
                 except (KeyError, AttributeError):
                     continue
-        context['available_sizes'] = product.available_sizes
-        context['readable_prints'] = readable_prints
-        context['excluded_attributes'] = "attachments,images,filters,prints"
-        context['sizes_with_quantities'] = product.get_sizes_with_quantities()
+        return readable_prints
 
-        return context
+
+
+
 
     def clean_image_url(self, url):
         """Очистка URL от параметров размера"""

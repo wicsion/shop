@@ -1,288 +1,220 @@
 from django.core.management.base import BaseCommand
-from main.models import XMLProduct, ProductVariant, ProductVariantThrough
-import requests
+from main.models import XMLProduct, ProductVariant, ProductVariantThrough, Category
 from xml.etree import ElementTree as ET
+import requests
 import logging
+import time
 from tqdm import tqdm
 from django.db import transaction
-from colorama import init, Fore, Style
-from datetime import datetime
+from django.db.models import Q
 import re
-from typing import Dict, Optional, Union, Any
 
-init(autoreset=True)
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    filename='import_stock.log'
-)
-
-# Расширенный список стандартных размеров с приоритетами
-SIZE_PRIORITY = {
-    'XXXL': 1, 'XXL': 2, 'XL': 3, 'L': 4, 'M': 5, 'S': 6, 'XS': 7,
-    'S/M': 8, 'L/XL': 9, 'M/L': 10, 'XL/2XL': 11, 'XS/S': 12, 'XS-XXL': 13,
-    '3XL': 14, '4XL': 15, '5XL': 16,
-    'ONE SIZE': 17, 'ONESIZE': 18, 'UNISEX': 19,
-    'OS': 20  # One Size сокращенно
-}
-
-# Словарь для отслеживания найденных размеров
-found_sizes = {size: 0 for size in SIZE_PRIORITY}
 
 
 class Command(BaseCommand):
-    help = 'Import product quantities from stock.xml'
+    help = 'Optimized product quantities update from stock.xml with size separation'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.session = requests.Session()
+        self.session.auth = ('87358_xmlexport', 'MGzXXSgD')
+        self.size_mapping = {
+            'XS': 'XS', 'S': 'S', 'M': 'M', 'L': 'L', 'XL': 'XL',
+            'XXL': 'XXL', 'XXXL': 'XXXL', '3XL': 'XXXL', '4XL': '4XL', '5XL': '5XL'
+        }
+        self.clothing_category_ids = set()
+
+    def add_arguments(self, parser):
+        parser.add_argument('--batch-size', type=int, default=1000)
+        parser.add_argument('--max-retries', type=int, default=3)
 
     def handle(self, *args, **options):
-        start_time = datetime.now()
-        self.stdout.write(Fore.YELLOW + f"=== НАЧАЛО ИМПОРТА {start_time} ===" + Style.RESET_ALL)
-        logger.info(f"=== НАЧАЛО ИМПОРТА {start_time} ===")
+        # Предварительно загружаем ID категорий одежды
+        self.load_clothing_categories()
 
+        stock_url = "https://api2.gifts.ru/export/v2/catalogue/stock.xml"
         try:
-            # 1. Загрузка данных
-            stock_data = self.load_stock_data()
-
-            if not stock_data:
-                self.stdout.write(Fore.RED + "Ошибка: не загружено ни одного товара!" + Style.RESET_ALL)
-                logger.error("Ошибка: не загружено ни одного товара!")
-                return
-
-            # 2. Обновление данных
-            stats = self.update_product_quantities(stock_data)
-
-            # Итоговая статистика
-            end_time = datetime.now()
-            duration = end_time - start_time
-
-            self.stdout.write(Fore.GREEN + "\n=== ИТОГОВАЯ СТАТИСТИКА ===" + Style.RESET_ALL)
-            logger.info("\n=== ИТОГОВАЯ СТАТИСТИКА ===")
-            self.stdout.write(f"Время выполнения: {duration}")
-            logger.info(f"Время выполнения: {duration}")
-            self.stdout.write(f"Обновлено товаров: {stats['products']}")
-            logger.info(f"Обновлено товаров: {stats['products']}")
-            self.stdout.write(f"Обновлено вариантов: {stats['variants']}")
-            logger.info(f"Обновлено вариантов: {stats['variants']}")
-            self.stdout.write(f"Не найдено товаров: {stats['not_found']}")
-            logger.info(f"Не найдено товаров: {stats['not_found']}")
-
-            products_with_variants = sum(1 for data in stock_data.values() if data['variants'])
-            self.stdout.write(f"Товаров с вариантами: {products_with_variants}")
-            logger.info(f"Товаров с вариантами: {products_with_variants}")
-
-            zero_qty_variants = sum(1 for data in stock_data.values()
-                                    for qty in data['variants'].values() if qty == 0)
-            self.stdout.write(Fore.YELLOW + f"Вариантов с нулевым количеством: {zero_qty_variants}" + Style.RESET_ALL)
-            logger.warning(f"Вариантов с нулевым количеством: {zero_qty_variants}")
-
-            # Выводим статистику по обработанным размерам
-            self.stdout.write(Fore.CYAN + "\n=== СТАТИСТИКА ПО РАЗМЕРАМ ===" + Style.RESET_ALL)
-            logger.info("\n=== СТАТИСТИКА ПО РАЗМЕРАМ ===")
-            for size, count in sorted(found_sizes.items(), key=lambda x: SIZE_PRIORITY[x[0]]):
-                status = "[FOUND]" if count > 0 else "[MISSING]"
-                color = Fore.GREEN if count > 0 else Fore.RED
-                self.stdout.write(f"{size:<8}: {color}{status}{Style.RESET_ALL} (найдено: {count})")
-                logger.info(f"{size:<8}: {status} (найдено: {count})")
-
-            unused_sizes = [size for size, count in found_sizes.items() if count == 0]
-            if unused_sizes:
-                self.stdout.write(
-                    Fore.YELLOW + f"\nНеиспользованные размеры: {', '.join(unused_sizes)}" + Style.RESET_ALL)
-                logger.warning(f"Неиспользованные размеры: {', '.join(unused_sizes)}")
-
+            self.build_product_maps()
+            stock_data = self.download_and_parse_stock(stock_url, options['max_retries'])
+            self.process_updates(stock_data, options['batch_size'])
+            logger.info("Quantity update completed successfully")
         except Exception as e:
-            self.stdout.write(Fore.RED + f"\nКРИТИЧЕСКАЯ ОШИБКА: {str(e)}" + Style.RESET_ALL)
-            logger.exception("Ошибка в основном обработчике")
+            logger.error(f"Fatal error: {str(e)}", exc_info=True)
 
-    def load_stock_data(self) -> Dict[str, Dict[str, Any]]:
-        """Улучшенная загрузка данных с проверкой количества"""
-        self.stdout.write(Fore.CYAN + "\n[1/2] Загрузка данных из stock.xml..." + Style.RESET_ALL)
-        logger.info("[1/2] Загрузка данных из stock.xml...")
+    def load_clothing_categories(self):
+        """Загружаем ID категорий одежды для быстрой проверки"""
+        clothing_categories = Category.objects.filter(
+            Q(name__icontains='одежда') |
+            Q(name__icontains='футболк') |
+            Q(name__icontains='толстовк') |
+            Q(name__icontains='текстиль')
+        )
+        self.clothing_category_ids = {c.id for c in clothing_categories}
 
-        try:
-            response = requests.get(
-                "https://87358_xmlexport:MGzXXSgD@api2.gifts.ru/export/v2/catalogue/stock.xml",
-                timeout=60
-            )
-            response.raise_for_status()
+    def is_clothing_product(self, product):
+        """Проверяем, относится ли товар к одежде"""
+        return any(cat.id in self.clothing_category_ids for cat in product.categories.all())
 
-            # Парсинг XML
-            root = ET.fromstring(response.content)
-            if root.tag != 'doct':
-                raise ValueError(f"Неожиданный корневой элемент: {root.tag}")
+    def extract_size_from_code(self, code, product):
+        """Извлекаем размер из кода товара с учетом типа товара"""
+        if self.is_clothing_product(product):
+            # Для одежды ищем стандартные размеры
+            parts = code.split('.')
+            last_part = parts[-1].upper()
 
-            stocks = root.findall('.//stock')
-            self.stdout.write(Fore.GREEN + f"Найдено записей: {len(stocks)}" + Style.RESET_ALL)
-            logger.info(f"Найдено записей: {len(stocks)}")
+            for size_pattern in self.size_mapping:
+                if size_pattern in last_part:
+                    return self.size_mapping[size_pattern]
 
-            # Сбор и анализ данных
-            product_map: Dict[str, Dict[str, Any]] = {}
-            for stock in tqdm(stocks, desc="Анализ товаров"):
-                try:
-                    product_id = stock.find('product_id').text.strip() if stock.find('product_id') is not None else None
-                    code = stock.find('code').text.strip() if stock.find('code') is not None else None
-                    amount = int(stock.find('amount').text) if stock.find('amount') is not None else 0
-
-                    if not product_id or not code:
-                        continue
-
-                    logger.debug(f"Обработка товара ID: {product_id}, Код: {code}, Количество: {amount}")
-
-                    if product_id not in product_map:
-                        product_map[product_id] = {
-                            'main': None,
-                            'variants': {},
-                            'codes': set()
-                        }
-
-                    # Определяем тип записи (основной товар или вариант)
-                    size = self.detect_size(code)
-                    if size:
-                        found_sizes[size] += 1
-                        logger.debug(f"Найден размер: {size} для кода: {code}")
-                        product_map[product_id]['variants'][size] = max(
-                            product_map[product_id]['variants'].get(size, 0),
-                            amount
-                        )
-                        logger.debug(f"Установлено количество {amount} для размера {size} товара {product_id}")
-                    else:
-                        current_main = product_map[product_id]['main']
-                        if current_main is None or amount > current_main['amount']:
-                            product_map[product_id]['main'] = {
-                                'code': code,
-                                'amount': amount
-                            }
-                            logger.debug(f"Установлено основное количество {amount} для товара {product_id}")
-
-                    product_map[product_id]['codes'].add(code)
-
-                except Exception as e:
-                    logger.warning(f"Ошибка обработки записи: {e}")
-                    continue
-
-            # Формируем итоговые данные
-            result: Dict[str, Dict[str, Any]] = {}
-            for product_id, data in product_map.items():
-                if not data['main'] and not data['variants']:
-                    continue
-
-                main_data = data['main'] if data['main'] is not None else {
-                    'code': next(iter(data['codes'])),
-                    'amount': 0
-                }
-
-                variants = {k: v for k, v in data['variants'].items() if v > 0}
-
-                result[product_id] = {
-                    'code': main_data['code'],
-                    'quantity': main_data['amount'],
-                    'variants': variants,
-                    'all_codes': list(data['codes'])
-                }
-
-                logger.info(f"Товар {product_id}: основное количество={main_data['amount']}, варианты={variants}")
-
-                if variants and main_data['amount'] == 0:
-                    self.stdout.write(Fore.YELLOW +
-                                      f"Товар {product_id} имеет варианты, но основное количество 0" + Style.RESET_ALL)
-                    logger.warning(f"Товар {product_id} имеет варианты, но основное количество 0")
-
-            return result
-
-        except Exception as e:
-            self.stdout.write(Fore.RED + f"Ошибка загрузки данных: {str(e)}" + Style.RESET_ALL)
-            logger.error(f"Ошибка загрузки данных: {str(e)}")
-            return {}
-
-    def detect_size(self, code: str) -> Optional[str]:
-        """Улучшенное определение размера с учетом всех вариантов написания"""
-        if not code:
+            if len(parts) > 1:
+                prev_part = parts[-2].upper()
+                for size_pattern in self.size_mapping:
+                    if size_pattern in prev_part:
+                        return self.size_mapping[size_pattern]
+        else:
+            # Для не-одежды возвращаем None (габариты будем брать из других полей)
             return None
 
-        # Нормализация кода
-        original_code = code
-        code = code.upper().replace(' ', '').replace('–', '-')
-        logger.debug(f"Определение размера для кода: {original_code} -> нормализовано: {code}")
-
-        # Порядок важен - сначала проверяем составные размеры
-        composite_sizes = {
-            'XS/S': ['XS/S', 'XSS', 'XS_S'],
-            'XS-XXL': ['XS-XXL', 'XSXXL'],
-            'XL/2XL': ['XL/2XL', 'XL2XL', 'XL_2XL'],
-            'M/L': ['M/L', 'ML', 'M_L'],
-            'L/XL': ['L/XL', 'LXL', 'L_XL'],
-            'S/M': ['S/M', 'SM', 'S_M']
-        }
-
-        for size_name, variants in composite_sizes.items():
-            if any(variant in code for variant in variants):
-                logger.debug(f"Определен составной размер: {size_name} для кода: {original_code}")
-                return size_name
-
-        # Проверяем простые размеры
-        simple_sizes = ['XXXL', 'XXL', 'XL', 'L', 'M', 'S', 'XS', 'ONE SIZE', 'OS', 'UNISEX']
-        for size in simple_sizes:
-            if size in code:
-                logger.debug(f"Определен простой размер: {size} для кода: {original_code}")
-                return size
-
-        logger.debug(f"Размер не определен для кода: {original_code}")
         return None
 
-    def update_product_quantities(self, stock_data: Dict[str, Any]) -> Dict[str, int]:
-        """Обновление данных с проверкой логики"""
-        stats = {'products': 0, 'variants': 0, 'not_found': 0, 'created': 0}
+    def build_product_maps(self):
+        """Создаем карту продуктов для быстрого поиска"""
+        products = XMLProduct.objects.all().only(
+            'id', 'product_id', 'code', 'price', 'old_price', 'quantity', 'in_stock'
+        ).prefetch_related('categories')
 
+        self.product_id_map = {p.product_id: p for p in products}
+        self.product_code_map = {p.code: p for p in products}
+
+    def download_and_parse_stock(self, url, max_retries):
+        """Загрузка и парсинг XML с данными о наличии"""
+        for attempt in range(max_retries):
+            try:
+                response = self.session.get(url, timeout=30)
+                response.raise_for_status()
+                return self.process_stock_data(ET.fromstring(response.content))
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep((attempt + 1) * 5)
+
+    def process_stock_data(self, root):
+        """Обработка данных о наличии с разделением размеров и габаритов"""
+        stock_items = list(root.findall('stock'))
+        stock_data = {}
+
+        for item in tqdm(stock_items, desc="Processing stock items"):
+            try:
+                product_id = item.find('product_id').text.strip()
+                code = item.find('code').text.strip()
+                free = int(item.find('free').text)
+
+                product = (
+                        self.product_id_map.get(product_id) or
+                        self.product_code_map.get(code) or
+                        self.find_product_by_alt_code(code)
+                )
+
+                if not product:
+                    continue
+
+                size = self.extract_size_from_code(code, product)
+
+                if product.product_id not in stock_data:
+                    stock_data[product.product_id] = {
+                        'product': product,
+                        'total_free': 0,
+                        'variants': {},
+                        'is_clothing': self.is_clothing_product(product)
+                    }
+
+                stock_data[product.product_id]['total_free'] += free
+
+                if size:
+                    if size not in stock_data[product.product_id]['variants']:
+                        stock_data[product.product_id]['variants'][size] = 0
+                    stock_data[product.product_id]['variants'][size] += free
+
+            except Exception as e:
+                logger.debug(f"Skipping item: {str(e)}")
+                continue
+
+        return stock_data
+
+    def process_updates(self, stock_data, batch_size):
+        """Обновление данных с учетом разделения размеров и габаритов"""
+        products_to_update = []
+        variants_to_create = []
+        through_to_create = []
+
+        for product_id, data in tqdm(stock_data.items(), desc="Preparing updates"):
+            product = data['product']
+            product.quantity = data['total_free']
+            product.in_stock = data['total_free'] > 0
+
+            # Для одежды обновляем clothing_sizes, для остальных - dimensions
+            if data['is_clothing']:
+                sizes = list(data['variants'].keys())
+                product.clothing_sizes = ', '.join(sorted(sizes)) if sizes else None
+            else:
+                # Габариты берем из существующих данных или оставляем как есть
+                pass
+
+            products_to_update.append(product)
+
+            # Создаем варианты только для одежды
+            if data['is_clothing']:
+                for size, quantity in data['variants'].items():
+                    variant = ProductVariant(
+                        size=size,
+                        quantity=quantity,
+                        price=product.price,
+                        old_price=product.old_price,
+                        sku=f"{product.code}-{size}"
+                    )
+                    variants_to_create.append(variant)
+                    through_to_create.append({
+                        'product_id': product.id,
+                        'variant_sku': variant.sku,
+                        'quantity': quantity,
+                        'price': product.price,
+                        'old_price': product.old_price
+                    })
+
+        # Применяем обновления
         with transaction.atomic():
-            for product_id, data in tqdm(stock_data.items(), desc="Обновление БД"):
-                try:
-                    product = XMLProduct.objects.get(product_id=product_id)
+            if products_to_update:
+                XMLProduct.objects.bulk_update(
+                    products_to_update,
+                    ['quantity', 'in_stock', 'clothing_sizes', 'dimensions'],
+                    batch_size=batch_size
+                )
 
-                    # Обновляем основное количество товара
-                    product.quantity = data['quantity']
-                    product.in_stock = data['quantity'] > 0 or any(qty > 0 for qty in data['variants'].values())
-                    product.save()
-                    stats['products'] += 1
+            if variants_to_create:
+                created_variants = ProductVariant.objects.bulk_create(
+                    variants_to_create,
+                    batch_size=batch_size
+                )
 
-                    # Обновляем варианты размеров
-                    for size, qty in data['variants'].items():
-                        try:
-                            # Получаем или создаем вариант размера
-                            variant, created = ProductVariant.objects.get_or_create(
-                                size=size,
-                                defaults={
-                                    'quantity': qty,
-                                    'price': product.price,
-                                    'old_price': product.old_price,
-                                    'barcode': f"{product.code}-{size}",
-                                    'sku': f"{product.code}-{size}"
-                                }
-                            )
+                if through_to_create:
+                    variant_map = {v.sku: v for v in created_variants}
+                    through_objects = [
+                        ProductVariantThrough(
+                            product_id=item['product_id'],
+                            variant_id=variant_map[item['variant_sku']].id,
+                            quantity=item['quantity'],
+                            price=item['price'],
+                            old_price=item['old_price']
+                        )
+                        for item in through_to_create
+                        if item['variant_sku'] in variant_map
+                    ]
+                    ProductVariantThrough.objects.bulk_create(through_objects)
 
-                            if created:
-                                stats['created'] += 1
-
-                            # Создаем или обновляем связь через промежуточную модель
-                            ProductVariantThrough.objects.update_or_create(
-                                product=product,
-                                variant=variant,
-                                defaults={
-                                    'quantity': qty,
-                                    'price': product.price,
-                                    'old_price': product.old_price,
-                                    'item_sku': f"{product.code}-{size}",
-                                    'item_barcode': f"{product.code}-{size}"
-                                }
-                            )
-                            stats['variants'] += 1
-
-                        except Exception as e:
-                            logger.error(f"Ошибка варианта {product_id}/{size}: {e}")
-
-                except XMLProduct.DoesNotExist:
-                    stats['not_found'] += 1
-                    logger.warning(f"Товар {product_id} не найден")
-                except Exception as e:
-                    logger.error(f"Ошибка обновления {product_id}: {e}")
-
-        return stats
+    def find_product_by_alt_code(self, code):
+        """Поиск товара по альтернативным вариантам кода"""
+        # Упрощенный поиск - в реальной реализации может быть сложнее
+        return XMLProduct.objects.filter(
+            Q(code__startswith=code[:6]) | Q(code__endswith=code[-4:])
+        ).first()

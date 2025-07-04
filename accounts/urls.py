@@ -2,7 +2,7 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views  # Добавьте этот импорт
 from .forms import EmailAuthenticationForm
-
+from .views import add_delivery_address, delete_delivery_address
 app_name = 'accounts'
 
 urlpatterns = [
@@ -21,6 +21,8 @@ urlpatterns = [
 
     # Личный кабинет
     path('dashboard/', views.CompanyDashboardView.as_view(), name='company_dashboard'),
+    path('add_delivery_address/', add_delivery_address, name='add_delivery_address'),
+    path('delete_delivery_address/<int:address_id>/', delete_delivery_address, name='delete_delivery_address'),
 
     # Документы
     path('documents/upload/', views.DocumentUploadView.as_view(), name='document_upload'),
@@ -74,5 +76,6 @@ path('password-reset/complete/',
     path('checkout/', views.checkout, name='checkout'),
     path('orders/', views.order_list, name='order_list'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
+
 
 ]

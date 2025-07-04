@@ -7,7 +7,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 import os
 from mptt.models import MPTTModel, TreeForeignKey
-
+import logging
+from django.core.cache import cache
+import re
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -132,10 +135,27 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.size} - {self.product.name}"
 
+    @staticmethod
+    def normalize_size(size):
+        """Нормализует размер в стандартный формат"""
+        if not size:
+            return size
+
+        size = str(size).strip().upper()
+        size_map = {
+            'XS': 'XS', 'S': 'S', 'M': 'M', 'L': 'L', 'XL': 'XL',
+            'XXL': 'XXL', 'XXXL': 'XXXL', '3XL': 'XXXL', '4XL': '4XL', '5XL': '5XL'
+        }
+        return size_map.get(size, size)
+
     def save(self, *args, **kwargs):
-        if not self.sku:
-            self.sku = f"{self.product.code}-{self.size}"
+
+        self.size = self.normalize_size(self.size)
         super().save(*args, **kwargs)
+
+
+
+
 
 class XMLProduct(models.Model):
     STATUS_CHOICES = [
@@ -205,7 +225,7 @@ class XMLProduct(models.Model):
     expiration_date = models.CharField(_('Срок годности'), max_length=100, blank=True)
     special_filters = models.JSONField(default=list, blank=True)  # Для хранения спецфильтров
     size = models.CharField(max_length=50, blank=True, null=True)  # Размер одежды
-    dimensions = models.CharField(max_length=50, blank=True, null=True)  # Габариты
+    dimensions = models.CharField(_('Габариты'), max_length=255, blank=True)
     collection = models.CharField(_('Коллекция'), max_length=100, blank=True)
     fit = models.CharField(_('Посадка'), max_length=50, blank=True, null=True)  # Прямая, оверсайз и т.д.
     cut = models.CharField(_('Крой'), max_length=50, blank=True, null=True) # Крой
@@ -214,6 +234,13 @@ class XMLProduct(models.Model):
     video_link = models.URLField(blank=True, null=True)  # Ссылка на видео
     stock_marking = models.CharField(max_length=100, blank=True, null=True)
     umbrella_type = models.CharField(_('Тип зонта'), max_length=100, blank=True, null=True)
+    clothing_sizes = models.CharField(
+        _('Размеры одежды'),
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
 
     MARKING_CHOICES = [
         ('textile', 'Текстиль'),
@@ -340,6 +367,145 @@ class XMLProduct(models.Model):
     def __str__(self):
         return self.name
 
+    # В models.py, класс XMLProduct
+
+    def get_size_info(self):
+        """
+        Получает информацию о размерах товара, включая:
+        - доступные размеры
+        - таблицу размеров
+        - пол (gender)
+        - нормализованные данные о размерах
+        """
+        size_info = {
+            'available_sizes': [],
+            'size_table': None,
+            'gender': None,
+            'normalized_sizes': []
+        }
+
+        # 1. Определяем пол товара из фильтров XML
+        gender_mapping = {
+            'мужские': 'male',
+            'мужской': 'male',
+            'men': 'male',
+            'man': 'male',
+            'женские': 'female',
+            'женский': 'female',
+            'women': 'female',
+            'woman': 'female',
+            'унисекс': 'unisex',
+            'unisex': 'unisex'
+        }
+
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) == '23':  # Фильтр по полу
+                    filter_name = f.get('filter_name', '').lower()
+                    for term, gender in gender_mapping.items():
+                        if term in filter_name:
+                            size_info['gender'] = gender
+                            break
+
+        # 2. Получаем размеры из вариантов (ProductVariant)
+        if self.variants.exists():
+            variants = self.variants.all().order_by('size')
+            size_info['available_sizes'] = [v.size for v in variants]
+
+            # Добавляем количество для каждого размера
+            size_info['sizes_with_quantities'] = [
+                {'size': v.size, 'quantity': v.quantity}
+                for v in variants
+            ]
+
+            return size_info
+
+        # 3. Получаем размеры из таблицы размеров в XML
+        if self.xml_data and 'attributes' in self.xml_data and 'size_table' in self.xml_data['attributes']:
+            size_table = self.xml_data['attributes']['size_table']
+            size_info['size_table'] = size_table
+
+            if 'headers' in size_table and len(size_table['headers']) > 1:
+                # Исключаем первый заголовок (название таблицы)
+                available_sizes = size_table['headers'][1:]
+
+                # Нормализуем размеры (удаляем пол, если есть)
+                normalized_sizes = []
+                for size in available_sizes:
+                    # Удаляем упоминания пола из размера
+                    clean_size = size
+                    for gender_term in gender_mapping.keys():
+                        clean_size = clean_size.replace(gender_term, '').strip()
+                    normalized_sizes.append(clean_size)
+
+                size_info['available_sizes'] = available_sizes
+                size_info['normalized_sizes'] = normalized_sizes
+
+                # Добавляем информацию о количестве (используем общее количество)
+                if self.quantity:
+                    size_info['sizes_with_quantities'] = [
+                        {'size': size, 'quantity': self.quantity}
+                        for size in available_sizes
+                    ]
+
+            return size_info
+
+        # 4. Получаем размеры из поля sizes_available (с очисткой от указания пола)
+        if self.sizes_available:
+            sizes = []
+            normalized_sizes = []
+
+            for size in self.sizes_available.split(','):
+                size = size.strip()
+                if not size:
+                    continue
+
+                # Очищаем размер от указания пола
+                clean_size = size
+                for gender_term in gender_mapping.keys():
+                    clean_size = clean_size.replace(gender_term, '').strip()
+
+                sizes.append(size)
+                normalized_sizes.append(clean_size)
+
+            size_info['available_sizes'] = sizes
+            size_info['normalized_sizes'] = normalized_sizes
+
+            # Добавляем информацию о количестве
+            if self.quantity:
+                size_info['sizes_with_quantities'] = [
+                    {'size': size, 'quantity': self.quantity}
+                    for size in sizes
+                ]
+
+        # 5. Дополнительная обработка для случаев, когда размер указан в поле size
+        if not size_info['available_sizes'] and self.size:
+            size = self.size
+            clean_size = size
+            for gender_term in gender_mapping.keys():
+                clean_size = clean_size.replace(gender_term, '').strip()
+
+            size_info['available_sizes'] = [size]
+            size_info['normalized_sizes'] = [clean_size]
+
+            if self.quantity:
+                size_info['sizes_with_quantities'] = [
+                    {'size': size, 'quantity': self.quantity}
+                ]
+
+        return size_info
+
+    def update_quantity_from_variants(self):
+        """Обновляет общее количество на основе вариантов размеров"""
+        if self.variants.exists():
+            self.quantity = sum(v.quantity for v in self.variants.all())
+            self.in_stock = self.quantity > 0
+            self.save(update_fields=['quantity', 'in_stock'])
+            return True
+        return False
+
+
+
     def get_absolute_url(self):
         return reverse('main:xml_product_detail', kwargs={'product_id': self.product_id})
 
@@ -367,18 +533,21 @@ class XMLProduct(models.Model):
             self.quantity = sum(v.quantity for v in self.variants.all())
             self.save(update_fields=['quantity'])
 
-
-
     @property
     def main_image(self):
-        """Возвращает URL основного изображения с авторизацией"""
+        cache_key = f"product_image_{self.product_id}"
+        cached_url = cache.get(cache_key)
+        if cached_url:
+            return cached_url
+
         if self.xml_data and 'main_image_url' in self.xml_data:
             url = self.xml_data['main_image_url']
             if url.startswith('https://api2.gifts.ru/'):
-                return url.replace(
+                url = url.replace(
                     'https://api2.gifts.ru/',
                     'https://87358_xmlexport:MGzXXSgD@api2.gifts.ru/'
                 )
+            cache.set(cache_key, url, 60 * 60 * 24)  # Кэшируем на 24 часа
             return url
         return os.path.join(settings.STATIC_URL, 'images/no-image.jpg')
 
@@ -426,34 +595,112 @@ class XMLProduct(models.Model):
 
         return gallery
 
-    # models.py - обновленный метод available_sizes
 
     @property
     def available_sizes(self):
-        """Возвращает список всех доступных размеров"""
+        """Возвращает список всех доступных размеров, исключая пол и другие не-размеры"""
         sizes = set()
+        # Расширенный список исключаемых терминов
+        excluded_terms = [
+            'мужские', 'женские', 'унисекс', 'male', 'female', 'unisex',
+            'для мужчин', 'для женщин', 'для детей', 'детские',
+            'муж', 'жен', 'м', 'ж', 'man', 'woman', 'men', 'women'
+        ]
 
         # Добавляем размеры из вариантов
         if self.variants.exists():
             for variant in self.variants.all():
-                sizes.add(variant.size)
+                size = variant.size.strip()
+                # Проверяем, что размер не содержит исключенных терминов
+                if size and not any(term.lower() in size.lower() for term in excluded_terms):
+                    sizes.add(size)
         else:
             # Добавляем основной размер, если нет вариантов
             if self.sizes_available:
-                sizes.add(self.sizes_available)
+                for size in self.sizes_available.split(','):
+                    size = size.strip()
+                    if size and not any(term.lower() in size.lower() for term in excluded_terms):
+                        sizes.add(size)
 
-        # Добавляем размеры из фильтров
+        # Добавляем размеры из фильтров (если нужно)
         if self.xml_data and 'filters' in self.xml_data:
             for f in self.xml_data['filters']:
                 if f.get('type_id') == '1' and f.get('filter_name'):
-                    sizes.add(f['filter_name'])
+                    filter_name = f['filter_name'].strip()
+                    if filter_name and not any(term.lower() in filter_name.lower() for term in excluded_terms):
+                        sizes.add(filter_name)
 
-        # Возвращаем отсортированный список
+        # Сортируем размеры
         standard_order = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
         return sorted(sizes, key=lambda x: (
             standard_order.index(x) if x in standard_order else len(standard_order),
             x
         ))
+
+    def get_printing_info(self):
+        printing_info = {
+            'methods': set(),
+            'marking': None
+        }
+
+        # Словарь соответствия кодов методов нанесения их названиям
+        PRINTING_METHODS = {
+            'D2': 'Шелкография с трансфером (5 цветов)',
+            'I': 'Вышивка (10 цветов)',
+            'F1': 'Флекс (1 цвет)',
+            'F2': 'Флекс (1 цвет)',
+            'DTF2': 'Полноцвет с трансфером',
+            'B2': 'Шелкография на текстиль (6 цветов)'
+        }
+
+        # 1. Обрабатываем методы нанесения из поля prints
+        if self.xml_data and 'attributes' in self.xml_data and 'prints' in self.xml_data['attributes']:
+            for print_data in self.xml_data['attributes']['prints']:
+                if 'description' in print_data:
+                    printing_info['methods'].add(print_data['description'])
+                elif 'code' in print_data and print_data['code'] in PRINTING_METHODS:
+                    printing_info['methods'].add(PRINTING_METHODS[print_data['code']])
+
+        # 2. Также проверяем фильтры, где могут быть указаны методы нанесения
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) == '28':  # Вид нанесения
+                    printing_info['methods'].add(f.get('filter_name'))
+
+        # 3. Проверяем поле модели application_type
+        if self.application_type:
+            printing_info['methods'].add(self.get_application_type_display())
+
+        # 4. Проверяем requires_marking
+        if self.requires_marking:
+            printing_info['marking'] = self.get_marking_type_display() if self.marking_type else 'Да'
+
+        # Преобразуем в отсортированный список и убираем дубликаты
+        if printing_info['methods']:
+            printing_info['methods'] = sorted(printing_info['methods'])
+        else:
+            printing_info['methods'] = None
+
+        return printing_info
+    # Вспомогательный метод для преобразования filter_id в читаемые названия
+    def _get_filter_value(self, filter_type, filter_id):
+        """Преобразует type_id и filter_id в читаемое название"""
+        filter_mapping = {
+            '5': {'22': 'Кнопка', '51': 'Молния'},
+            '8': {  # Виды нанесения
+                '229': 'Шелкография',
+                '232': 'Термопечать',
+                '233': 'Вышивка',
+                '234': 'УФ-печать',
+                '235': 'Лазерная гравировка',
+                '236': 'Сублимация'
+            },
+            '21': {'14': 'Чёрный'},  # Цвета
+            '73': {'2': 'Хлопок'}  # Материалы
+        }
+        return filter_mapping.get(filter_type, {}).get(filter_id, None)
+
+
     def get_max_available_quantity(self, size=None):
         """Возвращает максимальное доступное количество для размера"""
         if size and self.variants.exists():
@@ -479,32 +726,93 @@ class XMLProduct(models.Model):
     def get_sizes_with_quantities(self):
         """Возвращает список размеров с их количеством"""
         sizes = []
+        excluded_terms = [
+            'мужские', 'женские', 'унисекс', 'male', 'female', 'unisex',
+            'для мужчин', 'для женщин', 'для детей', 'детские',
+            'муж', 'жен', 'м', 'ж', 'man', 'woman', 'men', 'women'
+        ]
 
         # Если есть варианты, берем из них
         if self.variants.exists():
             for variant in self.variants.all():
-                # Получаем связь через промежуточную модель
-                through = ProductVariantThrough.objects.filter(
-                    product=self,
-                    variant=variant
-                ).first()
+                size = variant.size.strip()
+                if size and not any(term.lower() in size.lower() for term in excluded_terms):
+                    # Получаем связь через промежуточную модель
+                    through = ProductVariantThrough.objects.filter(
+                        product=self,
+                        variant=variant
+                    ).first()
 
-                if through:
-                    sizes.append({
-                        'size': variant.size,
-                        'quantity': through.quantity
-                    })
+                    if through:
+                        sizes.append({
+                            'size': variant.size,
+                            'quantity': through.quantity
+                        })
         # Иначе берем из sizes_available с общим количеством
         elif self.sizes_available:
             for size in self.sizes_available.split(','):
                 size = size.strip()
-                if size:
+                if size and not any(term.lower() in size.lower() for term in excluded_terms):
                     sizes.append({
                         'size': size,
                         'quantity': self.quantity
                     })
 
         return sizes
+
+    def clean_sizes(self):
+        """Очистка размеров от указания пола и нормализация"""
+        if not self.sizes_available:
+            return None
+
+        # Удаляем все не-размерные обозначения
+        size_cleaned = re.sub(
+            r'\b(мужские|женские|унисекс|male|female|unisex|для\s+мужчин|для\s+женщин|детские)\b',
+            '',
+            self.sizes_available,
+            flags=re.IGNORECASE
+        )
+
+        # Удаляем лишние запятые и пробелы
+        size_cleaned = re.sub(r'\s*,\s*', ',', size_cleaned).strip(' ,')
+
+        # Нормализуем размеры (XS, S, M, L, XL и т.д.)
+        size_map = {
+            'xs': 'XS',
+            's': 'S',
+            'm': 'M',
+            'l': 'L',
+            'xl': 'XL',
+            'xxl': 'XXL',
+            'xxxl': 'XXXL',
+            '3xl': 'XXXL',
+            '4xl': '4XL',
+            '5xl': '5XL'
+        }
+
+        sizes = []
+        for size in size_cleaned.split(','):
+            size = size.strip().lower()
+            if size in size_map:
+                sizes.append(size_map[size])
+            elif size:  # Если размер не распознан, но не пустой
+                sizes.append(size.upper())
+
+        return ', '.join(sizes) if sizes else None
+
+    def save(self, *args, **kwargs):
+        # Очищаем и нормализуем размеры перед сохранением
+        self.sizes_available = self.clean_sizes()
+
+        # Обновляем общее количество на основе вариантов
+        if self.variants.exists():
+            self.quantity = sum(v.quantity for v in self.variants.all())
+            self.in_stock = self.quantity > 0
+
+        super().save(*args, **kwargs)
+
+
+
 
 # models.py - добавить новые модели
 

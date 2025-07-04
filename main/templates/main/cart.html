@@ -9,41 +9,62 @@
     <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
         <div class="divide-y divide-gray-200">
             {% for cart_item in cart_items %}
-            <div class="p-4 flex flex-col md:flex-row items-start md:items-center">
-                <div class="w-full md:w-1/4 mb-4 md:mb-0">
-                    <img src="{{ cart_item.image }}" alt="{{ cart_item.product.name }}"
-                         class="w-full h-auto max-h-40 object-contain">
+            <div class="p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <!-- Изображение товара в квадратном контейнере 200x200 -->
+                <div class="w-48 h-48 flex-shrink-0 relative overflow-hidden rounded-lg shadow-sm border border-gray-200">
+                    <div class="image-placeholder absolute inset-0"></div>
+                    <img
+                        src="{% static 'images/placeholder.jpg' %}"
+                        data-src="{% url 'main:resize_image' %}?url={{ cart_item.image|urlencode }}&width=200&height=200"
+                        alt="{{ cart_item.product.name }}"
+                        class="lazy-load absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                    >
                 </div>
 
-                <div class="w-full md:w-2/4 px-4">
-                    <h3 class="font-semibold text-lg">{{ cart_item.product.name }}</h3>
-                    <p class="text-gray-600">
-                        {% if cart_item.product_type == 'regular' %}
-                        {{ cart_item.product.category.name }}
-                        {% else %}
-                        {{ cart_item.product.brand }}
-                        {% endif %}
-                    </p>
-                </div>
+                <div class="flex-1 flex flex-col md:flex-row md:items-center gap-4">
+                   <!-- В блоке с информацией о товаре в корзине -->
+<div class="flex-1">
+    <a href="{{ cart_item.product.get_absolute_url }}"
+       class="font-semibold text-lg hover:text-blue-600 transition-colors"
+       title="{% trans 'Перейти к товару' %}">
+        {{ cart_item.product.name }}
+    </a>
+    <p class="text-gray-600">
+        {% if cart_item.product_type == 'regular' %}
+        {{ cart_item.product.category.name }}
+        {% else %}
+        {{ cart_item.product.brand }}
+        {% endif %}
+    </p>
+    <!-- Отображение размера, если он есть -->
+    {% if cart_item.size %}
+    <div class="mt-2">
+        <span class="font-medium text-gray-700">Размер:</span>
+        <span class="ml-2 px-3 py-1 bg-gray-100 rounded-full text-sm">{{ cart_item.size }}</span>
+    </div>
+    {% endif %}
+</div>
 
-                <div class="w-full md:w-1/4 flex items-center justify-between mt-4 md:mt-0">
-                    <div class="flex items-center">
-                        <form action="{% url 'main:update_cart' cart_item.item.id %}" method="post" class="flex items-center">
-                            {% csrf_token %}
-                            <input type="number" name="quantity" value="{{ cart_item.item.quantity }}" min="1"
-                                   class="border rounded px-3 py-1 w-16 text-center">
-                            <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </form>
-                    </div>
+                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end gap-4">
+                        <div class="flex items-center">
+                            <form action="{% url 'main:update_cart' cart_item.item.id %}" method="post" class="flex items-center">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ cart_item.item.quantity }}" min="1"
+                                       class="border rounded px-3 py-1 w-16 text-center">
+                                <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </form>
+                        </div>
 
-                    <div class="text-right">
-                        <p class="font-bold">{{ cart_item.total_price }} ₽</p>
-                        <a href="{% url 'main:remove_from_cart' cart_item.item.id %}"
-                           class="text-red-600 hover:text-red-800 text-sm">
-                            {% trans "Удалить" %}
-                        </a>
+                        <div class="text-right">
+                            <p class="font-bold">{{ cart_item.total_price }} ₽</p>
+                            <a href="{% url 'main:remove_from_cart' cart_item.item.id %}"
+                               class="text-red-600 hover:text-red-800 text-sm">
+                                {% trans "Удалить" %}
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -74,4 +95,140 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Кэш для изображений
+    const imageCache = {};
+    let activeRequests = 0;
+    const MAX_PARALLEL_REQUESTS = 5;
+    const REQUEST_DELAY = 200;
+
+    function loadImage(img) {
+        try {
+            if (!img.dataset.src) {
+                img.src = '{% static 'images/no-image.jpg' %}';
+                return;
+            }
+
+            if (imageCache[img.dataset.src]) {
+                img.src = imageCache[img.dataset.src];
+                img.classList.add('loaded');
+                return;
+            }
+
+            if (activeRequests >= MAX_PARALLEL_REQUESTS) {
+                setTimeout(() => loadImage(img), REQUEST_DELAY);
+                return;
+            }
+
+            activeRequests++;
+
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                imageCache[img.dataset.src] = img.dataset.src;
+                img.src = this.src;
+                img.classList.add('loaded');
+                activeRequests--;
+            };
+            tempImg.onerror = function() {
+                img.src = '{% static 'images/no-image.jpg' %}';
+                activeRequests--;
+            };
+            tempImg.src = img.dataset.src;
+        } catch (e) {
+            console.error('Error loading image:', e);
+            img.src = '{% static 'images/no-image.jpg' %}';
+        }
+    }
+
+    function initLazyLoading() {
+        const lazyImages = document.querySelectorAll('.lazy-load:not(.loaded)');
+
+        const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (index < 4) {
+                        loadImage(img);
+                    } else {
+                        setTimeout(() => loadImage(img), (index - 3) * REQUEST_DELAY);
+                    }
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '300px',
+            threshold: 0.01
+        });
+
+        lazyImages.forEach(img => lazyLoadObserver.observe(img));
+    }
+
+    // Инициализация при загрузке страницы
+    initLazyLoading();
+});
+</script>
+
+<style>
+/* Контейнер для изображения товара */
+.w-48 {
+    width: 8rem; /* 192px */
+}
+.h-48 {
+    height: 8rem; /* 192px */
+}
+
+/* Плейсхолдер и ленивая загрузка */
+.image-placeholder {
+    animation: placeholderShimmer 1.5s linear infinite;
+    background: linear-gradient(to right, #f5f5f5 8%, #e0e0e0 18%, #f5f5f5 33%);
+    background-size: 800px 104px;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+}
+
+.lazy-load {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+}
+
+/* Анимация placeholder */
+@keyframes placeholderShimmer {
+    0% { background-position: -468px 0 }
+    100% { background-position: 468px 0 }
+}
+
+/* Дополнительные стили для улучшенного отображения */
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.border-gray-200 {
+    border-color: #e5e7eb;
+}
+
+/* Стили для ссылки названия товара */
+.hover\:text-blue-600:hover {
+    color: #2563eb;
+}
+.transition-colors {
+    transition-property: color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+</style>
 {% endblock %}
