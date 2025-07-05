@@ -78,4 +78,8 @@ path('password-reset/complete/',
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
 
 
+
+
+
+
 ]

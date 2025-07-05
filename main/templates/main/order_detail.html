@@ -13,32 +13,48 @@
                 <div class="flex items-center justify-between">
                     <div class="text-center">
                         <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
-                            {% if order.status == 'new' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            {% if order.status == 'new' or order.status == 'in_progress' or order.status == 'completed' or order.status == 'delivered' %}bg-blue-600 text-white{% elif order.status == 'cancelled' %}bg-gray-200{% endif %}">
                             1
                         </div>
                         <p class="mt-2 text-sm">{% trans "Создан" %}</p>
                     </div>
 
-                    <div class="flex-1 h-1 mx-2 bg-gray-200"></div>
+                    <div class="flex-1 h-1 mx-2 {% if order.status == 'in_progress' or order.status == 'completed' or order.status == 'delivered' %}bg-blue-600{% else %}bg-gray-200{% endif %}"></div>
 
                     <div class="text-center">
                         <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
-                            {% if order.status == 'in_progress' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            {% if order.status == 'in_progress' or order.status == 'completed' or order.status == 'delivered' %}bg-blue-600 text-white{% elif order.status == 'cancelled' or order.status == 'new' %}bg-gray-200{% endif %}">
                             2
                         </div>
                         <p class="mt-2 text-sm">{% trans "Ожидает оплаты" %}</p>
                     </div>
 
-                    <div class="flex-1 h-1 mx-2 bg-gray-200"></div>
+                    <div class="flex-1 h-1 mx-2 {% if order.status == 'completed' or order.status == 'delivered' %}bg-blue-600{% else %}bg-gray-200{% endif %}"></div>
 
                     <div class="text-center">
                         <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
-                            {% if order.status == 'completed' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %}">
+                            {% if order.status == 'completed' or order.status == 'delivered' %}bg-blue-600 text-white{% elif order.status == 'cancelled' or order.status == 'new' or order.status == 'in_progress' %}bg-gray-200{% endif %}">
                             3
                         </div>
                         <p class="mt-2 text-sm">{% trans "Доставляется" %}</p>
                     </div>
+
+                    <div class="flex-1 h-1 mx-2 {% if order.status == 'delivered' %}bg-blue-600{% else %}bg-gray-200{% endif %}"></div>
+
+                    <div class="text-center">
+                        <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center
+                            {% if order.status == 'delivered' %}bg-blue-600 text-white{% elif order.status == 'cancelled' or order.status == 'new' or order.status == 'in_progress' or order.status == 'completed' %}bg-gray-200{% endif %}">
+                            4
+                        </div>
+                        <p class="mt-2 text-sm">{% trans "Доставлен" %}</p>
+                    </div>
                 </div>
+
+                {% if order.status == 'cancelled' %}
+                <div class="mt-4 text-center text-red-600">
+                    <p>{% trans "Заказ отменен" %}</p>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Информация о заказе -->
@@ -50,6 +66,8 @@
                     <p><strong>{% trans "Статус:" %}</strong> {{ order.get_status_display }}</p>
                     <p><strong>{% trans "Сумма:" %}</strong> {{ order.total_price }} ₽</p>
                 </div>
+            <!-- Добавьте эту строку в раздел "Информация о заказе" -->
+
 
                 <div>
                     <h2 class="text-lg font-semibold mb-3">{% trans "Контактная информация" %}</h2>

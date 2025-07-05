@@ -3,7 +3,7 @@
 {% load custom_filters %}
 {% block content %}
 
-    {{ orders|length }}
+
 <style>
     .dashboard-section {
         background: rgba(255, 255, 255, 0.98);
@@ -717,6 +717,30 @@
     background-color: #fee2e2;
     color: #b91c1c;
 }
+    .status-new {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-completed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-delivered {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+.status-canceled {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
 </style>
 <div class="container mx-auto px-15 sm:px-15 py-6 lg:py-6">
   <div class="company-header-container">
@@ -1022,12 +1046,13 @@
             </div>
 
             <select id="status-filter" class="border rounded-lg px-3 py-2 text-sm">
-                <option value="">Все статусы</option>
-                <option value="new">Новый</option>
-                <option value="processing">В обработке</option>
-                <option value="completed">Завершен</option>
-                <option value="canceled">Отменен</option>
-            </select>
+    <option value="">Все статусы</option>
+    <option value="new">Создан</option>
+    <option value="in_progress">Ожидает оплаты</option>
+    <option value="completed">Доставляется</option>
+    <option value="delivered">Доставлен</option>
+    <option value="cancelled">Отменен</option>
+</select>
             <button id="export-orders" class="btn-custom">
                 <i class="fas fa-file-export mr-2"></i> Экспорт
             </button>
@@ -1036,50 +1061,49 @@
     </div>
 
     <div class="table-container">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Номер</th>
-                    <th>Дата</th>
-                    <th>Сумма</th>
-                    <th>Статус</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>#{{ order.order_number|default:order.id }}</td>
-                    <td>{{ order.created_at|date:"d.m.Y" }}</td>
-                    <td>{{ order.total_amount|floatformat:2 }} ₽</td>
-                    <td>
-                        <span class="status-badge
-                            {% if order.status == 'completed' %}status-completed
-                            {% elif order.status == 'new' %}status-new
-                            {% elif order.status == 'processing' %}status-pending
-                            {% elif order.status == 'canceled' %}status-canceled
-                            {% endif %}">
-                            {{ order.get_status_display }}
-                        </span>
-                    </td>
-                    <td>
-                        <a href="{% url 'accounts:order_detail' order.id %}" class="text-blue-500 hover:text-blue-700 mr-3">
-                            <i class="fas fa-eye"></i> Просмотреть
-                        </a>
-                        {% if order.status == 'new' %}
-                        <a href="{% url 'accounts:order_cancel' order.id %}" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-times-circle"></i> Отменить
-                        </a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-gray-500">Нет заказов</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Номер</th>
+            <th>Дата</th>
+            <th>Товары</th>
+            <th>Сумма</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>#{{ order.id }}</td>
+            <td>{{ order.created_at|date:"d.m.Y" }}</td>
+            <td>
+                <ul class="list-disc pl-4">
+                    {% for item in order.items.all %}
+                        <li>{{ item.product_name }} ({{ item.quantity }} шт.)</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td>{{ order.total_price|floatformat:2 }} ₽</td>
+            <td>
+                <span class="status-badge
+    {% if order.status == 'new' %}status-new
+    {% elif order.status == 'in_progress' %}status-pending
+    {% elif order.status == 'completed' %}status-completed
+    {% elif order.status == 'delivered' %}status-delivered
+    {% elif order.status == 'cancelled' %}status-canceled{% endif %}">
+    {{ order.get_status_display }}
+</span>
+            </td>
+            <td>
+                <a href="{% url 'main:order_detail' order.id %}" class="text-blue-500 hover:text-blue-700 mr-3">
+                    <i class="fas fa-eye"></i> Просмотреть
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
         <!-- Пагинация -->
         {% if orders.has_other_pages %}
@@ -1204,78 +1228,50 @@
                     </div>
                 </div>
 
-                <div class="section-content" id="activity-content">
-                    <!-- Активность -->
-                    <div class="divide-y divide-gray-200">
-                        <div class="px-6 py-4 hover:bg-gray-50">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                                    <i class="fas fa-history"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-900">Создан новый заказ #ORD-1234</p>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-user mr-1"></i>
-                                        {{ user.get_full_name }}
-                                        <i class="fas fa-clock ml-3 mr-1"></i>
-                                        28.05.2025 14:30
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 hover:bg-gray-50">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                                    <i class="fas fa-file-signature"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-900">Подписан договор купли-продажи</p>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-user mr-1"></i>
-                                        {{ user.get_full_name }}
-                                        <i class="fas fa-clock ml-3 mr-1"></i>
-                                        28.05.2025 11:15
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 hover:bg-gray-50">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                                    <i class="fas fa-upload"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-900">Загружен новый документ</p>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-user mr-1"></i>
-                                        {{ user.get_full_name }}
-                                        <i class="fas fa-clock ml-3 mr-1"></i>
-                                        27.05.2025 09:45
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 hover:bg-gray-50">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-green-300">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-900">Получен платеж 25 000 ₽</p>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-user mr-1"></i>
-                                        {{ user.get_full_name }}
-                                        <i class="fas fa-clock ml-3 mr-1"></i>
-                                        26.05.2025 16:20
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+               <div class="section-content" id="activity-content">
+    <!-- Активность -->
+    <div class="divide-y divide-gray-200">
+        {% for event in activity %}
+        <div class="px-6 py-4 hover:bg-gray-50">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 {% if event.type == 'order' %}bg-blue-500{% else %}bg-green-500{% endif %} text-white rounded-full w-8 h-8 flex items-center justify-center">
+                    {% if event.type == 'order' %}
+                    <i class="fas fa-shopping-cart"></i>
+                    {% else %}
+                    <i class="fas fa-file-invoice"></i>
+                    {% endif %}
                 </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-900">{{ event.message }}</p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-user mr-1"></i>
+                        {{ user.get_full_name }}
+                        <i class="fas fa-clock ml-3 mr-1"></i>
+                        {{ event.date|date:"d.m.Y H:i" }}
+                    </p>
+                    {% if event.type == 'order' %}
+                    <div class="mt-2">
+                        <a href="{% url 'main:order_detail' event.object.id %}" class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-eye mr-1"></i> Просмотреть заказ
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="mt-2">
+                        <a href="{{ event.object.pdf_file.url }}" class="text-blue-500 hover:text-blue-700 text-sm" target="_blank">
+                            <i class="fas fa-download mr-1"></i> Скачать счет
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-4 text-center text-gray-500">
+            Нет данных о активности
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
                 <div class="section-content" id="finance-content">
                     <!-- Финансы -->
@@ -1509,8 +1505,20 @@ function filterOrders(searchTerm, statusFilter) {
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         const rowStatus = row.querySelector('.status-badge').textContent.toLowerCase();
+
+        // Маппинг значений фильтра на реальные статусы
+        const statusMapping = {
+            'new': 'создан',
+            'in_progress': 'ожидает оплаты',
+            'completed': 'доставляется',
+            'delivered': 'доставлен',
+            'cancelled': 'отменен'
+        };
+
         const matchesSearch = text.includes(searchTerm);
-        const matchesStatus = !statusFilter || rowStatus.includes(statusFilter.toLowerCase());
+        const matchesStatus = !statusFilter ||
+            rowStatus.includes(statusMapping[statusFilter]?.toLowerCase() ||
+            rowStatus.includes(statusFilter.toLowerCase()));
 
         row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
     });

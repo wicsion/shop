@@ -1,17 +1,27 @@
 from django.core.validators import MinValueValidator
-from django.db import models
-from django.core.files import File
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-from django.contrib.auth import get_user_model
+
 import os
-from mptt.models import MPTTModel, TreeForeignKey
 import logging
 from django.core.cache import cache
 import re
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from mptt.models import MPTTModel, TreeForeignKey
+import uuid
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
+import pdfkit
+from model_utils import FieldTracker
+
+
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
 
 
 class Category(MPTTModel):
@@ -1041,11 +1051,6 @@ class Cart(models.Model):
         verbose_name = _('Корзина')
         verbose_name_plural = _('Корзины')
 
-    def __str__(self):
-        if self.user:
-            return f"Корзина пользователя {self.user}"
-        return f"Корзина (анонимная, ключ: {self.session_key})"
-
     @property
     def total_price(self):
         return sum(item.total_price for item in self.items.all())
@@ -1063,7 +1068,7 @@ class CartItem(models.Model):
         verbose_name=_('Корзина')
     )
     product = models.ForeignKey(
-        Product,
+        'Product',
         on_delete=models.CASCADE,
         verbose_name=_('Товар'),
         null=True,
@@ -1081,17 +1086,13 @@ class CartItem(models.Model):
         default=1,
         validators=[MinValueValidator(1)]
     )
+    size = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
-    size = models.CharField(max_length=50, blank=True, null=True)
+
     class Meta:
         verbose_name = _('Элемент корзины')
         verbose_name_plural = _('Элементы корзины')
-        unique_together = ('cart', 'product', 'xml_product')
-
-    def __str__(self):
-        product = self.product or self.xml_product
-        return f"{self.quantity} x {product}"
 
     @property
     def total_price(self):
@@ -1099,26 +1100,21 @@ class CartItem(models.Model):
         return product.price * self.quantity
 
 
+
 class Order(models.Model):
     STATUS_NEW = 'new'
     STATUS_IN_PROGRESS = 'in_progress'
     STATUS_COMPLETED = 'completed'
+    STATUS_DELIVERED = 'delivered'
     STATUS_CANCELLED = 'cancelled'
 
     STATUS_CHOICES = [
-        (STATUS_NEW, _('Новый')),
-        (STATUS_IN_PROGRESS, _('В обработке')),
-        (STATUS_COMPLETED, _('Завершен')),
+        (STATUS_NEW, _('Создан')),
+        (STATUS_IN_PROGRESS, _('Ожидает оплаты')),
+        (STATUS_COMPLETED, _('Доставляется')),
+        (STATUS_DELIVERED, _('Доставлен')),
         (STATUS_CANCELLED, _('Отменен')),
     ]
-    company = models.ForeignKey(
-        'accounts.Company',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_('Компания'),
-        related_name='orders'
-    )
 
     user = models.ForeignKey(
         User,
@@ -1132,6 +1128,13 @@ class Order(models.Model):
         max_length=40,
         null=True,
         blank=True
+    )
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Компания')
     )
     status = models.CharField(
         _('Статус'),
@@ -1147,19 +1150,23 @@ class Order(models.Model):
     comment = models.TextField(_('Комментарий'), blank=True)
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    order_number = models.UUIDField(
+        _('Номер заказа'),
+        default=uuid.uuid4,
+        editable=False
+    )
+    tracker = FieldTracker(fields=['status'])
+
+
 
     class Meta:
         verbose_name = _('Заказ')
         verbose_name_plural = _('Заказы')
         ordering = ['-created_at']
 
-    def __str__(self):
-        return f"Заказ #{self.id} от {self.created_at.strftime('%d.%m.%Y')}"
-
     @property
     def total_price(self):
         return sum(item.total_price for item in self.items.all())
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
@@ -1169,11 +1176,11 @@ class OrderItem(models.Model):
         verbose_name=_('Заказ')
     )
     product = models.ForeignKey(
-        Product,
+        'Product',
         on_delete=models.PROTECT,
         verbose_name=_('Товар'),
-        null=True,  # Добавляем null=True
-        blank=True  # Добавляем blank=True
+        null=True,
+        blank=True
     )
     xml_product = models.ForeignKey(
         XMLProduct,
@@ -1184,20 +1191,51 @@ class OrderItem(models.Model):
     )
     quantity = models.PositiveIntegerField(_('Количество'), default=1)
     price = models.DecimalField(_('Цена'), max_digits=10, decimal_places=2)
+    size = models.CharField(_('Размер'), max_length=50, blank=True, null=True)
 
     class Meta:
         verbose_name = _('Элемент заказа')
         verbose_name_plural = _('Элементы заказа')
 
-    def __str__(self):
-        return f"{self.quantity} x {self.product} (заказ #{self.order.id})"
-
     @property
     def total_price(self):
-        if self.price is not None and self.quantity is not None:
-            return self.price * self.quantity
-        return 0
+        return self.price * self.quantity
 
+class Invoice(models.Model):
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='invoice'
+    )
+    invoice_number = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    pdf_file = models.FileField(upload_to='invoices/', blank=True, null=True)
+    excel_file = models.FileField(upload_to='invoices/', blank=True, null=True)
+    sent = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _('Счет')
+        verbose_name_plural = _('Счета')
+
+
+class DeliveryAddress(models.Model):
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        related_name='delivery_addresses'
+    )
+    address = models.TextField(_('Адрес доставки'))
+    is_default = models.BooleanField(_('Адрес по умолчанию'), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Адрес доставки')
+        verbose_name_plural = _('Адреса доставки')
+        ordering = ['-is_default', '-created_at']
 
 class ProductReview(models.Model):
     product = models.ForeignKey(
@@ -1275,3 +1313,5 @@ class Partner(models.Model):
 
     def __str__(self):
         return self.name
+
+

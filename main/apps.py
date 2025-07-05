@@ -7,10 +7,16 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
-        # Регистрируем сигнал только после полной загрузки приложения
+        # Регистрируем сигналы SQLite
         @receiver(connection_created)
         def setup_sqlite(sender, connection, **kwargs):
             if connection.vendor == 'sqlite':
                 cursor = connection.cursor()
                 cursor.execute("PRAGMA journal_mode = WAL;")
-                cursor.execute("PRAGMA cache_size = -64000;")  # Пример настройки кеша
+                cursor.execute("PRAGMA cache_size = -64000;")
+
+        # Импортируем сигналы после полной загрузки приложения
+        try:
+            import main.signals
+        except ImportError as e:
+            print(f"Error importing signals: {e}")  # Для отладки

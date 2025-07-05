@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Счет #{{ order.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .info { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .total { text-align: right; font-weight: bold; font-size: 14px; }
+        .footer { margin-top: 50px; font-size: 0.9em; }
+        .nowrap { white-space: nowrap; }
+        .requisites { margin-top: 15px; }
+        .requisites-block {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+        .requisites-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .two-columns {
+            display: flex;
+            justify-content: space-between;
+        }
+        .column {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Счет на оплату № {{ order.id }}</h2>
+        <p>Дата: {{ order.created_at|date:"d.m.Y" }}</p>
+    </div>
+
+    <div class="two-columns">
+        <div class="column">
+            <div class="requisites-block">
+                <div class="requisites-title">Продавец:</div>
+                <p>{{ site_name|default:"Интернет-магазин" }}</p>
+                <!-- Здесь могут быть реквизиты продавца, если они нужны -->
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="requisites-block">
+                <div class="requisites-title">Плательщик:</div>
+                <p>{{ order.first_name }} {{ order.last_name }}</p>
+                {% if order.company %}
+                    <p>{{ order.company.legal_name|default:"" }}</p>
+                    <p>ИНН: {{ order.company.inn|default:"" }}</p>
+                    <p>Юр. адрес: {{ payer_details.legal_address|default:"не указан" }}</p>
+                    <p>Р/с: {{ payer_details.bank_account|default:"" }}</p>
+                    <p>БИК: {{ payer_details.bank_bik|default:"" }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="info">
+        <p><strong>Телефон:</strong> {{ order.phone|default:"не указан" }}</p>
+        <p><strong>Email:</strong> {{ order.email }}</p>
+        <p><strong>Адрес доставки:</strong> {{ order.address|default:"не указан" }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Наименование</th>
+                <th>Кол-во</th>
+                <th class="nowrap">Цена за ед.</th>
+                <th class="nowrap">Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if item.xml_product %}
+                        {{ item.xml_product.name }}
+                    {% else %}
+                        {{ item.product.name }}
+                    {% endif %}
+                    {% if item.size %}<br><small>Размер: {{ item.size }}</small>{% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td class="nowrap">{{ item.price|floatformat:2 }} ₽</td>
+                <td class="nowrap">{{ item.total_price|floatformat:2 }} ₽</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total">
+        <p>Итого к оплате: {{ order.total_price|floatformat:2 }} ₽</p>
+        {% if order.company %}
+        <p>НДС не облагается</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p><strong>Реквизиты для оплаты:</strong></p>
+        <p>{{ company_name|default:"ООО 'Интернет-магазин'" }}</p>
+        <p>ИНН {{ company_inn|default:"0000000000" }}, КПП {{ company_kpp|default:"000000000" }}</p>
+        <p>Банк: {{ company_bank_name|default:"ПАО 'Банк'" }}</p>
+        <p>Р/с {{ company_account|default:"00000000000000000000" }}, К/с {{ company_cor_account|default:"00000000000000000000" }}</p>
+        <p>БИК {{ company_bank_bik|default:"000000000" }}</p>
+        <p>Счет действителен до {{ order.created_at|date:"d.m.Y" }}</p>
+    </div>
+</body>
+</html>

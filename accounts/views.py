@@ -1,7 +1,9 @@
 # views.py
 from django.views.generic import CreateView, UpdateView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Company, Document, AuditLog, CustomUser, SupportTicket, DeliveryAddress
+from pdfkit import pdfkit
+
+from .models import Company, Document, AuditLog, CustomUser, SupportTicket
 from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm
 import random
 import string
@@ -22,8 +24,16 @@ from django.conf import settings
 from openpyxl import Workbook
 from io import BytesIO
 import datetime
-from .models import Cart, CartItem, Order, OrderItem, Invoice
+
 from .forms import CartItemForm, OrderCreateForm
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.views.generic import ListView,  TemplateView
+from main.models import Order, OrderItem, Invoice, Cart, CartItem, DeliveryAddress
+from .models import Company
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CompanyRegisterView(CreateView):
@@ -144,23 +154,65 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        print(f"Company ID: {self.request.user.company.id}")
-        return Order.objects.filter(company=self.request.user.company).order_by('-created_at')
+        return Order.objects.filter(company=self.request.user.company).prefetch_related('items').order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         company = self.request.user.company
         user = self.request.user
 
+        if not company:
+            messages.error(self.request, "Ваш аккаунт не привязан к компании")
+            return context
+
+        # Получаем последние 10 заказов для активности
+        orders = Order.objects.filter(company=company).order_by('-created_at')[:10]
+        invoices = Invoice.objects.filter(order__company=company).order_by('-created_at')[:10]
+
+        # Собираем активность (заказы + счета)
+        activity = []
+        for order in orders:
+            activity.append({
+                'type': 'order',
+                'object': order,
+                'date': order.created_at,
+                'message': f'Создан заказ #{order.id}'
+            })
+
+        for invoice in invoices:
+            activity.append({
+                'type': 'invoice',
+                'object': invoice,
+                'date': invoice.created_at,
+                'message': f'Выставлен счет #{invoice.invoice_number} для заказа #{invoice.order.id}'
+            })
+
+        # Сортируем по дате (новые сверху)
+        activity.sort(key=lambda x: x['date'], reverse=True)
+
+        # Добавляем форму адреса доставки в контекст
         context.update({
             'company': company,
             'user': user,
             'orders': context['object_list'],
+            'delivery_addresses': company.delivery_addresses.all() if company else [],
             'delivery_address_form': DeliveryAddressForm(),
-            'delivery_addresses': DeliveryAddress.objects.filter(company=company)
+            'activity': activity[:10]  # Берем 10 последних событий
         })
         return context
 
+def order_list(request):
+    orders = Order.objects.filter(company=request.user.company).order_by('-created_at')
+    return render(request, 'accounts/orders_list.html', {
+        'orders': orders
+    })
+
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, company=request.user.company)
+    return render(request, 'accounts/order_detail.html', {
+        'order': order,
+        'invoice': getattr(order, 'invoice', None)
+    })
 
 
 
@@ -345,23 +397,28 @@ def create_invoice(order):
     return invoice
 
 
-#def generate_invoice_pdf(invoice):
-   # context = {
-        #'invoice': invoice,
-        #'company': invoice.order.company,
-        #'order': invoice.order,
-       #'items': invoice.order.items.all()
-   # }
-#html = render_to_string('accounts/invoice_pdf.html', context)
-#result = BytesIO()
+def generate_invoice_pdf(invoice):
+    """Генерирует PDF счета"""
+    context = {
+        'invoice': invoice,
+        'company': invoice.order.company,
+        'order': invoice.order,
+        'items': invoice.order.items.all()
+    }
 
-    #if not pdf.err:
-        #invoice.pdf_file.save(
-            #f'invoice_{invoice.invoice_number}.pdf',
-            #result
-       # )
-        #invoice.save()
+    html = render_to_string('invoice_pdf.html', context)
+    result = BytesIO()
 
+    try:
+        # Укажите правильный путь к wkhtmltopdf
+        config = pdfkit.configuration(
+            wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'  # Или другой путь
+        )
+        pdf = pdfkit.from_string(html, False, configuration=config)
+        return pdf
+    except Exception as e:
+        logger.error(f"Ошибка генерации PDF: {e}")
+        return None
 
 def generate_invoice_excel(invoice):
     wb = Workbook()

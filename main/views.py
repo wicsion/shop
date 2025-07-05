@@ -19,7 +19,8 @@ from requests.auth import HTTPBasicAuth
 from urllib.parse import unquote, quote
 from io import BytesIO
 from PIL import Image
-
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm
 logger = logging.getLogger(__name__)
@@ -93,6 +94,7 @@ def get_cart(request):
         session_key = request.session.session_key
         cart, created = Cart.objects.get_or_create(session_key=session_key)
     return cart
+
 
 
 class HomeView(TemplateView):
@@ -451,13 +453,59 @@ def cart_view(request):
     return render(request, 'main/cart.html', context)
 
 
+def send_order_confirmation_email(request, order):
+    # Рендерим HTML содержимое письма из шаблона
+    context = {
+        'order': order,
+        'request': request  # передаем request для корректной работы url-хелперов
+    }
+    html_content = render_to_string('main/order_email.html', context)
+
+    # Текстовое содержимое (альтернатива для почтовых клиентов, не поддерживающих HTML)
+    text_content = f"""
+    Ваш заказ #{order.id} успешно создан!
+
+    Статус заказа: {order.get_status_display()}
+    Дата: {order.created_at.strftime('%d.%m.%Y %H:%M')}
+    Сумма: {order.total_price} ₽
+
+    Состав заказа:
+    """
+
+    for item in order.items.all():
+        product_name = item.xml_product.name if item.xml_product else item.product.name
+        text_content += f"\n- {product_name}: {item.quantity} × {item.price} ₽ = {item.total_price} ₽"
+
+    text_content += f"\n\nИтого: {order.total_price} ₽"
+
+    # Создаем email сообщение
+    email = EmailMultiAlternatives(
+        subject=f"Ваш заказ #{order.id} успешно создан",
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[order.email],
+    )
+
+    # Прикрепляем HTML версию
+    email.attach_alternative(html_content, "text/html")
+
+    # Отправляем письмо (в продакшене лучше использовать Celery)
+    try:
+        email.send()
+    except Exception as e:
+        # Логируем ошибку, но не прерываем выполнение
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Ошибка при отправке письма: {str(e)}")
+
 def checkout(request):
     cart = get_cart(request)
 
     if cart.items.count() == 0:
-        messages.warning(request, _('Ваша корзина пуста'))
+        messages.warning(request, 'Ваша корзина пуста')
         return redirect('main:cart_view')
 
+    # Подготовка cart_items
     cart_items = []
     for item in cart.items.all():
         if item.xml_product:
@@ -476,7 +524,6 @@ def checkout(request):
 
             if request.user.is_authenticated:
                 order.user = request.user
-                # Если пользователь принадлежит компании, привязываем заказ к компании
                 if hasattr(request.user, 'company'):
                     order.company = request.user.company
             else:
@@ -484,26 +531,30 @@ def checkout(request):
 
             order.save()
 
+            # Создаем элементы заказа
             for cart_item in cart.items.all():
                 if cart_item.xml_product:
                     OrderItem.objects.create(
                         order=order,
                         xml_product=cart_item.xml_product,
                         quantity=cart_item.quantity,
-                        price=cart_item.xml_product.price
-                    )
-                elif cart_item.product:
-                    OrderItem.objects.create(
-                        order=order,
-                        product=cart_item.product,
-                        quantity=cart_item.quantity,
-                        price=cart_item.product.price
+                        price=cart_item.xml_product.price,
+                        size=cart_item.size
                     )
 
+            # Очищаем корзину
             cart.items.all().delete()
-            messages.success(request, _('Ваш заказ успешно оформлен! Номер заказа: #{}').format(order.id))
-            return redirect('main:order_confirmation', order_id=order.id)
+
+            # Отправляем письмо с подтверждением
+            send_order_confirmation_email(request, order)
+
+            messages.success(request, f'Ваш заказ успешно оформлен! Номер заказа: #{order.id}')
+            return redirect('main:order_detail', order_id=order.id)
+        else:
+            # Если форма невалидна, показываем ошибки
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
+        # Для GET-запроса предзаполняем форму, если пользователь авторизован
         if request.user.is_authenticated:
             initial = {
                 'first_name': request.user.first_name,
@@ -515,14 +566,12 @@ def checkout(request):
         else:
             form = OrderForm()
 
-    context = {
+    return render(request, 'main/checkout.html', {
         'cart': cart,
         'cart_items': cart_items,
         'form': form,
         'search_form': SearchForm(),
-    }
-
-    return render(request, 'main/checkout.html', context)
+    })
 
 
 
@@ -887,3 +936,5 @@ def order_detail(request, order_id):
         'search_form': SearchForm(),
     }
     return render(request, 'main/order_detail.html', context)
+
+

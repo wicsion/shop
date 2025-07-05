@@ -1,7 +1,9 @@
 # forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Company, CustomUser, Document, Order, CartItem, DeliveryAddress
+
+from main.models import CartItem, Order, DeliveryAddress
+from .models import Company, CustomUser, Document
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 

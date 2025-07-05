@@ -14,6 +14,7 @@ from django.urls import path
 from django.views.decorators.http import require_GET
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +39,7 @@ class BrandAdmin(admin.ModelAdmin):
         if obj.logo:
             return format_html('<img src="{}" width="50" />', obj.logo.url)
         return '-'
+
     logo_preview.short_description = _('Логотип')
 
 
@@ -74,8 +76,6 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
 
-
-
 class CategoryFilter(admin.SimpleListFilter):
     title = 'Категория'
     parameter_name = 'category'
@@ -90,8 +90,6 @@ class CategoryFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(categories__id=self.value())
         return queryset
-
-
 
 
 @admin.register(XMLProduct)
@@ -172,23 +170,25 @@ class XMLProductAdmin(admin.ModelAdmin):
         if obj.has_discount:
             return f"{obj.discount_percent}%"
         return "-"
+
     display_discount.short_description = _('Скидка')
 
     def discount_percent_display(self, obj):
         return self.display_discount(obj)
+
     discount_percent_display.short_description = _('Скидка')
 
     def main_image_preview(self, obj):
         if obj.main_image:
             return format_html('<img src="{}" width="200" />', obj.main_image)
         return '-'
+
     main_image_preview.short_description = _('Основное изображение')
 
     def attachments_preview(self, obj):
         images_html = []
         additional_images = []
 
-        # Основное изображение
         if obj.main_image:
             images_html.append(
                 format_html(
@@ -200,7 +200,6 @@ class XMLProductAdmin(admin.ModelAdmin):
                 )
             )
 
-        # Дополнительные изображения из свойства additional_images
         for i, url in enumerate(obj.additional_images, 1):
             additional_images.append(url)
             images_html.append(
@@ -213,7 +212,6 @@ class XMLProductAdmin(admin.ModelAdmin):
                 )
             )
 
-        # Вложения из xml_data
         if obj.xml_data and 'attributes' in obj.xml_data and 'attachments' in obj.xml_data['attributes']:
             for attachment in obj.xml_data['attributes']['attachments']:
                 if attachment.get('image'):
@@ -244,6 +242,7 @@ class XMLProductAdmin(admin.ModelAdmin):
         if images_html:
             return format_html(''.join(images_html))
         return '-'
+
     attachments_preview.short_description = _('Все изображения и файлы')
 
     def get_urls(self):
@@ -261,7 +260,6 @@ class XMLProductAdmin(admin.ModelAdmin):
             return JsonResponse({'results': []})
 
         try:
-            # Ищем по названию без учета регистра и по slug
             categories = Category.objects.filter(
                 Q(name__icontains=q) |
                 Q(slug__icontains=q.replace(' ', '-'))
@@ -279,8 +277,10 @@ class XMLProductAdmin(admin.ModelAdmin):
         except Exception as e:
             logger.error(f"Search error: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
+
     def display_categories(self, obj):
         return ", ".join([cat.name for cat in obj.categories.all()])
+
     display_categories.short_description = 'Категории'
 
     def mark_as_featured(self, request, queryset):
@@ -290,6 +290,7 @@ class XMLProductAdmin(admin.ModelAdmin):
             f"Помечено как рекомендуемые: {updated} товаров",
             messages.SUCCESS
         )
+
     mark_as_featured.short_description = _('Пометить как рекомендуемые')
 
     def mark_as_bestseller(self, request, queryset):
@@ -299,59 +300,17 @@ class XMLProductAdmin(admin.ModelAdmin):
             f"Помечено как хиты продаж: {updated} товаров",
             messages.SUCCESS
         )
+
     mark_as_bestseller.short_description = _('Пометить как хиты продаж')
-
-    def attachments_preview(self, obj):
-        if obj.xml_data and 'attributes' in obj.xml_data and 'attachments' in obj.xml_data['attributes']:
-            attachments = obj.xml_data['attributes']['attachments']
-            images_html = []
-
-            # Обработка изображений
-            for attachment in attachments:
-                if attachment.get('image'):
-                    images_html.append(
-                        format_html(
-                            '<div style="float: left; margin-right: 10px; margin-bottom: 10px;">'
-                            '<img src="{}" width="100" /><br>'
-                            '<small>{} (тип: {})</small>'
-                            '</div>',
-                            attachment['image'],
-                            attachment.get('name', 'Без названия'),
-                            attachment.get('type', 'image')
-                        )
-                    )
-                elif attachment.get('file'):
-                    # Если вложение - файл (не изображение), отображаем ссылку
-                    images_html.append(
-                        format_html(
-                            '<div style="float: left; margin-right: 10px; margin-bottom: 10px;">'
-                            '<a href="{}" target="_blank">Файл: {}</a><br>'
-                            '<small>Тип: {}</small>'
-                            '</div>',
-                            attachment['file'],
-                            attachment.get('name', 'Без названия'),
-                            attachment.get('type', 'file')
-                        )
-                    )
-
-            if images_html:
-                return format_html(''.join(images_html))
-
-        return '-'
-
-    attachments_preview.short_description = _('Дополнительные изображения и файлы')
 
     def assign_to_category(self, request, queryset):
         if request.method == 'POST' and 'apply' in request.POST:
             try:
-                # Получаем выбранные категории из формы
                 category_ids = request.POST.getlist('categories', [])
-
                 if not category_ids:
                     self.message_user(request, "Ошибка: не выбрано ни одной категории", messages.ERROR)
                     return HttpResponseRedirect(request.get_full_path())
 
-                # Преобразуем ID в числа и валидируем
                 valid_ids = []
                 for cat_id in category_ids:
                     try:
@@ -359,23 +318,16 @@ class XMLProductAdmin(admin.ModelAdmin):
                     except (ValueError, TypeError):
                         continue
 
-                # Получаем категории из БД
                 categories = Category.objects.filter(id__in=valid_ids)
                 if not categories.exists():
                     self.message_user(request, "Ошибка: выбранные категории не найдены", messages.ERROR)
                     return HttpResponseRedirect(request.get_full_path())
 
-                # Обновляем категории для всех выбранных товаров
                 updated_count = 0
                 for product in queryset:
-                    # Получаем текущие категории продукта
                     current_categories = set(product.categories.all())
-                    # Получаем новые категории
                     new_categories = set(categories)
-
-                    # Если категории изменились
                     if current_categories != new_categories:
-                        # Очищаем старые и добавляем новые
                         product.categories.clear()
                         product.categories.add(*categories)
                         updated_count += 1
@@ -400,7 +352,6 @@ class XMLProductAdmin(admin.ModelAdmin):
                 self.message_user(request, f"Ошибка: {str(e)}", messages.ERROR)
                 return HttpResponseRedirect(request.get_full_path())
 
-        # Для GET запроса - отображаем форму
         return render(
             request,
             'admin/main/assign_to_category.html',
@@ -410,6 +361,7 @@ class XMLProductAdmin(admin.ModelAdmin):
                 'action_name': 'assign_to_category'
             }
         )
+
 
 class CartItemInline(admin.TabularInline):
     model = CartItem
@@ -423,6 +375,7 @@ class CartItemInline(admin.TabularInline):
         elif obj.product:
             return obj.product.price * obj.quantity
         return 0
+
     total_price.short_description = _('Общая сумма')
 
 
@@ -436,45 +389,72 @@ class CartAdmin(admin.ModelAdmin):
 
     def total_price(self, obj):
         return obj.total_price
+
     total_price.short_description = _('Общая сумма')
 
     def total_quantity(self, obj):
         return obj.total_quantity
+
     total_quantity.short_description = _('Общее количество')
 
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 0  # Не показывать дополнительные пустые формы
-    fields = ['product', 'xml_product', 'quantity', 'price', 'total_price']  # Отображаемые поля
-    readonly_fields = ('total_price',)  # Поля только для чтения
+    extra = 0
+    fields = ['product', 'xml_product', 'quantity', 'price', 'total_price']
+    readonly_fields = ('total_price',)
 
     def total_price(self, obj):
-        """
-        Рассчитывает общую стоимость для одного элемента заказа
-        """
         if obj.price is not None and obj.quantity is not None:
             return obj.price * obj.quantity
-        return 0  # Возвращаем 0 если цена или количество не указаны
+        return 0
 
-    total_price.short_description = 'Общая стоимость'  # Заголовок столбца
+    total_price.short_description = 'Общая стоимость'
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    inlines = [OrderItemInline]  # Включаем inline для элементов заказа
-    list_display = ('id', 'status', 'created_at', 'total_price')  # Поля в списке заказов
-    list_filter = ['status', 'created_at']  # Фильтры справа
-    search_fields = ['id', 'user__username']  # Поиск по этим полям
+    inlines = [OrderItemInline]
+    list_display = ('id', 'status', 'created_at', 'total_price')
+    list_filter = ['status', 'created_at']
+    search_fields = ['id', 'user__username']
+    list_editable = ['status']
+    actions = ['mark_as_new', 'mark_as_in_progress', 'mark_as_completed', 'mark_as_delivered', 'mark_as_cancelled']
 
     def total_price(self, obj):
-        """
-        Рассчитывает общую стоимость всего заказа
-        Суммирует total_price всех элементов заказа
-        """
         return sum(item.total_price for item in obj.items.all())
 
     total_price.short_description = 'Общая стоимость заказа'
+
+    def mark_as_new(self, request, queryset):
+        updated = queryset.update(status=Order.STATUS_NEW)
+        self.message_user(request, f"Обновлено {updated} заказов: статус 'Создан'", messages.SUCCESS)
+
+    mark_as_new.short_description = "Установить статус 'Создан'"
+
+    def mark_as_in_progress(self, request, queryset):
+        updated = queryset.update(status=Order.STATUS_IN_PROGRESS)
+        self.message_user(request, f"Обновлено {updated} заказов: статус 'Ожидает оплаты'", messages.SUCCESS)
+
+    mark_as_in_progress.short_description = "Установить статус 'Ожидает оплаты'"
+
+    def mark_as_completed(self, request, queryset):
+        updated = queryset.update(status=Order.STATUS_COMPLETED)
+        self.message_user(request, f"Обновлено {updated} заказов: статус 'Доставляется'", messages.SUCCESS)
+
+    mark_as_completed.short_description = "Установить статус 'Доставляется'"
+
+    def mark_as_delivered(self, request, queryset):
+        updated = queryset.update(status=Order.STATUS_DELIVERED)
+        self.message_user(request, f"Обновлено {updated} заказов: статус 'Доставлен'", messages.SUCCESS)
+
+    mark_as_delivered.short_description = "Установить статус 'Доставлен'"
+
+    def mark_as_cancelled(self, request, queryset):
+        updated = queryset.update(status=Order.STATUS_CANCELLED)
+        self.message_user(request, f"Обновлено {updated} заказов: статус 'Отменен'", messages.SUCCESS)
+
+    mark_as_cancelled.short_description = "Установить статус 'Отменен'"
 
 
 @admin.register(Slider)
@@ -489,6 +469,7 @@ class SliderAdmin(admin.ModelAdmin):
         if obj.image:
             return format_html('<img src="{}" width="100" />', obj.image.url)
         return '-'
+
     image_preview.short_description = _('Изображение')
 
 
@@ -504,6 +485,7 @@ class PartnerAdmin(admin.ModelAdmin):
         if obj.logo:
             return format_html('<img src="{}" width="50" />', obj.logo.url)
         return '-'
+
     logo_preview.short_description = _('Логотип')
 
 
@@ -524,4 +506,5 @@ class WishlistAdmin(admin.ModelAdmin):
 
     def products_count(self, obj):
         return obj.products.count()
+
     products_count.short_description = _('Количество товаров')

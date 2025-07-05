@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заказ #{{ order.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .order-info { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .order-items { margin-bottom: 20px; }
+        .item { display: flex; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .item-image { width: 80px; height: 80px; margin-right: 15px; }
+        .item-details { flex: 1; }
+        .total { font-weight: bold; text-align: right; font-size: 18px; }
+        .status-steps { display: flex; justify-content: space-between; margin: 20px 0; }
+        .step { text-align: center; }
+        .step-number { width: 30px; height: 30px; border-radius: 50%; background: #eee;
+                      display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; }
+        .step.active .step-number { background: #007bff; color: white; }
+        .track-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .track-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ваш заказ #{{ order.id }} успешно создан!</h1>
+        </div>
+
+        <!-- Информация о заказе -->
+        <div class="order-info">
+            <h2>Информация о заказе</h2>
+            <p><strong>Номер заказа:</strong> #{{ order.id }}</p>
+            <p><strong>Дата:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+            <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+            <p><strong>Сумма:</strong> {{ order.total_price }} ₽</p>
+
+            <h2>Контактная информация</h2>
+            {% if order.company %}
+            <p><strong>Компания:</strong> {{ order.company.legal_name }}</p>
+            {% endif %}
+            <p><strong>Имя:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+            <p><strong>Телефон:</strong> {{ order.phone }}</p>
+            <p><strong>Email:</strong> {{ order.email }}</p>
+            <p><strong>Адрес:</strong> {{ order.address }}</p>
+            {% if order.comment %}
+            <p><strong>Комментарий:</strong> {{ order.comment }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Товары в заказе -->
+        <div class="order-items">
+            <h2>Состав заказа</h2>
+            {% for item in order.items.all %}
+            <div class="item">
+                <div class="item-details">
+                    <h3>
+                        {% if item.xml_product %}
+                            {{ item.xml_product.name }}
+                        {% else %}
+                            {{ item.product.name }}
+                        {% endif %}
+                    </h3>
+                    <p>{{ item.quantity }} × {{ item.price }} ₽ = {{ item.total_price }} ₽</p>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="total">
+                Итого: {{ order.total_price }} ₽
+            </div>
+        </div>
+
+        <!-- Кнопка для отслеживания заказа -->
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'main:order_detail' order.id %}" class="track-button">
+            Отследить статус заказа
+        </a>
+
+        <p style="margin-top: 20px; text-align: center; color: #666;">
+            Вы также можете отслеживать статус вашего заказа в личном кабинете на нашем сайте.
+        </p>
+    </div>
+</body>
+</html>
