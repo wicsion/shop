@@ -540,7 +540,17 @@
                             <form id="add-to-cart-form" action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
                                 {% csrf_token %}
                                 <input type="hidden" name="product_type" value="xml">
-
+<div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <h4 style="margin-top: 0;">Отладочная информация:</h4>
+    <pre>
+Product ID: {{ product.product_id }}
+Has variants: {{ product.variants.exists }}
+Available sizes: {{ product.available_sizes|default:"Нет данных" }}
+Variants count: {{ product.variants.count }}
+First variant: {% if product.variants.first %}{{ product.variants.first.size }} - {{ product.variants.first.quantity }}{% else %}Нет вариантов{% endif %}
+Sizes available: {{ product.sizes_available|default:"Не указано" }}
+    </pre>
+</div>
                                 <!-- Блок выбора размера -->
                                 {% if size_data.available_sizes %}
                                 <div class="size-selector mb-4">
@@ -720,7 +730,11 @@
     {% endif %}
 </div>
 {% endif %}
-
+     <div class="debug-info">
+    <h4>Отладочная информация о нанесении:</h4>
+    <pre>{{ printing_data|pprint }}</pre>
+    <pre>{{ product.xml_data|pprint }}</pre>
+</div>
            <!-- В разделе с табами замените блок с таблицей размеров на следующий: -->
 
 

@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
-
 import os
 import logging
 from django.core.cache import cache
@@ -10,15 +9,9 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from mptt.models import MPTTModel, TreeForeignKey
 import uuid
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
 from django.conf import settings
-import pdfkit
 from model_utils import FieldTracker
-
-
+from accounts.models import Document
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -504,6 +497,10 @@ class XMLProduct(models.Model):
                 ]
 
         return size_info
+
+    def get_add_to_cart_form(self):
+        from .forms import AddToCartForm
+        return AddToCartForm(product=self)
 
     def update_quantity_from_variants(self):
         """Обновляет общее количество на основе вариантов размеров"""
@@ -1216,9 +1213,30 @@ class Invoice(models.Model):
     sent = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
 
+    document = models.ForeignKey(
+        'accounts.Document',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices'
+    )
+
     class Meta:
         verbose_name = _('Счет')
         verbose_name_plural = _('Счета')
+
+    def save(self, *args, **kwargs):
+        # Автоматическое создание документа при создании счета
+        if not self.pk and not self.document and self.pdf_file:
+            doc = Document.objects.create(
+                company=self.order.company,
+                doc_type='invoice',
+                file=self.pdf_file,
+                signed=False,
+                invoice=self  # Связываем документ со счетом
+            )
+            self.document = doc
+        super().save(*args, **kwargs)
 
 
 class DeliveryAddress(models.Model):

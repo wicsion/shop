@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views  # Добавьте этот импорт
 from .forms import EmailAuthenticationForm
 from .views import add_delivery_address, delete_delivery_address
+from .views import download_document
 app_name = 'accounts'
 
 urlpatterns = [
@@ -76,6 +77,7 @@ path('password-reset/complete/',
     path('checkout/', views.checkout, name='checkout'),
     path('orders/', views.order_list, name='order_list'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
+path('documents/<int:pk>/download/', download_document, name='download_document'),
 
 
 

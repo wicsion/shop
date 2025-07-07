@@ -137,6 +137,13 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     signed = models.BooleanField('Подписано', default=False)
     signature = models.TextField('ЭЦП', null=True, blank=True)
+    invoice = models.OneToOneField(
+        'main.Invoice',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='document_link'
+    )
 
 class SupportTicket(models.Model):
     TICKET_TYPES = (

@@ -491,13 +491,26 @@
                             </div>
                         </div>
                     </a>
-                    <div class="px-4 pb-4 mt-auto">
-                        <button class="add-to-cart w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                                data-product-id="{{ product.product_id }}"
-                                aria-label="Добавить {{ product.name }} в корзину">
-                            {% trans "В корзину" %}
-                        </button>
-                    </div>
+                    <!-- В блоке с товаром заменим кнопку "В корзину" на форму -->
+<div class="px-4 pb-4 mt-auto">
+    <form class="add-to-cart-form" data-product-id="{{ product.product_id }}">
+        {% with form=product.get_add_to_cart_form %}
+            {{ form.quantity.as_hidden }}
+
+            {% if product.variants.exists or product.sizes_available %}
+                <div class="mb-3">
+                    {{ form.size }}
+                </div>
+            {% else %}
+                {{ form.size.as_hidden }}
+            {% endif %}
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+                {% trans "В корзину" %}
+            </button>
+        {% endwith %}
+    </form>
+</div>
                 </div>
                 {% empty %}
                 <div class="col-span-full text-center py-12">
@@ -691,47 +704,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Функции для работы с корзиной
-    function initCartHandlers() {
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const productId = this.getAttribute('data-product-id');
+   // Обновим функцию initCartHandlers
+function initCartHandlers() {
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const productId = this.getAttribute('data-product-id');
+            const formData = new FormData(this);
 
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner"></span>';
+            // Проверяем, выбран ли размер (если поле видимое)
+            const sizeSelect = this.querySelector('select[name="size"]');
+            if (sizeSelect && sizeSelect.style.display !== 'none' && !formData.get('size')) {
+                showNotification('{% trans "Пожалуйста, выберите размер" %}', 'error');
+                return;
+            }
 
-                fetch(`/ru/add-to-cart/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `quantity=1`
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Ошибка сети');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        showNotification('{% trans "Товар добавлен в корзину" %}', 'success');
-                        updateCartCounter(data.cart_total);
-                    } else {
-                        showNotification(data.error || '{% trans "Ошибка при добавлении в корзину" %}', 'error');
+            // Добавляем CSRF-токен вручную, если его нет в форме
+            if (!formData.has('csrfmiddlewaretoken')) {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                if (csrfToken) {
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                }
+            }
+
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span>';
+
+            fetch(`{% url 'main:add_to_cart' product_id='0' %}`.replace('0', productId), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка сети');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showNotification('{% trans "Товар добавлен в корзину" %}', 'success');
+                    updateCartCounter(data.cart_total);
+                } else {
+                    const errors = data.errors || {};
+                    let errorMessage = '{% trans "Ошибка при добавлении в корзину" %}';
+
+                    // Показываем первую ошибку, если есть
+                    if (Object.keys(errors).length > 0) {
+                        errorMessage = Object.values(errors)[0][0];
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('{% trans "Произошла ошибка" %}', 'error');
-                })
-                .finally(() => {
-                    this.disabled = false;
-                    this.textContent = '{% trans "В корзину" %}';
-                });
+
+                    showNotification(errorMessage, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('{% trans "Произошла ошибка" %}', 'error');
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = originalText;
             });
         });
-    }
+    });
+}
 
     function updateCartCounter(count) {
         const cartCount = document.getElementById('cart-count');
@@ -828,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Инициализация обработчиков событий
-    function initEventHandlers() {
+   function initEventHandlers() {
         // Фильтры
         document.getElementById('reset_filters')?.addEventListener('click', () => {
             window.location.search = '';
@@ -881,6 +919,27 @@ document.addEventListener('DOMContentLoaded', function() {
     --top-navbar-height: 40px;
     --main-header-height: 20px;
     --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
+}
+/* Стили для выбора размера */
+select[name="size"] {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    padding-right: 2rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* Стили для недоступных вариантов */
+select option:disabled {
+    color: #999;
+    background-color: #f5f5f5;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 /* Оптимизированные стили для изображений */
 .image-container {

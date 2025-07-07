@@ -183,15 +183,59 @@ CSRF_TRUSTED_ORIGINS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+            'formatter': 'verbose',
+        },
+        'signals_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/signals.log',
+            'maxBytes': 1024*1024*5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
         },
     },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'DEBUG',
+    },
     'loggers': {
-        'django.security.csrf': {
-            'handlers': ['console'],
+        'django': {
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
+            'propagate': True,
+        },
+        'main': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'signals': {
+            'handlers': ['console', 'signals_file', 'mail_admins'],
+            'level': 'DEBUG',
+            'propagate': False,
         },
     },
 }

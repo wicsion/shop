@@ -1138,130 +1138,126 @@
     </div>
 </div>
 
-                <div class="section-content" id="documents-content">
-                    <!-- Документы -->
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Документы</h2>
-                        <button class="btn-custom">
-                            <i class="fas fa-upload mr-2"></i> Загрузить документ
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-red-100 p-3 rounded-lg">
-                                    <i class="fas fa-file-pdf text-red-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Договор купли-продажи</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-calendar-alt mr-1"></i>
-                                        28.05.2025
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-completed">Подписан</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
-                                    <i class="fas fa-download"></i> Скачать
-                                </a>
-                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
-                                    <i class="fas fa-trash"></i> Удалить
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
-                                    <i class="fas fa-file-word text-blue-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Акт приема-передачи</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-calendar-alt mr-1"></i>
-                                        27.05.2025
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-pending">На подписании</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
-                                    <i class="fas fa-download"></i> Скачать
-                                </a>
-                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
-                                    <i class="fas fa-trash"></i> Удалить
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-yellow-100 p-3 rounded-lg">
-                                    <i class="fas fa-file-excel text-yellow-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Финансовый отчет</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-calendar-alt mr-1"></i>
-                                        26.05.2025
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-new">Новый</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
-                                    <i class="fas fa-download"></i> Скачать
-                                </a>
-                                <a href="#" class="text-red-500 hover:text-red-700 ml-3">
-                                    <i class="fas fa-trash"></i> Удалить
-                                </a>
-                            </div>
-                        </div>
+<div class="section-content" id="documents-content">
+    <h2 class="text-xl font-bold mb-4">Счета</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for document in documents %}
+        <div class="document-card">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-file-invoice text-blue-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        Счет №{{ document.invoice.invoice_number }}
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        {{ document.invoice.created_at|date:"d.m.Y" }}
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-shopping-cart mr-1"></i>
+                        Заказ №{{ document.invoice.order.id }}
+                    </p>
+                    <div class="mt-2">
+                        <span class="badge-status">
+                            {{ document.invoice.get_status_display }}
+                        </span>
                     </div>
                 </div>
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                <a href="{{ document.file.url }}"
+                   class="btn-custom"
+                   download>
+                    <i class="fas fa-download mr-2"></i> Скачать
+                </a>
+                {% if not document.signed %}
+                <a href="#" class="btn-custom text-green-600">
+                    <i class="fas fa-signature mr-2"></i> Подписать
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-8">
+            <i class="fas fa-file-invoice text-gray-300 text-4xl mb-3"></i>
+            <p class="text-gray-500">Нет доступных счетов</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-               <div class="section-content" id="activity-content">
+      <div class="section-content" id="activity-content">
     <!-- Активность -->
     <div class="divide-y divide-gray-200">
         {% for event in activity %}
         <div class="px-6 py-4 hover:bg-gray-50">
             <div class="flex items-start">
-                <div class="flex-shrink-0 {% if event.type == 'order' %}bg-blue-500{% else %}bg-green-500{% endif %} text-white rounded-full w-8 h-8 flex items-center justify-center">
-                    {% if event.type == 'order' %}
+                <!-- Иконка в зависимости от типа события -->
+                <div class="flex-shrink-0
+                    {% if event.type == 'order_created' %}bg-blue-500
+                    {% elif event.type == 'invoice_issued' %}bg-green-500
+                    {% elif event.type == 'order_pending' %}bg-yellow-500
+                    {% endif %}
+                    text-white rounded-full w-8 h-8 flex items-center justify-center">
+                    {% if event.type == 'order_created' %}
                     <i class="fas fa-shopping-cart"></i>
-                    {% else %}
+                    {% elif event.type == 'invoice_issued' %}
                     <i class="fas fa-file-invoice"></i>
+                    {% elif event.type == 'order_pending' %}
+                    <i class="fas fa-clock"></i>
                     {% endif %}
                 </div>
+
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-900">{{ event.message }}</p>
+                    <!-- Сообщение и статус -->
+                    <div class="flex items-center">
+                        <p class="text-sm font-medium text-gray-900">{{ event.message }}</p>
+                        <span class="ml-2 px-2 py-1 text-xs rounded-full
+                            {% if event.status == 'Ожидает оплаты' %}bg-yellow-100 text-yellow-800
+                            {% elif event.status == 'Оплачен' %}bg-green-100 text-green-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ event.status }}
+                        </span>
+                    </div>
+
+                    <!-- Дата и пользователь -->
                     <p class="text-sm text-gray-500 mt-1">
                         <i class="fas fa-user mr-1"></i>
                         {{ user.get_full_name }}
                         <i class="fas fa-clock ml-3 mr-1"></i>
                         {{ event.date|date:"d.m.Y H:i" }}
                     </p>
-                    {% if event.type == 'order' %}
-                    <div class="mt-2">
-                        <a href="{% url 'main:order_detail' event.object.id %}" class="text-blue-500 hover:text-blue-700 text-sm">
+
+                    <!-- Действия -->
+                    <div class="mt-2 flex space-x-3">
+                        {% if event.type == 'order_created' or event.type == 'order_pending' %}
+                        <a href="{% url 'main:order_detail' event.object.id %}"
+                           class="text-blue-500 hover:text-blue-700 text-sm">
                             <i class="fas fa-eye mr-1"></i> Просмотреть заказ
                         </a>
-                    </div>
-                    {% else %}
-                    <div class="mt-2">
-                        <a href="{{ event.object.pdf_file.url }}" class="text-blue-500 hover:text-blue-700 text-sm" target="_blank">
-                            <i class="fas fa-download mr-1"></i> Скачать счет
+                        {% if event.object.pdf_file and event.object.pdf_file.url %}
+                        <a href="{{ event.object.invoice.pdf_file.url }}"
+                           class="text-green-500 hover:text-green-700 text-sm"
+                           target="_blank">
+                            <i class="fas fa-file-invoice mr-1"></i> Счет
                         </a>
+                        {% endif %}
+                            {% elif event.type == 'invoice_issued' %}
+{% if event.object.pdf_file and event.object.pdf_file.url %}
+    <a href="{{ event.object.pdf_file.url }}"
+       class="text-green-500 hover:text-green-700 text-sm"
+       target="_blank">
+        <i class="fas fa-download mr-1"></i> Скачать счет
+    </a>
+{% endif %}
+                        <a href="{% url 'main:order_detail' event.object.order.id %}"
+                           class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-shopping-cart mr-1"></i> К заказу
+                        </a>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>

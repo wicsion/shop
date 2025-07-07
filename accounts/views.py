@@ -24,13 +24,14 @@ from django.conf import settings
 from openpyxl import Workbook
 from io import BytesIO
 import datetime
-
+from django.core.files.base import ContentFile
 from .forms import CartItemForm, OrderCreateForm
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.views.generic import ListView,  TemplateView
 from main.models import Order, OrderItem, Invoice, Cart, CartItem, DeliveryAddress
 from .models import Company
+from django.http import FileResponse
 
 import logging
 logger = logging.getLogger(__name__)
@@ -165,41 +166,57 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
             messages.error(self.request, "Ваш аккаунт не привязан к компании")
             return context
 
-        # Получаем последние 10 заказов для активности
-        orders = Order.objects.filter(company=company).order_by('-created_at')[:10]
-        invoices = Invoice.objects.filter(order__company=company).order_by('-created_at')[:10]
+        # Получаем документы (счета) компании
+        documents = Document.objects.filter(
+            company=company,
+            doc_type='invoice'
+        ).select_related('invoice').order_by('-created_at')
 
-        # Собираем активность (заказы + счета)
-        activity = []
-        for order in orders:
-            activity.append({
-                'type': 'order',
-                'object': order,
-                'date': order.created_at,
-                'message': f'Создан заказ #{order.id}'
-            })
-
-        for invoice in invoices:
-            activity.append({
-                'type': 'invoice',
-                'object': invoice,
-                'date': invoice.created_at,
-                'message': f'Выставлен счет #{invoice.invoice_number} для заказа #{invoice.order.id}'
-            })
-
-        # Сортируем по дате (новые сверху)
-        activity.sort(key=lambda x: x['date'], reverse=True)
-
-        # Добавляем форму адреса доставки в контекст
         context.update({
             'company': company,
             'user': user,
             'orders': context['object_list'],
+            'documents': documents,  # Добавляем документы в контекст
             'delivery_addresses': company.delivery_addresses.all() if company else [],
             'delivery_address_form': DeliveryAddressForm(),
-            'activity': activity[:10]  # Берем 10 последних событий
+            'activity': self._get_activity(company)
         })
         return context
+
+    def _get_activity(self, company):
+        orders = Order.objects.filter(company=company).select_related('invoice').order_by('-created_at')[:10]
+        activity = []
+
+        for order in orders:
+            activity.append({
+                'type': 'order_created',
+                'object': order,
+                'date': order.created_at,
+                'message': f'Создан заказ #{order.id}',
+                'status': order.get_status_display()
+            })
+
+            if hasattr(order, 'invoice'):
+                # Добавляем проверку на существование файла
+                if order.invoice.pdf_file:
+                    activity.append({
+                        'type': 'invoice_issued',
+                        'object': order.invoice,
+                        'date': order.invoice.created_at,
+                        'message': f'Выставлен счет #{order.invoice.invoice_number}',
+                        'status': 'Ожидает оплаты' if not order.invoice.paid else 'Оплачен'
+                    })
+
+            if order.status == Order.STATUS_IN_PROGRESS:
+                activity.append({
+                    'type': 'order_pending',
+                    'object': order,
+                    'date': order.updated_at,
+                    'message': f'Заказ #{order.id} ожидает оплаты',
+                    'status': 'Ожидает оплаты'
+                })
+
+        return sorted(activity, key=lambda x: x['date'], reverse=True)[:15]
 
 def order_list(request):
     orders = Order.objects.filter(company=request.user.company).order_by('-created_at')
@@ -336,11 +353,12 @@ def checkout(request):
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
         if form.is_valid():
-            # Создаем заказ
+            # Создаем заказ с явным статусом "new"
             order = Order.objects.create(
                 company=request.user.company,
                 total_amount=cart.total_price,
-                notes=form.cleaned_data['notes']
+                notes=form.cleaned_data['notes'],
+                status='new'  # Явно устанавливаем статус
             )
 
             # Переносим товары из корзины в заказ
@@ -377,24 +395,40 @@ def checkout(request):
 
 
 def create_invoice(order):
-    # Генерация номера счета (можно использовать более сложную логику)
-    invoice_number = f"INV-{order.id}-{datetime.datetime.now().strftime('%Y%m%d')}"
+    """Создает счет и связанный документ"""
+    try:
+        # Генерация PDF
+        pdf_content = generate_invoice_pdf(order)
+        if not pdf_content:
+            raise ValueError("Не удалось сгенерировать PDF")
 
-    # Расчет даты оплаты (например, +7 дней от текущей даты)
-    due_date = datetime.datetime.now() + datetime.timedelta(days=7)
+        # Создание временного файла
+        invoice_number = f"INV-{order.id}-{datetime.datetime.now().strftime('%Y%m%d')}"
+        pdf_file = ContentFile(pdf_content, name=f'invoice_{invoice_number}.pdf')
 
-    invoice = Invoice.objects.create(
-        order=order,
-        invoice_number=invoice_number,
-        due_date=due_date,
-        amount=order.total_amount
-    )
+        # Создаем документ для личного кабинета
+        document = Document.objects.create(
+            company=order.company,
+            doc_type='invoice',
+            file=pdf_file,
+            signed=False
+        )
 
-    # Генерация PDF и Excel
-    generate_invoice_pdf(invoice)
-    generate_invoice_excel(invoice)
+        # Создаем счет
+        invoice = Invoice.objects.create(
+            order=order,
+            invoice_number=invoice_number,
+            due_date=datetime.datetime.now() + datetime.timedelta(days=7),
+            amount=order.total_amount,
+            pdf_file=pdf_file,
+            document=document  # Связываем с документом
+        )
 
-    return invoice
+        return invoice
+
+    except Exception as e:
+        logger.error(f"Ошибка при создании счета: {str(e)}", exc_info=True)
+        raise
 
 
 def generate_invoice_pdf(invoice):
@@ -584,6 +618,16 @@ def check_verification_status(request, company_id):
         'company_name': company.legal_name
     })
 
+def download_document(request, pk):
+    """Скачивание документа"""
+    document = get_object_or_404(
+        Document,
+        pk=pk,
+        company=request.user.company
+    )
+    response = FileResponse(document.file.open('rb'))
+    response['Content-Disposition'] = f'attachment; filename="{document.file.name}"'
+    return response
 
 class EmailVerificationSentView(TemplateView):
     template_name = 'registration/verify_email_sent.html'

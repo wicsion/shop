@@ -415,26 +415,67 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
-    list_display = ('id', 'status', 'created_at', 'total_price')
+    list_display = ('id', 'status', 'created_at', 'total_price', 'email', 'invoice_status_display')  # Заменили invoice_status на invoice_status_display
     list_filter = ['status', 'created_at']
-    search_fields = ['id', 'user__username']
+    search_fields = ['id', 'user__username', 'email']
     list_editable = ['status']
-    actions = ['mark_as_new', 'mark_as_in_progress', 'mark_as_completed', 'mark_as_delivered', 'mark_as_cancelled']
+    actions = [
+        'mark_as_new',
+        'mark_as_in_progress',
+        'mark_as_completed',
+        'mark_as_delivered',
+        'mark_as_cancelled',
+    ]
+    readonly_fields = ['created_at', 'updated_at', 'invoice_status_display']
 
-    def total_price(self, obj):
-        return sum(item.total_price for item in obj.items.all())
+    def invoice_status_display(self, obj):
+        if hasattr(obj, 'invoice'):
+            return "Отправлен" if obj.invoice.sent else "Не отправлен"
+        return "Не создан"
 
-    total_price.short_description = 'Общая стоимость заказа'
+    invoice_status_display.short_description = 'Статус счета'
 
-    def mark_as_new(self, request, queryset):
-        updated = queryset.update(status=Order.STATUS_NEW)
-        self.message_user(request, f"Обновлено {updated} заказов: статус 'Создан'", messages.SUCCESS)
+    def save_model(self, request, obj, form, change):
+        # Получаем старый статус из базы данных
+        old_status = None
+        if change and obj.pk:
+            old_order = Order.objects.get(pk=obj.pk)
+            old_status = old_order.status
 
-    mark_as_new.short_description = "Установить статус 'Создан'"
+        # Сохраняем заказ
+        super().save_model(request, obj, form, change)
+
+        # Проверяем изменение статуса на 'in_progress'
+        if change and obj.status == 'in_progress' and old_status != 'in_progress':
+            logger.info(f"Admin: Status changed to in_progress for order #{obj.id}")
+            try:
+                # Импортируем здесь, чтобы избежать циклического импорта
+                from main.signals import process_invoice_for_order
+                process_invoice_for_order(obj)
+            except Exception as e:
+                logger.error(f"Failed to process invoice from admin: {str(e)}", exc_info=True)
+                self.message_user(request, f"Ошибка обработки счета: {str(e)}", level=messages.ERROR)
 
     def mark_as_in_progress(self, request, queryset):
-        updated = queryset.update(status=Order.STATUS_IN_PROGRESS)
-        self.message_user(request, f"Обновлено {updated} заказов: статус 'Ожидает оплаты'", messages.SUCCESS)
+        # Получаем заказы, у которых статус не 'in_progress'
+        to_update = queryset.exclude(status=Order.STATUS_IN_PROGRESS)
+        updated = to_update.update(status=Order.STATUS_IN_PROGRESS)
+
+        if updated > 0:
+            self.message_user(request, f"Обновлено {updated} заказов: статус 'Ожидает оплаты'", messages.SUCCESS)
+
+            # Обрабатываем счета для обновленных заказов
+            from main.signals import process_invoice_for_order
+            for order in to_update.filter(status=Order.STATUS_IN_PROGRESS):
+                try:
+                    process_invoice_for_order(order)
+                except Exception as e:
+                    logger.error(f"Failed to process invoice for order #{order.id}: {str(e)}")
+                    self.message_user(request,
+                                      f"Ошибка обработки счета для заказа #{order.id}: {str(e)}",
+                                      level=messages.ERROR)
+        else:
+            self.message_user(request, "Нет заказов для обновления статуса", messages.WARNING)
 
     mark_as_in_progress.short_description = "Установить статус 'Ожидает оплаты'"
 
@@ -455,7 +496,6 @@ class OrderAdmin(admin.ModelAdmin):
         self.message_user(request, f"Обновлено {updated} заказов: статус 'Отменен'", messages.SUCCESS)
 
     mark_as_cancelled.short_description = "Установить статус 'Отменен'"
-
 
 @admin.register(Slider)
 class SliderAdmin(admin.ModelAdmin):

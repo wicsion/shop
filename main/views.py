@@ -498,6 +498,7 @@ def send_order_confirmation_email(request, order):
         logger = logging.getLogger(__name__)
         logger.error(f"Ошибка при отправке письма: {str(e)}")
 
+
 def checkout(request):
     cart = get_cart(request)
 
@@ -521,6 +522,8 @@ def checkout(request):
         form = OrderForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
+            # Явно устанавливаем статус "new" при создании заказа
+            order.status = Order.STATUS_NEW
 
             if request.user.is_authenticated:
                 order.user = request.user
@@ -938,3 +941,8 @@ def order_detail(request, order_id):
     return render(request, 'main/order_detail.html', context)
 
 
+def test_email(request, order_id):
+    order = Order.objects.get(id=order_id)
+    order.status = Order.STATUS_IN_PROGRESS
+    order.save()
+    return HttpResponse("Order status changed, check if email was sent")
