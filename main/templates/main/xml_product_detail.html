@@ -285,26 +285,45 @@
     background-color: #f9f9f9;
 }
 
-.printing-methods {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
-}
-.printing-methods h4 {
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-.printing-methods ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    margin: 0;
-}
-.printing-methods li {
-    margin-bottom: 0.25rem;
+/* Обновленные стили для характеристик и нанесения */
+.bg-gray-50 {
+    background-color: transparent !important;
+    padding: 0 !important;
+    border: none !important;
 }
 
+.printing-info {
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    border: none !important;
+}
+
+    .printing-info h4 {
+        font-size: 1rem; /* Размер как в характеристиках */
+        font-weight: 600; /* Жирность как в характеристиках */
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .printing-info ul,
+    .printing-info p {
+        font-size: 1rem; /* Размер как в характеристиках */
+        font-weight: 500; /* Жирность близкая к характеристикам */
+        color: #212529;
+    }
+
+    .printing-info ul,
+    .printing-info p {
+        font-size: 1rem; /* Размер как в характеристиках */
+        font-weight: 500; /* Жирность близкая к характеристикам */
+        color: #212529;
+    }
+
+    .printing-info li {
+        margin-bottom: 0.25rem;
+        font-weight: 500; /* Добавляем жирность для пунктов списка */
+    }
 .printing-info {
     background-color: #f8f9fa;
     border-radius: 0.5rem;
@@ -487,6 +506,130 @@
 .tabs {
     margin-bottom: 1px; /* Добавляем отступ снизу */
 }
+
+/* Новые стили для параллельных секций */
+.parallel-sections {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .parallel-sections {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.section-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.printing-method {
+    border: 1px solid #93c5fd;
+    background-color: #f8fafc;
+    color: #1e40af;
+    padding: 0.2rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex; /* Изменили на inline-flex */
+    width: fit-content; /* Добавили fit-content */
+    text-align: left;
+     margin-bottom: 0.20rem;
+    white-space: nowrap; /* Добавили, чтобы текст не переносился */
+}
+.printing-info .flex-col {
+    gap: 0.1rem;
+    margin-bottom: 0;
+}
+.printing-method:hover {
+    background-color: #e0e7ff;
+    border-color: #3b82f6;
+    color: #1e3a8a;
+}
+
+.printing-method:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.printing-method.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+.characteristics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    align-items: start;
+    min-height: 80%;
+}
+
+.characteristic-item {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+/* Для элементов в последней строке - выравниваем контент вниз */
+.characteristic-item:nth-last-child(-n+2) {
+    justify-content: flex-end;
+}
+
+/* Для мобильных устройств - одна колонка */
+@media (max-width: 767px) {
+    .characteristics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .characteristic-item:nth-last-child(-n+2) {
+        justify-content: flex-start;
+    }
+}
+.characteristic-item {
+    background-color: transparent !important; /* Убираем фон */
+    border: none !important; /* Убираем границу, если есть */
+    padding: 0.5rem 0 !important; /* Оставляем только вертикальные отступы */
+}
+
+.characteristics-grid {
+    gap: 1.5rem !important; /* Увеличиваем промежутки между элементами */
+}
+.printing-method-radio:checked + .printing-method {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.printing-method-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.printing-method {
+    cursor: pointer;
+    transition: all 0.2s;
+}
 </style>
 
 {% with excluded_filters="Спецфильтр,Новинки"  %}
@@ -513,7 +656,7 @@
                     <div class="animate-block swiper">
                         <div class="swiper-wrapper">
                             {% for attachment in product.xml_data.attributes.attachments %}
-                                {% if forloop.counter <= 5 and attachment.type == 'image' and attachment.image %}
+                                {% if forloop.counter <= 8 and attachment.type == 'image' and attachment.image %}
                                 <div class="swiper-slide">
                                     <img src="{% url 'main:resize_image' %}?url={{ attachment.image|urlencode }}&width=500&height=500"
                                          alt="{{ attachment.name|default:product.name }}"
@@ -540,39 +683,25 @@
                             <form id="add-to-cart-form" action="{% url 'main:add_to_cart' product.product_id %}" method="post" class="mb-6">
                                 {% csrf_token %}
                                 <input type="hidden" name="product_type" value="xml">
-<div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-    <h4 style="margin-top: 0;">Отладочная информация:</h4>
-    <pre>
-Product ID: {{ product.product_id }}
-Has variants: {{ product.variants.exists }}
-Available sizes: {{ product.available_sizes|default:"Нет данных" }}
-Variants count: {{ product.variants.count }}
-First variant: {% if product.variants.first %}{{ product.variants.first.size }} - {{ product.variants.first.quantity }}{% else %}Нет вариантов{% endif %}
-Sizes available: {{ product.sizes_available|default:"Не указано" }}
-    </pre>
-</div>
+
                                 <!-- Блок выбора размера -->
-                                {% if size_data.available_sizes %}
+                                {% if size_data.sizes_with_quantities %}
                                 <div class="size-selector mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
                                     <div class="size-options flex flex-wrap gap-2">
-                                        {% for size in size_data.available_sizes %}
-                                        <button type="button"
-                                                class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
-                                                data-size="{{ size }}">
-                                            {{ size }}
-                                            {% if product.variants.exists %}
-                                                {% for variant in product.variants.all %}
-                                                    {% if variant.size == size %}
-                                                    <span class="quantity-indicator">({{ variant.quantity }} шт.)</span>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            {% else %}
-                                                <span class="quantity-indicator">({{ product.quantity }} шт.)</span>
-                                            {% endif %}
-                                        </button>
+                                        {% for size_info in size_data.sizes_with_quantities %}
+                                            <button type="button"
+                                                    class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
+                                                    data-size="{{ size_info.size }}"
+                                                    data-quantity="{{ size_info.quantity }}">
+                                                {{ size_info.size }}
+                                                <span class="quantity-indicator">
+                                                    {% if size_info.quantity > 0 %}({{ size_info.quantity }} шт.){% else %}(нет в наличии){% endif %}
+                                                </span>
+                                            </button>
                                         {% endfor %}
-                                        <input type="hidden" name="selected_size" id="selected-size" value="{{ size_data.available_sizes.0 }}">
+                                        <input type="hidden" name="selected_size" id="selected-size"
+                                               value="{% if size_data.sizes_with_quantities %}{{ size_data.sizes_with_quantities.0.size }}{% endif %}">
                                     </div>
                                 </div>
                                 {% endif %}
@@ -621,205 +750,181 @@ Sizes available: {{ product.sizes_available|default:"Не указано" }}
                     </div>
                 </div>
 
-              <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Характеристики</h3>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Артикул</div>
-        <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
-    </div>
-
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Наличие</div>
-        <div class="text-lg md:text-xl font-bold">
-            {% if product.in_stock %}
-                В наличии ({% if product.variants.exists %}{{ product.variants.count }} размеров{% else %}{{ product.quantity }} шт.{% endif %})
-            {% else %}
-                Нет в наличии
-            {% endif %}
+                <!-- Параллельные секции Характеристики и Нанесение -->
+                <div class="parallel-sections">
+                    <!-- Секция Характеристики -->
+                   <!-- Обновленный блок характеристик -->
+<div class="section-card">
+    <h3 class="section-title">Характеристики</h3>
+    <div class="characteristics-grid">
+        <!-- Первая строка - Артикул и Наличие -->
+        <div class="characteristic-item">
+            <div class="text-xs md:text-sm text-gray-500">Артикул</div>
+            <div class="text-lg md:text-xl font-bold">{{ product.code }}</div>
         </div>
-    </div>
 
-    {% if product.brand %}
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Бренд</div>
-        <div class="text-lg md:text-xl font-bold">{{ product.brand }}</div>
-    </div>
-    {% endif %}
-
-    {% if product.material or product.xml_data.material_composition %}
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Материал и состав</div>
-        <div class="text-lg md:text-xl font-bold">
-            {% if product.material %}{{ product.material }}{% endif %}
-            {% if product.xml_data.material_composition %}
-                {% if product.material %}<br>{% endif %}
-                {{ product.xml_data.material_composition }}
-            {% endif %}
+        <div class="characteristic-item">
+            <div class="text-xs md:text-sm text-gray-500">Наличие</div>
+            <div class="text-lg md:text-xl font-bold">
+                {% if product.in_stock %}
+                    В наличии ({% if product.variants.exists %}{{ product.variants.count }} размеров{% else %}{{ product.quantity }} шт.{% endif %})
+                {% else %}
+                    Нет в наличии
+                {% endif %}
+            </div>
         </div>
-    </div>
-    {% endif %}
 
-    {% if product.weight %}
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Вес</div>
-        <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
-    </div>
-    {% endif %}
+        <!-- Вторая строка - Бренд и Материал -->
+        {% if product.brand %}
+        <div class="characteristic-item">
+            <div class="text-xs md:text-sm text-gray-500">Бренд</div>
+            <div class="text-lg md:text-xl font-bold">{{ product.brand }}</div>
+        </div>
+        {% endif %}
 
-    {% if product.volume %}
-    <div class="bg-gray-50 p-4 rounded-lg">
-        <div class="text-xs md:text-sm text-gray-500">Объем</div>
-        <div class="text-lg md:text-xl font-bold">{{ product.volume }} см³</div>
+        {% if product.material or product.xml_data.material_composition or product.get_materials_from_filters %}
+        <div class="characteristic-item">
+            <div class="text-xs md:text-sm text-gray-500">Материал и состав</div>
+            <div class="text-lg md:text-xl font-bold">
+                {% if product.material %}
+                    {{ product.material }}
+                {% else %}
+                    {% for material in product.get_materials_from_filters %}
+                        {{ material }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if product.xml_data.material_composition %}
+                    <br>{{ product.xml_data.material_composition }}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Третья строка - Цвет и Вес -->
+        {% if product.xml_data.filters %}
+            {% for filter in product.xml_data.filters %}
+                {% if filter.type_id == '21' %}  <!-- Фильтры типа "Цвет" -->
+                <div class="characteristic-item">
+                    <div class="text-xs md:text-sm text-gray-500">Цвет</div>
+                    <div class="text-lg md:text-xl font-bold">{{ filter.filter_name }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if product.weight %}
+        <div class="characteristic-item">
+            <div class="text-xs md:text-sm text-gray-500">Вес</div>
+            <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
+                  {% if printing_data.methods or printing_data.marking %}
+                    <div class="section-card">
+                        <h3 class="section-title">Нанесение</h3>
 
-{% if size_data.available_sizes or product.xml_data.attributes.size_table %}
-<div class="size-info-section mt-6">
-    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
-
-    {% if size_data.available_sizes %}
-    <div class="mb-4">
-        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
-        <div class="flex flex-wrap gap-2">
-            {% for size in size_data.available_sizes %}
-            <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
-            {% endfor %}
-        </div>
+                        <!-- Замените текущий блок с методами нанесения на этот: -->
+{% if printing_data.methods %}
+<div class="printing-info mb-4">
+    <h4 class="font-medium text-gray-700 mb-2">Доступные методы нанесения</h4>
+    <div class="flex flex-col gap-2">
+        {% for method in printing_data.methods %}
+        <label class="printing-method">
+            <input type="radio" name="printing_method" value="{{ method }}"
+                   class="printing-method-radio hidden"
+                   {% if forloop.first %}checked{% endif %}>
+            {{ method }}
+        </label>
+        {% endfor %}
     </div>
-    {% endif %}
-
-    <!-- Контейнер для изображения и таблицы -->
-    {% if product.xml_data.attributes.size_table %}
-    <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
-        <!-- Изображение с размерами -->
-        <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
-            <img src="//files.giftsoffer.ru/images/tablemer/Tshirt_with_sleeve.svg"
-                 alt="Схема размеров"
-                 class="object-contain h-auto">
-        </div>
-
-        <!-- Таблица размеров -->
-        <div class="md:w-3/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
-            <table class="size-table w-full">
-                <!-- Заголовок таблицы -->
-                <thead>
-                    <tr>
-                        <th>Размер</th>
-                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                        <th>{{ size }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <!-- Тело таблицы -->
-                <tbody>
-                    {% for param in product.xml_data.attributes.size_table.parameters %}
-                    <tr>
-                        <td class="font-medium">{{ param }}</td>
-                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                        <td>{{ product.xml_data.attributes.size_table.data|get_item:size|get_item:param }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endif %}
-     <div class="debug-info">
-    <h4>Отладочная информация о нанесении:</h4>
-    <pre>{{ printing_data|pprint }}</pre>
-    <pre>{{ product.xml_data|pprint }}</pre>
-</div>
-           <!-- В разделе с табами замените блок с таблицей размеров на следующий: -->
 
-
-    <div class="tabs" style="margin-top: 30px;"> <!-- Добавлено margin-top -->
-    <div class="tab active" data-tab="description">Описание</div>
-    {% if printing_data.methods or printing_data.marking %}
-    <div class="tab" data-tab="printing">Нанесение</div>
-    {% endif %}
-    {% if product.xml_data.video_link %}
-    <div class="tab" data-tab="video">Видео</div>
-    {% endif %}
-</div>
-
- <div class="tab-content active" id="description">
-    <div class="scrollable-description prose max-w-none">
-        {{ product.description|remove_tablemer|safe }}
-    </div>
-</div>
-
-    <!-- Остальные вкладки остаются без изменений -->
-    {% if printing_data.methods or printing_data.marking %}
-    <div class="tab-content" id="printing">
-        {% if printing_data.methods %}
-        <div class="printing-info">
-            <h4>Доступные методы нанесения</h4>
-            <ul class="list-disc pl-5">
-                {% for method in printing_data.methods %}
-                    <li>{{ method }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        {% if printing_data.marking %}
-        <div class="printing-info">
-            <h4>Маркировка</h4>
-            <p>{{ printing_data.marking }}</p>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    {% if product.xml_data.video_link %}
-    <div class="tab-content" id="video">
-        <div class="video-container">
-            <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-                {% if related_products %}
-                <div class="mt-12">
-                    <h2 class="text-xl font-bold mb-6">Похожие товары</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {% for product in related_products %}
-                        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
-                            <a href="{{ product.get_absolute_url }}" class="block">
-                                <div class="aspect-w-1 aspect-h-1 bg-gray-100 flex items-center justify-center" style="height: 200px;">
-                                    <img src="{% static 'images/placeholder.jpg' %}"
-                                         data-src="{{ product.main_image }}"
-                                         alt="{{ product.name }}"
-                                         class="object-contain w-full h-full p-2 lazy-image"
-                                         loading="lazy"
-                                         onerror="this.onerror=null;this.src='{% static 'images/no-image.jpg' %}'">
-                                </div>
-                                <div class="p-4">
-                                    <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            {% if product.has_discount %}
-                                            <span class="text-gray-500 line-through mr-2">{{ product.old_price }} ₽</span>
-                                            <span class="text-red-600 font-bold">{{ product.price }} ₽</span>
-                                            {% else %}
-                                            <span class="font-bold">{{ product.price }} ₽</span>
-                                            {% endif %}
-                                        </div>
-                                        {% if product.status == 'new' %}
-                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Новинка</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </a>
+                        {% if printing_data.marking %}
+                        <div class="printing-info">
+                            <h4 class="font-medium text-gray-700 mb-2">Маркировка</h4>
+                            <p>{{ printing_data.marking }}</p>
                         </div>
-                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Блок с размерами -->
+                {% if size_data.available_sizes or product.xml_data.attributes.size_table %}
+                <div class="size-info-section mt-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
+
+                    {% if size_data.available_sizes %}
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for size in size_data.available_sizes %}
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if product.xml_data.attributes.size_table %}
+                    <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
+                        <!-- Изображение с размерами -->
+                        <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
+                            <img src="//files.giftsoffer.ru/images/tablemer/Tshirt_with_sleeve.svg"
+                                 alt="Схема размеров"
+                                 class="object-contain h-auto">
+                        </div>
+
+                        <!-- Таблица размеров -->
+                        <div class="md:w-3/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
+                            <table class="size-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Размер</th>
+                                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                                        <th>{{ size }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for param in product.xml_data.attributes.size_table.parameters %}
+                                    <tr>
+                                        <td class="font-medium">{{ param }}</td>
+                                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                                        <td>{{ product.xml_data.attributes.size_table.data|get_item:size|get_item:param }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Вкладки (Описание и Видео) -->
+                <div class="tabs" style="margin-top: 30px;">
+                    <div class="tab active" data-tab="description">Описание</div>
+                    {% if product.xml_data.video_link %}
+                    <div class="tab" data-tab="video">Видео</div>
+                    {% endif %}
+                </div>
+
+                <div class="tab-content active" id="description">
+                    <div class="scrollable-description prose max-w-none">
+                        {{ product.description|remove_tablemer|safe }}
+                    </div>
+                </div>
+
+                {% if product.xml_data.video_link %}
+                <div class="tab-content" id="video">
+                    <div class="video-container">
+                        <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
                 {% endif %}
@@ -920,23 +1025,46 @@ function setupTabs() {
 function setupSizeSelection() {
     const sizeOptions = document.querySelectorAll('.size-option');
     const sizeInput = document.getElementById('selected-size');
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    const addToCartButton = document.querySelector('.add-to-cart');
 
     sizeOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            // Удаляем класс selected у всех вариантов
-            sizeOptions.forEach(opt => opt.classList.remove('selected', 'bg-blue-100', 'border-blue-300'));
+        option.addEventListener('click', function() {
+            // Удаляем классы у всех вариантов
+            sizeOptions.forEach(opt => {
+                opt.classList.remove('selected', 'bg-blue-500', 'text-white');
+            });
 
-            // Добавляем класс selected к выбранному варианту
-            option.classList.add('selected', 'bg-blue-100', 'border-blue-300');
+            // Добавляем классы к выбранному варианту
+            this.classList.add('selected', 'bg-blue-500', 'text-white');
 
             // Устанавливаем значение в скрытое поле
-            sizeInput.value = option.getAttribute('data-size');
+            sizeInput.value = this.dataset.size;
+
+            // Обновляем максимальное количество
+            const maxQuantity = parseInt(this.dataset.quantity);
+            quantityInput.max = maxQuantity;
+            if (parseInt(quantityInput.value) > maxQuantity) {
+                quantityInput.value = maxQuantity;
+            }
+
+            // Обновляем состояние кнопки "Добавить в корзину"
+            if (maxQuantity <= 0) {
+                addToCartButton.disabled = true;
+                addToCartButton.textContent = 'Нет в наличии';
+            } else {
+                addToCartButton.disabled = false;
+                addToCartButton.textContent = 'Добавить в корзину';
+            }
         });
     });
 
-    // Выбираем первый размер по умолчанию
+    // Активируем первый доступный размер
     if (sizeOptions.length > 0) {
-        sizeOptions[0].click();
+        const firstAvailable = Array.from(sizeOptions).find(opt =>
+            parseInt(opt.dataset.quantity) > 0
+        ) || sizeOptions[0];
+        firstAvailable.click();
     }
 }
 
@@ -1016,10 +1144,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     cartCount.classList.add('animate-bounce');
                     setTimeout(() => cartCount.classList.remove('animate-bounce'), 1000);
                 }
-                // УДАЛИТЕ ЭТУ СТРОКУ, КОТОРАЯ ВЫЗЫВАЕТ РЕДИРЕКТ
-                // window.location.href = "{% url 'main:cart_view' %}";
-
-                // Вместо редиректа показываем уведомление
                 showNotification('Товар успешно добавлен в корзину', 'success');
             } else {
                 showNotification(data.errors || 'Ошибка при добавлении в корзину', 'error');
@@ -1035,7 +1159,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
 
 // Основная инициализация
 document.addEventListener('DOMContentLoaded', function() {

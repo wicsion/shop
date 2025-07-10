@@ -83,19 +83,6 @@
         color: #6b7280;
     }
 
-    .header {
-        transition: all 0.3s ease;
-        z-index: 1030;
-    }
-
-    main {
-        margin-top: 80px;
-    }
-
-    .header-scrolled {
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
-    }
-
     .password-toggle {
         position: absolute;
         right: 20px;
@@ -124,8 +111,14 @@
     .is-invalid {
         border-color: #dc3545 !important;
     }
+
+    .loading-spinner {
+        display: none;
+        margin-left: 8px;
+    }
 </style>
-      {% if form.errors %}
+
+{% if form.errors %}
 <div class="alert alert-danger">
     {% for field, errors in form.errors.items %}
         {% for error in errors %}
@@ -143,8 +136,10 @@
 
     <form method="post" enctype="multipart/form-data" id="registrationForm">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+        <input type="hidden" name="old_session_key" value="{{ request.session.session_key }}">
         <input type="hidden" name="organization_type" value="ООО">
-    <input type="hidden" name="company_status" value="Действующее">
+        <input type="hidden" name="company_status" value="Действующее">
 
         <!-- Обязательные поля -->
         <div class="mb-4">
@@ -157,75 +152,77 @@
             <div class="error-message" id="legal_name_error">Пожалуйста, введите название компании</div>
         </div>
 
-       <div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <label class="form-label">ИНН <span class="text-danger">*</span></label>
-        <input type="text"
-               name="inn"
-               id="inn"
-               class="custom-input"
-               placeholder="10 или 12 цифр"
-               required
-               maxlength="12">
-        <div class="error-message" id="inn_error">ИНН должен состоять из 10 или 12 цифр</div>
-    </div>
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <label class="form-label">ИНН <span class="text-danger">*</span></label>
+                <input type="text"
+                       name="inn"
+                       id="inn"
+                       class="custom-input"
+                       placeholder="10 или 12 цифр"
+                       required
+                       maxlength="12">
+                <div class="error-message" id="inn_error">ИНН должен состоять из 10 или 12 цифр</div>
+            </div>
 
-    <div class="col-md-6">
-        <label class="form-label">Email компании <span class="text-danger">*</span></label>
-        <input type="email"
-               name="email"
-               class="custom-input"
-               placeholder="example@company.com"
-               required>
-        <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
-    </div>
-</div>
+            <div class="col-md-6">
+                <label class="form-label">Email компании <span class="text-danger">*</span></label>
+                <input type="email"
+                       name="email"
+                       class="custom-input"
+                       placeholder="example@company.com"
+                       required>
+                <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
+            </div>
+        </div>
 
-<!-- Добавляем поля ФИО -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <label class="form-label">Имя <span class="text-danger">*</span></label>
-        <input type="text"
-               name="first_name"
-               class="custom-input"
-               placeholder="Ваше имя"
-               required>
-        <div class="error-message" id="first_name_error">Пожалуйста, введите ваше имя</div>
-    </div>
+        <!-- Поля ФИО -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Имя <span class="text-danger">*</span></label>
+                <input type="text"
+                       name="first_name"
+                       class="custom-input"
+                       placeholder="Ваше имя"
+                       required>
+                <div class="error-message" id="first_name_error">Пожалуйста, введите ваше имя</div>
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label">Фамилия <span class="text-danger">*</span></label>
-        <input type="text"
-               name="last_name"
-               class="custom-input"
-               placeholder="Ваша фамилия"
-               required>
-        <div class="error-message" id="last_name_error">Пожалуйста, введите вашу фамилию</div>
-    </div>
+            <div class="col-md-4">
+                <label class="form-label">Фамилия <span class="text-danger">*</span></label>
+                <input type="text"
+                       name="last_name"
+                       class="custom-input"
+                       placeholder="Ваша фамилия"
+                       required>
+                <div class="error-message" id="last_name_error">Пожалуйста, введите вашу фамилию</div>
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label">Отчество</label>
-        <input type="text"
-               name="middle_name"
-               class="custom-input"
-               placeholder="Ваше отчество">
-    </div>
-</div>
+            <div class="col-md-4">
+                <label class="form-label">Отчество</label>
+                <input type="text"
+                       name="middle_name"
+                       class="custom-input"
+                       placeholder="Ваше отчество">
+            </div>
+        </div>
 
         <!-- Пароль -->
         <div class="mb-4 password-container">
-            <label class="form-label">Пароль  <span class="text-danger">*</span></label>
+            <label class="form-label">Пароль <span class="text-danger">*</span></label>
             <input type="password"
                    name="password"
                    id="passwordField"
                    class="custom-input"
                    placeholder="Придумайте надежный пароль"
                    required>
-
-            <div class="error-message" id="password_error">Пожалуйста, введите пароль</div>
+            <span class="password-toggle" id="passwordToggle">
+                <i class="far fa-eye"></i>
+            </span>
+            <div class="error-message" id="password_error">Пароль должен содержать минимум 6 символов</div>
         </div>
 
-        <!-- Обновленный блок выбора должности -->
+        <!-- Блок выбора должности -->
         <div class="mb-5">
             <label class="form-label mb-3 d-block">Ваша должность <span class="text-danger">*</span></label>
             <div class="roles-container">
@@ -274,9 +271,19 @@
         </div>
 
         <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
-                Зарегистрироваться
+            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold" id="submitBtn">
+                <span id="btnText">Зарегистрироваться</span>
+                <span class="loading-spinner" id="loadingSpinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
             </button>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-gray-600">Уже есть аккаунт?</p>
+            <a href="{% url 'accounts:login' %}?next={{ request.GET.next }}" class="btn btn-outline-primary">
+                Войти в личный кабинет
+            </a>
         </div>
     </form>
 </div>
@@ -308,70 +315,68 @@
         }
     });
 
-    // Автоматический расчет высоты header
-    document.addEventListener('DOMContentLoaded', function() {
-        const header = document.querySelector('.header');
-        const main = document.querySelector('main');
-        if (header && main) {
-            main.style.marginTop = header.offsetHeight + 'px';
-        }
-    });
+    // Валидация ИНН в реальном времени
+    document.getElementById('inn').addEventListener('input', function() {
+        const inn = this.value.trim();
+        const errorElement = document.getElementById('inn_error');
 
-    // Тень при скролле
-    window.addEventListener('scroll', function() {
-        const header = document.querySelector('.header');
-        if (header) {
-            header.classList.toggle('header-scrolled', window.scrollY > 50);
-        }
-    });
-
-    // Валидация ИНН - только цифры и ограничение длины
-    const innInput = document.getElementById('inn');
-    innInput.addEventListener('input', function() {
-        // Удаляем все нецифровые символы
-        this.value = this.value.replace(/\D/g, '');
-
-        // Проверяем длину ИНН
-        const inn = this.value;
-        if (inn.length !== 10 && inn.length !== 12 && inn.length > 0) {
-            document.getElementById('inn_error').style.display = 'block';
-            this.classList.add('is-invalid');
-        } else {
-            document.getElementById('inn_error').style.display = 'none';
+        if (/^\d{10}$|^\d{12}$/.test(inn)) {
+            errorElement.style.display = 'none';
             this.classList.remove('is-invalid');
-        }
-    });
-
-document.getElementById('registrationForm').addEventListener('submit', function(e) {
-    let isValid = true;
-    const form = this;
-
-    // Проверка обязательных полей
-    const requiredFields = [
-        {id: 'legal_name', errorId: 'legal_name_error'},
-        {id: 'email', errorId: 'email_error'},
-        {id: 'passwordField', errorId: 'password_error'},
-        {id: 'first_name', errorId: 'first_name_error'},
-        {id: 'last_name', errorId: 'last_name_error'}
-    ];
-
-    requiredFields.forEach(field => {
-        const input = form.querySelector(`[name="${field.id}"]`);
-        if (!input.value.trim()) {
-            document.getElementById(field.errorId).style.display = 'block';
-            input.classList.add('is-invalid');
-            isValid = false;
         } else {
-            document.getElementById(field.errorId).style.display = 'none';
-            input.classList.remove('is-invalid');
+            errorElement.style.display = 'block';
+            this.classList.add('is-invalid');
         }
     });
+
+    // Валидация формы
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const form = this;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Проверка обязательных полей
+        const requiredFields = [
+            {id: 'legal_name', errorId: 'legal_name_error'},
+            {id: 'email', errorId: 'email_error'},
+            {id: 'passwordField', errorId: 'password_error'},
+            {id: 'first_name', errorId: 'first_name_error'},
+            {id: 'last_name', errorId: 'last_name_error'}
+        ];
+
+        requiredFields.forEach(field => {
+            const input = form.querySelector(`[name="${field.id}"]`);
+            if (!input.value.trim()) {
+                document.getElementById(field.errorId).style.display = 'block';
+                input.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById(field.errorId).style.display = 'none';
+                input.classList.remove('is-invalid');
+            }
+        });
+
+        // Дополнительная проверка email
+        const email = form.querySelector('[name="email"]');
+        if (email.value.trim() && !emailRegex.test(email.value.trim())) {
+            document.getElementById('email_error').style.display = 'block';
+            email.classList.add('is-invalid');
+            isValid = false;
+        }
 
         // Проверка ИНН
         const inn = form.querySelector('[name="inn"]').value;
-        if (inn.length !== 10 && inn.length !== 12) {
+        if (!/^\d{10}$|^\d{12}$/.test(inn)) {
             document.getElementById('inn_error').style.display = 'block';
             form.querySelector('[name="inn"]').classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Проверка пароля
+        const password = form.querySelector('[name="password"]');
+        if (password.value.trim().length < 6) {
+            document.getElementById('password_error').style.display = 'block';
+            password.classList.add('is-invalid');
             isValid = false;
         }
 
@@ -395,7 +400,17 @@ document.getElementById('registrationForm').addEventListener('submit', function(
 
         if (!isValid) {
             e.preventDefault();
+        } else {
+            // Показываем индикатор загрузки
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'inline-block';
+            document.getElementById('submitBtn').disabled = true;
         }
     });
+
+    // DEBUG информация (только в development)
+    {% if debug %}
+    console.log('Debug Info - Session Key:', '{{ request.session.session_key }}');
+    {% endif %}
 </script>
 {% endblock %}

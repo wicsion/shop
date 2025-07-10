@@ -741,6 +741,32 @@
     background-color: #fee2e2;
     color: #b91c1c;
 }
+.employee-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.employee-avatar:hover {
+    transform: scale(1.1);
+    border-color: #3b82f6;
+}
+
+.employee-avatar-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #f0f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    font-size: 20px;
+    border: 2px solid #e5e7eb;
+}
 </style>
 <div class="container mx-auto px-15 sm:px-15 py-6 lg:py-6">
   <div class="company-header-container">
@@ -751,6 +777,7 @@
           <i class="fas  mr-2 text-blue-600"></i>
           {{ company.legal_name }}
         </h1>
+
 
         <!-- Добавленная информация о пользователе -->
         <!-- Роль пользователя -->
@@ -1038,7 +1065,7 @@
     <!-- Заказы -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h2 class="text-xl font-bold">Активные заказы</h2>
-        <p>Total orders: {{ orders.count }}</p>
+
         <div class="flex gap-2">
             <div class="relative">
                 <input type="text" id="order-search" placeholder="Поиск..."
@@ -1060,50 +1087,43 @@
         </div>
     </div>
 
-    <div class="table-container">
+<div class="table-container">
     <table class="table">
-    <thead>
-        <tr>
-            <th>Номер</th>
-            <th>Дата</th>
-            <th>Товары</th>
-            <th>Сумма</th>
-            <th>Статус</th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for order in orders %}
-        <tr>
-            <td>#{{ order.id }}</td>
-            <td>{{ order.created_at|date:"d.m.Y" }}</td>
-            <td>
-                <ul class="list-disc pl-4">
-                    {% for item in order.items.all %}
-                        <li>{{ item.product_name }} ({{ item.quantity }} шт.)</li>
-                    {% endfor %}
-                </ul>
-            </td>
-            <td>{{ order.total_price|floatformat:2 }} ₽</td>
-            <td>
-                <span class="status-badge
-    {% if order.status == 'new' %}status-new
-    {% elif order.status == 'in_progress' %}status-pending
-    {% elif order.status == 'completed' %}status-completed
-    {% elif order.status == 'delivered' %}status-delivered
-    {% elif order.status == 'cancelled' %}status-canceled{% endif %}">
-    {{ order.get_status_display }}
-</span>
-            </td>
-            <td>
-                <a href="{% url 'main:order_detail' order.id %}" class="text-blue-500 hover:text-blue-700 mr-3">
-                    <i class="fas fa-eye"></i> Просмотреть
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Дата</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.created_at|date:"d.m.Y" }}</td>
+                <td>{{ order.total_price|floatformat:2 }} ₽</td>
+                <td>
+                    <span class="status-badge
+                        {% if order.status == 'new' %}status-new
+                        {% elif order.status == 'in_progress' %}status-pending
+                        {% elif order.status == 'completed' %}status-completed
+                        {% elif order.status == 'delivered' %}status-delivered
+                        {% elif order.status == 'cancelled' %}status-canceled{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'main:order_detail' order.id %}" class="text-blue-500 hover:text-blue-700 mr-3">
+                        <i class="fas fa-eye"></i> Просмотреть
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
         <!-- Пагинация -->
         {% if orders.has_other_pages %}
@@ -1354,82 +1374,55 @@
                     </div>
                 </div>
 
-                <div class="section-content" id="team-content">
-                    <!-- Сотрудники -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                                    <i class="fas fa-user-tie text-blue-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Иванов Иван</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-briefcase mr-1"></i>
-                                        Администратор
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-completed">Активен</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
+               <div class="section-content" id="team-content">
+    <!-- Сотрудники -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Сотрудники компании</h2>
 
-                                </a>
+    </div>
 
-                            </div>
-                        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for employee in employees %}
+        <div class="document-card">
+            <div class="flex items-start">
 
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
-                                    <i class="fas fa-user-shield text-green-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Петрова Анна</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-briefcase mr-1"></i>
-                                        Менеджер
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-pending">В отпуске</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
 
-                                </a>
-
-                            </div>
-                        </div>
-
-                        <div class="document-card">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 bg-purple-100 p-3 rounded-full">
-                                    <i class="fas fa-user-cog text-purple-500 text-xl"></i>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900">Сидоров Алексей</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <i class="fas fa-briefcase mr-1"></i>
-                                        Бухгалтер
-                                    </p>
-                                    <div class="flex items-center mt-2">
-                                        <span class="status-badge status-new">Новый</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <a href="#" class="text-blue-500 hover:text-blue-700">
-
-                                </a>
-
-                            </div>
-                        </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        {{ employee.get_full_name }}
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-envelope mr-1"></i>
+                        {{ employee.email }}
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-briefcase mr-1"></i>
+                        {{ employee.get_role_display }}
+                    </p>
+                    <div class="mt-2">
+                        <span class="status-badge {% if employee.is_active %}status-completed{% else %}status-pending{% endif %}">
+                            {% if employee.is_active %}Активен{% else %}Неактивен{% endif %}
+                        </span>
                     </div>
                 </div>
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                {% if request.user.role == 'admin' %}
+
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-8">
+            <i class="fas fa-users text-gray-300 text-4xl mb-3"></i>
+            <p class="text-gray-500">Нет сотрудников в компании</p>
+            <a href="{% url 'accounts:add_user_to_company' %}" class="btn-gradient mt-4 inline-block">
+                <i class="fas fa-user-plus mr-2"></i> Добавить первого сотрудника
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
             </div>
         </div>
     </div>

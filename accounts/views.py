@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from pdfkit import pdfkit
 
 from .models import Company, Document, AuditLog, CustomUser, SupportTicket
-from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm
+from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm, AddUserToCompanyForm
 import random
 import string
 from django.core.mail import send_mail
@@ -32,10 +32,34 @@ from django.views.generic import ListView,  TemplateView
 from main.models import Order, OrderItem, Invoice, Cart, CartItem, DeliveryAddress
 from .models import Company
 from django.http import FileResponse
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+from django.shortcuts import redirect
+from django.urls import reverse
 
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger('cart')
+
+
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
+
+            logger.debug(f"User {user.email} logged in, session_key: {request.session.session_key}")
+
+            # Перенаправляем с сохранением next параметра
+            next_url = request.POST.get('next', reverse('main:cart_view'))
+            return redirect(next_url)
+    else:
+        form = AuthenticationForm(request)
+
+    return render(request, 'registration/login.html', {'form': form})
 
 class CompanyRegisterView(CreateView):
     model = Company
@@ -48,22 +72,28 @@ class CompanyRegisterView(CreateView):
         print("Начало обработки формы регистрации компании")
 
         try:
-            # Сохраняем компанию с временным токеном подтверждения
-            company = form.save(commit=False)
-            company.organization_type = form.data.get('organization_type', 'ООО')
-            company.company_status = form.data.get('company_status', 'Действующее')
-            token = ''.join(random.choices(string.ascii_letters + string.digits, k=50))
-            company.verification_token = token
-            company.verification_token_created_at = timezone.now()  # Время создания токена
-            company.is_verified = False
+            inn = form.cleaned_data['inn']
+            # Проверяем, существует ли компания с таким ИНН
+            company = Company.objects.filter(inn=inn).first()
 
-            print(f"Данные формы: {form.data}")
-            print(f"Organization type: {form.data.get('organization_type')}")
-            print(f"Company status: {form.data.get('company_status')}")
-            print(f"Сохранение компании: {company.legal_name}")
-            company.save()
+            if not company:
+                # Создаем новую компанию, если не найдена
+                company = form.save(commit=False)
+                company.organization_type = form.data.get('organization_type', 'ООО')
+                company.company_status = form.data.get('company_status', 'Действующее')
+                token = ''.join(random.choices(string.ascii_letters + string.digits, k=50))
+                company.verification_token = token
+                company.verification_token_created_at = timezone.now()
+                company.is_verified = False
+                company.save()
+            else:
+                # Используем существующую компанию
+                # Обновляем email компании, если он изменился
+                if company.email != form.cleaned_data['email']:
+                    company.email = form.cleaned_data['email']
+                    company.save()
 
-            # Создаем администратора компании
+            # Создаем пользователя и привязываем к компании
             admin_user = CustomUser.objects.create(
                 email=form.cleaned_data['email'],
                 password=make_password(form.cleaned_data['password']),
@@ -73,13 +103,13 @@ class CompanyRegisterView(CreateView):
                 phone='',
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
-                middle_name=form.cleaned_data.get('middle_name', '')  # Сохраняем отчество
+                middle_name=form.cleaned_data.get('middle_name', '')
             )
             print(f"Создан пользователь: {admin_user.email}")
 
             # Отправляем email с подтверждением
             verification_url = self.request.build_absolute_uri(
-                reverse('accounts:verify_company_email', kwargs={'token': token})
+                reverse('accounts:verify_company_email', kwargs={'token': company.verification_token})
             )
             print(f"Ссылка подтверждения: {verification_url}")
 
@@ -171,6 +201,7 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
             company=company,
             doc_type='invoice'
         ).select_related('invoice').order_by('-created_at')
+        employees = CustomUser.objects.filter(company=company).order_by('last_name', 'first_name')
 
         context.update({
             'company': company,
@@ -179,7 +210,8 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
             'documents': documents,  # Добавляем документы в контекст
             'delivery_addresses': company.delivery_addresses.all() if company else [],
             'delivery_address_form': DeliveryAddressForm(),
-            'activity': self._get_activity(company)
+            'activity': self._get_activity(company),
+            'employees': employees,
         })
         return context
 
@@ -197,15 +229,13 @@ class CompanyDashboardView(LoginRequiredMixin, ListView):
             })
 
             if hasattr(order, 'invoice'):
-                # Добавляем проверку на существование файла
-                if order.invoice.pdf_file:
-                    activity.append({
-                        'type': 'invoice_issued',
-                        'object': order.invoice,
-                        'date': order.invoice.created_at,
-                        'message': f'Выставлен счет #{order.invoice.invoice_number}',
-                        'status': 'Ожидает оплаты' if not order.invoice.paid else 'Оплачен'
-                    })
+                activity.append({
+                    'type': 'invoice_issued',
+                    'object': order.invoice,
+                    'date': order.invoice.created_at,
+                    'message': f'Выставлен счет #{order.invoice.invoice_number}',
+                    'status': 'Ожидает оплаты' if not order.invoice.paid else 'Оплачен'
+                })
 
             if order.status == Order.STATUS_IN_PROGRESS:
                 activity.append({
@@ -768,3 +798,18 @@ def delete_delivery_address(request, address_id):
             except DeliveryAddress.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Адрес не найден'}, status=404)
         return JsonResponse({'success': False}, status=405)
+
+class AddUserToCompanyView(LoginRequiredMixin, CreateView):
+    model = CustomUser
+    form_class = AddUserToCompanyForm
+    template_name = 'accounts/add_user_to_company.html'
+    success_url = reverse_lazy('accounts:company_dashboard')
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.company = self.request.user.company  # Привязываем к той же компании
+        user.save()
+        messages.success(self.request, 'Пользователь успешно добавлен в компанию')
+        return super().form_valid(form)
+
+

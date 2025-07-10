@@ -121,3 +121,14 @@ class DeliveryAddressForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'rows': 3, 'class': 'w-full border rounded-lg px-3 py-2 text-sm'}),
             'is_default': forms.CheckboxInput(attrs={'class': 'form-checkbox h-4 w-4 text-blue-600'})
         }
+
+
+class AddUserToCompanyForm(UserCreationForm):
+    role = forms.ChoiceField(
+        choices=CustomUser.ROLES,
+        widget=forms.RadioSelect(attrs={'class': 'hidden'})
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'role', 'password1', 'password2']

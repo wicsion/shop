@@ -38,11 +38,12 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'accounts.middleware.CartSessionMiddleware',  # Перемещено сюда
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
 ]
+
 FIELD_ENCRYPTION_KEY = 's_I6txG2JEwhQjHHHTmYyCpu530RRUlXWt8ABfast1w='
 ROOT_URLCONF = 'gifts_project.urls'
 
@@ -188,52 +189,31 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
     },
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
         'file': {
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
+            'filename': 'logs/debug.log',
+            'formatter': 'verbose'
         },
-        'signals_file': {
+        'cart_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/signals.log',
+            'filename': 'logs/cart.log',
             'maxBytes': 1024*1024*5,  # 5 MB
             'backupCount': 5,
             'formatter': 'verbose',
-            'encoding': 'utf-8',
+            'level': 'DEBUG',
         },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True,
-        },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
         },
-        'main': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'signals': {
-            'handlers': ['console', 'signals_file', 'mail_admins'],
+        'cart': {
+            'handlers': ['cart_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
@@ -246,7 +226,7 @@ CACHES = {
         'LOCATION': os.path.join(BASE_DIR, 'cache'),  # Абсолютный путь
     }
 }
-
+WKHTMLTOPDF_PATH = '/usr/bin/wkhtmltopdf'
 # Настройки для изображений
 IMAGE_CACHE_TIMEOUT = 60 * 60 * 24 * 7  # 1 неделя
 

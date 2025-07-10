@@ -23,7 +23,11 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm
+from .models import DeliveryAddress
+
+
 logger = logging.getLogger(__name__)
+
 
 
 
@@ -85,14 +89,57 @@ class ResizeImageView(View):
 
 
 def get_cart(request):
-    cart = None
+    logger = logging.getLogger('cart')
+
     if request.user.is_authenticated:
+        # Для авторизованных пользователей
         cart, created = Cart.objects.get_or_create(user=request.user)
+        logger.debug(f"Got user cart: {cart.id}, created: {created}")
+
+        # Если есть корзина в сессии - объединяем
+        if 'cart_session_key' in request.session:
+            try:
+                session_key = request.session['cart_session_key']
+                session_cart = Cart.objects.get(session_key=session_key)
+                logger.debug(f"Found session cart to merge: {session_cart.id}")
+
+                # Переносим товары
+                for item in session_cart.items.all():
+                    existing_item = cart.items.filter(
+                        xml_product=item.xml_product,
+                        size=item.size
+                    ).first()
+
+                    if existing_item:
+                        existing_item.quantity += item.quantity
+                        existing_item.save()
+                        logger.debug(f"Merged item {item.id}, new quantity: {existing_item.quantity}")
+                    else:
+                        item.cart = cart
+                        item.pk = None
+                        item.save()
+                        logger.debug(f"Added new item {item.id} to user cart")
+
+                # Удаляем сессионную корзину
+                session_cart.delete()
+                del request.session['cart_session_key']
+                logger.debug("Session cart merged and removed")
+
+            except Cart.DoesNotExist:
+                logger.debug("No session cart found to merge")
+                if 'cart_session_key' in request.session:
+                    del request.session['cart_session_key']
     else:
+        # Для анонимных пользователей
         if not request.session.session_key:
             request.session.create()
+            logger.debug("Created new session for anonymous user")
+
         session_key = request.session.session_key
+        request.session['cart_session_key'] = session_key
         cart, created = Cart.objects.get_or_create(session_key=session_key)
+        logger.debug(f"Got session cart: {cart.id}, created: {created}")
+
     return cart
 
 
@@ -177,16 +224,31 @@ class CategoryDetailView(DetailView):
         min_price = self.request.GET.get('min_price')
         max_price = self.request.GET.get('max_price')
         status = self.request.GET.get('status')
-        brands = [b for b in self.request.GET.get('brands', '').split(',') if b] if self.request.GET.get(
-            'brands') else []
-        materials = [m for m in self.request.GET.get('materials', '').split(',') if m] if self.request.GET.get(
-            'materials') else []
-        sizes = [s for s in self.request.GET.get('sizes', '').split(',') if s] if self.request.GET.get('sizes') else []
+        brands = self.request.GET.get('brands', '').split(',') if self.request.GET.get('brands') else []
+        materials = self.request.GET.get('materials', '').split(',') if self.request.GET.get('materials') else []
+        sizes = self.request.GET.get('sizes', '').split(',') if self.request.GET.get('sizes') else []
+        genders = self.request.GET.get('genders', '').split(',') if self.request.GET.get('genders') else []
+        application_types = self.request.GET.get('application_types', '').split(',') if self.request.GET.get(
+            'application_types') else []
+        packaging_types = self.request.GET.get('packaging_types', '').split(',') if self.request.GET.get(
+            'packaging_types') else []
+        marking_types = self.request.GET.get('marking_types', '').split(',') if self.request.GET.get(
+            'marking_types') else []
+        mechanism_types = self.request.GET.get('mechanism_types', '').split(',') if self.request.GET.get(
+            'mechanism_types') else []
+        cover_types = self.request.GET.get('cover_types', '').split(',') if self.request.GET.get('cover_types') else []
+        umbrella_types = self.request.GET.get('umbrella_types', '').split(',') if self.request.GET.get(
+            'umbrella_types') else []
+
         is_featured = self.request.GET.get('is_featured') == 'true'
         is_bestseller = self.request.GET.get('is_bestseller') == 'true'
         has_discount = self.request.GET.get('has_discount') == 'true'
         in_stock = self.request.GET.get('in_stock') == 'true'
         on_order = self.request.GET.get('on_order') == 'true'
+        made_in_russia = self.request.GET.get('made_in_russia') == 'true'
+        is_eco = self.request.GET.get('is_eco') == 'true'
+        requires_marking = self.request.GET.get('requires_marking') == 'true'
+        individual_packaging = self.request.GET.get('individual_packaging') == 'true'
 
         if min_price:
             products = products.filter(price__gte=float(min_price))
@@ -206,6 +268,17 @@ class CategoryDetailView(DetailView):
             for size in sizes:
                 size_query |= Q(sizes_available__icontains=size)
             products = products.filter(size_query)
+        if genders:
+            gender_query = Q()
+            for gender in genders:
+                gender_query |= Q(gender__icontains=gender)
+            products = products.filter(gender_query)
+        if application_types:
+            app_query = Q()
+            for app_type in application_types:
+                app_query |= Q(
+                    application_type=app_type)  # ← Используем точное сравнение (application_type - это CharField)
+            products = products.filter(app_query)
         if is_featured:
             products = products.filter(is_featured=True)
         if is_bestseller:
@@ -216,6 +289,29 @@ class CategoryDetailView(DetailView):
             products = products.filter(in_stock=True, quantity__gt=0)
         if on_order:
             products = products.filter(in_stock=False)
+        if made_in_russia:
+            products = products.filter(made_in_russia=True)
+        if is_eco:
+            products = products.filter(is_eco=True)
+        if requires_marking:
+            products = products.filter(requires_marking=True)
+        if individual_packaging:
+            products = products.filter(individual_packaging=True)
+        if mechanism_types:
+            mech_query = Q()
+            for mech_type in mechanism_types:
+                mech_query |= Q(mechanism_type__icontains=mech_type)
+            products = products.filter(mech_query)
+        if cover_types:
+            cover_query = Q()
+            for cover_type in cover_types:
+                cover_query |= Q(cover_type__icontains=cover_type)
+            products = products.filter(cover_query)
+        if umbrella_types:
+            umbrella_query = Q()
+            for umbrella_type in umbrella_types:
+                umbrella_query |= Q(umbrella_type__icontains=umbrella_type)
+            products = products.filter(umbrella_query)
 
         # Сортировка
         sort_by = self.request.GET.get('sort', 'default')
@@ -230,60 +326,66 @@ class CategoryDetailView(DetailView):
         elif sort_by == 'newest':
             products = products.order_by('-created_at')
 
-        # Получаем уникальные бренды
-        brands = products.exclude(brand='').values_list(
-            'brand', flat=True
-        ).distinct().order_by('brand')
-
-        # Получаем уникальные материалы
-        materials = products.exclude(material='').values_list(
-            'material', flat=True
-        ).distinct().order_by('material')
-
-        # Получаем уникальные размеры
-        size_set = set()
-        for product in products:
-            if product.sizes_available:
-                # Разделяем строку с размерами и добавляем в множество
-                for size in product.sizes_available.split(','):
-                    size = size.strip()
-                    if size:
-                        size_set.add(size)
-
-        # Сортируем размеры по стандартному порядку
-        standard_sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL', '5XL']
-        sizes = sorted(size_set, key=lambda x: (
-            standard_sizes.index(x) if x in standard_sizes else len(standard_sizes),
-            x
-        ))
-
         # Пагинация
         per_page = int(self.request.GET.get('per_page', 12))
         paginator = Paginator(products, per_page)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
+        # Добавляем контекст для отображения выбранных фильтров
         context.update({
             'subcategories': category.children.all().order_by('order'),
             'products': page_obj,
-            'brands': brands,
-            'materials': materials,
-            'sizes': sizes,
+            'brands': products.exclude(brand='').values_list('brand', flat=True).distinct().order_by('brand'),
+            'materials': products.exclude(material='').values_list('material', flat=True).distinct().order_by(
+                'material'),
+            'sizes': self._get_available_sizes(products),
             'status_choices': [
                 ('new', 'Новинки'),
                 ('limited', 'Ограниченный тираж'),
                 ('regular', 'Обычные товары')
             ],
             'selected_status': status,
-            'selected_brands': self.request.GET.get('brands', '').split(','),
-            'selected_materials': self.request.GET.get('materials', '').split(','),
-            'selected_sizes': self.request.GET.get('sizes', '').split(','),
+            'selected_brands': brands,
+            'selected_materials': materials,
+            'selected_sizes': sizes,
+            'selected_genders': genders,
+            'selected_application_types': application_types,
+            'selected_packaging_types': packaging_types,
+            'selected_marking_types': marking_types,
+            'selected_mechanism_types': mechanism_types,
+            'selected_cover_types': cover_types,
+            'selected_umbrella_types': umbrella_types,
             'current_per_page': per_page,
             'selected_sort': sort_by,
-            'search_form': SearchForm()
+            'search_form': SearchForm(),
+            'is_featured_checked': is_featured,
+            'is_bestseller_checked': is_bestseller,
+            'has_discount_checked': has_discount,
+            'in_stock_checked': in_stock,
+            'on_order_checked': on_order,
+            'made_in_russia_checked': made_in_russia,
+            'is_eco_checked': is_eco,
+            'requires_marking_checked': requires_marking,
+            'individual_packaging_checked': individual_packaging,
         })
         return context
 
+    def _get_available_sizes(self, products):
+        size_set = set()
+        STANDARD_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
+
+        for product in products:
+            if product.sizes_available:
+                for size in product.sizes_available.split(','):
+                    size = str(size).strip().upper()
+                    if size in STANDARD_SIZES or (size.isdigit() and 30 <= int(size) <= 60):
+                        size_set.add(size)
+
+        return sorted(size_set, key=lambda x: (
+            STANDARD_SIZES.index(x) if x in STANDARD_SIZES else len(STANDARD_SIZES),
+            x
+        ))
 
 
 
@@ -339,7 +441,7 @@ def add_to_cart(request, product_id):
         form = AddToCartForm(request.POST, product=product)
         if form.is_valid():
             quantity = form.cleaned_data['quantity']
-            selected_size = form.cleaned_data.get('selected_size')
+            selected_size = form.cleaned_data.get('selected_size', None)
 
             # Создаем или обновляем элемент корзины
             cart_item, created = CartItem.objects.get_or_create(
@@ -519,11 +621,19 @@ def checkout(request):
             })
 
     if request.method == 'POST':
-        form = OrderForm(request.POST)
+        form = OrderForm(request.POST, user=request.user)
         if form.is_valid():
             order = form.save(commit=False)
-            # Явно устанавливаем статус "new" при создании заказа
             order.status = Order.STATUS_NEW
+
+            # Если выбран сохраненный адрес
+            delivery_address_id = form.cleaned_data.get('delivery_address')
+            if delivery_address_id and delivery_address_id != 'new':
+                try:
+                    address = DeliveryAddress.objects.get(id=delivery_address_id)
+                    order.address = address.address
+                except DeliveryAddress.DoesNotExist:
+                    pass
 
             if request.user.is_authenticated:
                 order.user = request.user
@@ -553,9 +663,6 @@ def checkout(request):
 
             messages.success(request, f'Ваш заказ успешно оформлен! Номер заказа: #{order.id}')
             return redirect('main:order_detail', order_id=order.id)
-        else:
-            # Если форма невалидна, показываем ошибки
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         # Для GET-запроса предзаполняем форму, если пользователь авторизован
         if request.user.is_authenticated:
@@ -565,9 +672,9 @@ def checkout(request):
                 'email': request.user.email,
                 'phone': request.user.phone,
             }
-            form = OrderForm(initial=initial)
+            form = OrderForm(initial=initial, user=request.user)
         else:
-            form = OrderForm()
+            form = OrderForm(user=request.user)
 
     return render(request, 'main/checkout.html', {
         'cart': cart,
@@ -766,76 +873,50 @@ class XMLProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # 1. Получаем полную информацию о размерах из модели
+        # Получаем отфильтрованные размеры
         size_info = product.get_size_info()
-
-        # 2. Формируем удобную структуру sizes_info для шаблона
         sizes_info = []
 
-        # Для товаров с вариантами размеров
-        if product.variants.exists():
-            for variant in product.variants.all().order_by('size'):
-                sizes_info.append({
-                    'size': variant.size,
-                    'normalized_size': size_info.get('normalized_sizes', [variant.size])[0],
-                    'quantity': variant.quantity,
-                    'price': variant.price if variant.price is not None else product.price,
-                    'old_price': variant.old_price if variant.old_price is not None else product.old_price,
-                    'in_stock': variant.quantity > 0,
-                    'is_variant': True
-                })
+        # Формируем информацию о размерах для шаблона
+        for size in size_info['available_sizes']:
+            variant = product.variants.filter(size__iexact=size).first()
+            sizes_info.append({
+                'size': size,
+                'quantity': variant.quantity if variant else product.quantity,
+                'price': variant.price if variant else product.price,
+                'old_price': variant.old_price if variant else product.old_price,
+                'in_stock': (variant.quantity > 0) if variant else product.in_stock
+            })
 
-        # Для товаров без вариантов, но с таблицей размеров
-        elif size_info.get('available_sizes'):
-            for i, size in enumerate(size_info['available_sizes']):
-                normalized_size = size_info['normalized_sizes'][i] if i < len(
-                    size_info.get('normalized_sizes', [])) else size
-                sizes_info.append({
-                    'size': size,
-                    'normalized_size': normalized_size,
-                    'quantity': product.quantity,
-                    'price': product.price,
-                    'old_price': product.old_price,
-                    'in_stock': product.quantity > 0,
-                    'is_variant': False
-                })
+        # Получаем информацию о бренде
+        brand = None
+        if product.brand:
+            try:
+                brand = Brand.objects.filter(name__iexact=product.brand).first()
+            except Brand.DoesNotExist:
+                pass
 
-        # 3. Подготовка данных для отображения
-        has_multiple_prices = any(s['price'] != product.price for s in sizes_info)
-        has_size_table = size_info.get('size_table') is not None
+        # Получаем похожие товары (из той же категории)
+        related_products = XMLProduct.objects.filter(
+            categories__in=product.categories.all(),
+            in_stock=True
+        ).exclude(product_id=product.product_id).distinct()[:4]
 
-        # 4. Добавляем данные в контекст
+        # Получаем читаемые фильтры
+        readable_filters = self._get_readable_filters(product)
+
+        # Получаем информацию о нанесении
+        printing_data = product.get_printing_info()
+
         context.update({
             'sizes_info': sizes_info,
-            'size_data': {
-                'available_sizes': [s['size'] for s in sizes_info],
-                'normalized_sizes': [s['normalized_size'] for s in sizes_info],
-                'size_table': size_info.get('size_table'),
-                'gender': size_info.get('gender'),
-                'has_size_table': has_size_table,
-                'has_multiple_prices': has_multiple_prices,
-                'all_sizes_out_of_stock': all(s['quantity'] <= 0 for s in sizes_info) if sizes_info else False
-            },
-            'printing_data': product.get_printing_info(),
-            'product_has_variants': product.variants.exists(),
-            'main_product_data': {
-                'price': product.price,
-                'old_price': product.old_price,
-                'quantity': product.quantity,
-                'in_stock': product.in_stock
-            }
+            'size_data': size_info,
+            'printing_data': printing_data,
+            'brand': brand,
+            'related_products': related_products,
+            'readable_filters': readable_filters,
+            'is_available': any(s['quantity'] > 0 for s in sizes_info) if sizes_info else product.in_stock
         })
-
-        # 5. Отладочная информация (можно убрать в production)
-        if settings.DEBUG:
-            context['debug_size_info'] = {
-                'source': 'variants' if product.variants.exists() else
-                'size_table' if has_size_table else
-                'sizes_available' if product.sizes_available else
-                'size_field',
-                'raw_data': size_info
-            }
-
         return context
 
 
@@ -939,7 +1020,8 @@ def order_detail(request, order_id):
         'search_form': SearchForm(),
     }
     return render(request, 'main/order_detail.html', context)
-
+def application_view(request):
+    return render(request, 'main/application.html')
 
 def test_email(request, order_id):
     order = Order.objects.get(id=order_id)

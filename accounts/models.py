@@ -16,7 +16,7 @@ class Company(models.Model):
  # БИК
 
 
-    inn = models.CharField('ИНН', max_length=12, unique=True)
+    inn = models.CharField('ИНН', max_length=12)
     legal_name = models.CharField('Юридическое название', max_length=255)
     email = models.EmailField('Email компании', unique=True)
     kpp = models.CharField('КПП', max_length=9, blank=True, null=True)
@@ -56,6 +56,46 @@ class Company(models.Model):
 
     def __str__(self):
         return self.legal_name
+
+    def get_activity(self):
+        """Возвращает активность компании для отображения в ЛК"""
+        from main.models import Order, Invoice
+        from django.utils import timezone
+
+        activity = []
+
+        # Заказы компании
+        orders = Order.objects.filter(company=self).order_by('-created_at')[:10]
+
+        for order in orders:
+            activity.append({
+                'type': 'order_created',
+                'object': order,
+                'date': order.created_at,
+                'message': f'Создан заказ #{order.id}',
+                'status': order.get_status_display()
+            })
+
+            if hasattr(order, 'invoice'):
+                invoice = order.invoice
+                activity.append({
+                    'type': 'invoice_issued',
+                    'object': invoice,
+                    'date': invoice.created_at,
+                    'message': f'Выставлен счет #{invoice.invoice_number}',
+                    'status': 'Оплачен' if invoice.paid else 'Ожидает оплаты'
+                })
+
+            if order.status == Order.STATUS_IN_PROGRESS:
+                activity.append({
+                    'type': 'order_pending',
+                    'object': order,
+                    'date': order.updated_at,
+                    'message': f'Заказ #{order.id} ожидает оплаты',
+                    'status': 'Ожидает оплаты'
+                })
+
+        return sorted(activity, key=lambda x: x['date'], reverse=True)[:15]
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):

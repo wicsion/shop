@@ -244,7 +244,6 @@ class XMLProduct(models.Model):
         null=True
     )
 
-
     MARKING_CHOICES = [
         ('textile', 'Текстиль'),
         ('other', 'Другое'),
@@ -275,7 +274,6 @@ class XMLProduct(models.Model):
     block_number = models.CharField(_('Номер блока'), max_length=50, blank=True)
 
     dating = models.CharField(_('Датировка'), max_length=100, blank=True)
-
 
     additional_image_urls = models.JSONField(
         _('URL дополнительных изображений'),
@@ -370,133 +368,95 @@ class XMLProduct(models.Model):
     def __str__(self):
         return self.name
 
-    # В models.py, класс XMLProduct
-
-    def get_size_info(self):
-        """
-        Получает информацию о размерах товара, включая:
-        - доступные размеры
-        - таблицу размеров
-        - пол (gender)
-        - нормализованные данные о размерах
-        """
-        size_info = {
-            'available_sizes': [],
-            'size_table': None,
-            'gender': None,
-            'normalized_sizes': []
-        }
-
-        # 1. Определяем пол товара из фильтров XML
-        gender_mapping = {
-            'мужские': 'male',
-            'мужской': 'male',
-            'men': 'male',
-            'man': 'male',
-            'женские': 'female',
-            'женский': 'female',
-            'women': 'female',
-            'woman': 'female',
-            'унисекс': 'unisex',
-            'unisex': 'unisex'
-        }
-
+    def get_materials_from_filters(self):
+        """Получает материалы из фильтров товара"""
+        materials = []
         if self.xml_data and 'filters' in self.xml_data:
             for f in self.xml_data['filters']:
-                if str(f.get('type_id')) == '23':  # Фильтр по полу
-                    filter_name = f.get('filter_name', '').lower()
-                    for term, gender in gender_mapping.items():
-                        if term in filter_name:
-                            size_info['gender'] = gender
-                            break
+                if str(f.get('type_id')) in ['5', '73']:  # Типы фильтров для материалов
+                    materials.append(f.get('filter_name'))
+        return list(set(materials))  # Убираем дубликаты
 
-        # 2. Получаем размеры из вариантов (ProductVariant)
+    def normalize_size(self, size):
+        """Нормализует размер, удаляя ненужные термины"""
+        if not size:
+            return None
+
+        size_str = str(size).strip().upper()
+
+        # Удаляем нежелательные термины
+        remove_terms = [
+            'HAT', 'CAP', 'HEAD', 'CM', 'ONE SIZE', 'РАЗМЕР', 'ОБХВАТ',
+            'ГОЛОВЫ', 'ОБУВИ', 'SHOE', 'SIZE', 'ДЛЯ'
+        ]
+
+        for term in remove_terms:
+            size_str = size_str.replace(term, '').strip()
+
+        # Удаляем двойные пробелы и лишние дефисы
+        size_str = ' '.join(size_str.split())
+        size_str = size_str.replace(' - ', '-').replace('- ', '-').replace(' -', '-')
+
+        return size_str if size_str else None
+
+    def get_size_info(self):
+        """Получает информацию о размерах без излишней фильтрации"""
+        size_info = {
+            'available_sizes': [],
+            'sizes_with_quantities': [],
+            'is_available': False
+        }
+
+        # 1. Проверяем варианты размеров
         if self.variants.exists():
-            variants = self.variants.all().order_by('size')
-            size_info['available_sizes'] = [v.size for v in variants]
+            for variant in self.variants.all():
+                size_info['available_sizes'].append(variant.size)
+                size_info['sizes_with_quantities'].append({
+                    'size': variant.size,
+                    'quantity': variant.quantity,
+                    'in_stock': variant.quantity > 0
+                })
 
-            # Добавляем количество для каждого размера
-            size_info['sizes_with_quantities'] = [
-                {'size': v.size, 'quantity': v.quantity}
-                for v in variants
-            ]
-
-            return size_info
-
-        # 3. Получаем размеры из таблицы размеров в XML
-        if self.xml_data and 'attributes' in self.xml_data and 'size_table' in self.xml_data['attributes']:
-            size_table = self.xml_data['attributes']['size_table']
-            size_info['size_table'] = size_table
-
-            if 'headers' in size_table and len(size_table['headers']) > 1:
-                # Исключаем первый заголовок (название таблицы)
-                available_sizes = size_table['headers'][1:]
-
-                # Нормализуем размеры (удаляем пол, если есть)
-                normalized_sizes = []
-                for size in available_sizes:
-                    # Удаляем упоминания пола из размера
-                    clean_size = size
-                    for gender_term in gender_mapping.keys():
-                        clean_size = clean_size.replace(gender_term, '').strip()
-                    normalized_sizes.append(clean_size)
-
-                size_info['available_sizes'] = available_sizes
-                size_info['normalized_sizes'] = normalized_sizes
-
-                # Добавляем информацию о количестве (используем общее количество)
-                if self.quantity:
-                    size_info['sizes_with_quantities'] = [
-                        {'size': size, 'quantity': self.quantity}
-                        for size in available_sizes
-                    ]
-
-            return size_info
-
-        # 4. Получаем размеры из поля sizes_available (с очисткой от указания пола)
-        if self.sizes_available:
-            sizes = []
-            normalized_sizes = []
-
+        # 2. Проверяем поле sizes_available
+        elif self.sizes_available:
             for size in self.sizes_available.split(','):
                 size = size.strip()
-                if not size:
-                    continue
+                if size:
+                    size_info['available_sizes'].append(size)
+                    size_info['sizes_with_quantities'].append({
+                        'size': size,
+                        'quantity': self.quantity,
+                        'in_stock': self.in_stock
+                    })
 
-                # Очищаем размер от указания пола
-                clean_size = size
-                for gender_term in gender_mapping.keys():
-                    clean_size = clean_size.replace(gender_term, '').strip()
+        # 3. Проверяем таблицу размеров из XML
+        if self.xml_data and 'attributes' in self.xml_data and 'size_table' in self.xml_data['attributes']:
+            size_table = self.xml_data['attributes']['size_table']
+            if 'headers' in size_table and len(size_table['headers']) > 1:
+                for size in size_table['headers'][1:]:
+                    if size and size not in size_info['available_sizes']:
+                        size_info['available_sizes'].append(size)
+                        size_info['sizes_with_quantities'].append({
+                            'size': size,
+                            'quantity': self.quantity,
+                            'in_stock': self.in_stock
+                        })
 
-                sizes.append(size)
-                normalized_sizes.append(clean_size)
+        size_info['is_available'] = any(size['in_stock'] for size in size_info['sizes_with_quantities'])
 
-            size_info['available_sizes'] = sizes
-            size_info['normalized_sizes'] = normalized_sizes
-
-            # Добавляем информацию о количестве
-            if self.quantity:
-                size_info['sizes_with_quantities'] = [
-                    {'size': size, 'quantity': self.quantity}
-                    for size in sizes
-                ]
-
-        # 5. Дополнительная обработка для случаев, когда размер указан в поле size
-        if not size_info['available_sizes'] and self.size:
-            size = self.size
-            clean_size = size
-            for gender_term in gender_mapping.keys():
-                clean_size = clean_size.replace(gender_term, '').strip()
-
-            size_info['available_sizes'] = [size]
-            size_info['normalized_sizes'] = [clean_size]
-
-            if self.quantity:
-                size_info['sizes_with_quantities'] = [
-                    {'size': size, 'quantity': self.quantity}
-                ]
+        # Сортируем размеры по стандартному порядку
+        STANDARD_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
+        size_info['sizes_with_quantities'].sort(
+            key=lambda x: (
+                STANDARD_ORDER.index(x['size']) if x['size'] in STANDARD_ORDER else len(STANDARD_ORDER),
+                x['size']
+            )
+        )
+        size_info['available_sizes'] = [s['size'] for s in size_info['sizes_with_quantities']]
 
         return size_info
+
+
 
     def get_add_to_cart_form(self):
         from .forms import AddToCartForm
@@ -510,8 +470,6 @@ class XMLProduct(models.Model):
             self.save(update_fields=['quantity', 'in_stock'])
             return True
         return False
-
-
 
     def get_absolute_url(self):
         return reverse('main:xml_product_detail', kwargs={'product_id': self.product_id})
@@ -602,7 +560,6 @@ class XMLProduct(models.Model):
 
         return gallery
 
-
     @property
     def available_sizes(self):
         """Возвращает список всех доступных размеров, исключая пол и другие не-размеры"""
@@ -682,14 +639,16 @@ class XMLProduct(models.Model):
         if self.requires_marking:
             printing_info['marking'] = self.get_marking_type_display() if self.marking_type else 'Да'
 
-        # Преобразуем в отсортированный список и убираем дубликаты
+        # Преобразуем в отсортированный список по длине строки (от самой длинной к самой короткой)
         if printing_info['methods']:
-            printing_info['methods'] = sorted(printing_info['methods'])
+            printing_info['methods'] = sorted(printing_info['methods'], key=lambda x: len(x), reverse=True)
         else:
             printing_info['methods'] = None
 
         return printing_info
-    # Вспомогательный метод для преобразования filter_id в читаемые названия
+
+
+
     def _get_filter_value(self, filter_type, filter_id):
         """Преобразует type_id и filter_id в читаемое название"""
         filter_mapping = {
@@ -706,7 +665,6 @@ class XMLProduct(models.Model):
             '73': {'2': 'Хлопок'}  # Материалы
         }
         return filter_mapping.get(filter_type, {}).get(filter_id, None)
-
 
     def get_max_available_quantity(self, size=None):
         """Возвращает максимальное доступное количество для размера"""
@@ -768,44 +726,10 @@ class XMLProduct(models.Model):
         return sizes
 
     def clean_sizes(self):
-        """Очистка размеров от указания пола и нормализация"""
+        """Минимальная очистка размеров (только базовое форматирование)"""
         if not self.sizes_available:
             return None
-
-        # Удаляем все не-размерные обозначения
-        size_cleaned = re.sub(
-            r'\b(мужские|женские|унисекс|male|female|unisex|для\s+мужчин|для\s+женщин|детские)\b',
-            '',
-            self.sizes_available,
-            flags=re.IGNORECASE
-        )
-
-        # Удаляем лишние запятые и пробелы
-        size_cleaned = re.sub(r'\s*,\s*', ',', size_cleaned).strip(' ,')
-
-        # Нормализуем размеры (XS, S, M, L, XL и т.д.)
-        size_map = {
-            'xs': 'XS',
-            's': 'S',
-            'm': 'M',
-            'l': 'L',
-            'xl': 'XL',
-            'xxl': 'XXL',
-            'xxxl': 'XXXL',
-            '3xl': 'XXXL',
-            '4xl': '4XL',
-            '5xl': '5XL'
-        }
-
-        sizes = []
-        for size in size_cleaned.split(','):
-            size = size.strip().lower()
-            if size in size_map:
-                sizes.append(size_map[size])
-            elif size:  # Если размер не распознан, но не пустой
-                sizes.append(size.upper())
-
-        return ', '.join(sizes) if sizes else None
+        return ', '.join([s.strip() for s in self.sizes_available.split(',') if s.strip()])
 
     def save(self, *args, **kwargs):
         # Очищаем и нормализуем размеры перед сохранением
@@ -815,7 +739,6 @@ class XMLProduct(models.Model):
         if self.variants.exists():
             self.quantity = sum(v.quantity for v in self.variants.all())
             self.in_stock = self.quantity > 0
-
         super().save(*args, **kwargs)
 
 
@@ -1055,6 +978,36 @@ class Cart(models.Model):
     @property
     def total_quantity(self):
         return sum(item.quantity for item in self.items.all())
+
+    def merge_with_session_cart(self, session_cart):
+        """Объединяет текущую корзину с корзиной из сессии"""
+        logger = logging.getLogger('cart')
+        logger.debug(f"Starting cart merge: user_cart={self.id}, session_cart={session_cart.id}")
+
+        for session_item in session_cart.items.all():
+            # Ищем такой же товар в корзине пользователя
+            existing_item = self.items.filter(
+                xml_product=session_item.xml_product,
+                size=session_item.size
+            ).first()
+
+            if existing_item:
+                # Если товар уже есть - увеличиваем количество
+                existing_item.quantity += session_item.quantity
+                existing_item.save()
+                logger.debug(f"Merged item: {session_item.xml_product.name}, new qty: {existing_item.quantity}")
+            else:
+                # Если нет - создаем новый элемент
+                session_item.cart = self
+                session_item.pk = None
+                session_item.save()
+                logger.debug(f"Added new item: {session_item.xml_product.name}")
+
+        # Удаляем корзину сессии
+        session_cart.delete()
+        logger.debug("Session cart deleted after merge")
+
+        return self
 
 
 class CartItem(models.Model):

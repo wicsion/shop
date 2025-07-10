@@ -1,8 +1,16 @@
 # main/middleware.py
-from django.urls import reverse
-from urllib.parse import quote
-from django.utils.cache import patch_response_headers
 
+from urllib.parse import quote
+import logging
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.urls import reverse
+
+from main.models import Cart
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class HTTP2PushMiddleware:
     def __init__(self, get_response):
@@ -23,3 +31,10 @@ class HTTP2PushMiddleware:
                 response['Link'] = ', '.join(push_resources)
 
         return response
+
+
+
+
+
+
+

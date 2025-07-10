@@ -31,10 +31,10 @@
         {{ cart_item.product.name }}
     </a>
     <p class="text-gray-600">
-        {% if cart_item.product_type == 'regular' %}
-        {{ cart_item.product.category.name }}
-        {% else %}
-        {{ cart_item.product.brand }}
+        {% if cart_item.product.categories.exists %}
+            {{ cart_item.product.categories.first.name }}
+        {% elif cart_item.product.brand %}
+            {{ cart_item.product.brand }}
         {% endif %}
     </p>
     <!-- Отображение размера, если он есть -->
@@ -44,6 +44,8 @@
         <span class="ml-2 px-3 py-1 bg-gray-100 rounded-full text-sm">{{ cart_item.size }}</span>
     </div>
     {% endif %}
+
+
 </div>
 
                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end gap-4">
@@ -79,12 +81,28 @@
         </div>
     </div>
 
-    <div class="flex justify-end">
+<div class="flex justify-end">
+    {% if request.user.is_authenticated %}
         <a href="{% url 'main:checkout' %}"
            class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
             {% trans "Оформить заказ" %}
         </a>
-    </div>
+    {% else %}
+        <div class="flex flex-col items-end">
+            <p class="text-red-500 mb-2">{% trans "Для оформления заказа необходимо войти в систему" %}</p>
+            <div class="flex gap-2">
+                <a href="{% url 'accounts:login' %}?next={% url 'main:cart_view' %}"
+                   class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                    {% trans "Войти" %}
+                </a>
+                <a href="{% url 'accounts:company_register' %}?next={% url 'main:cart_view' %}"
+                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                    {% trans "Зарегистрироваться" %}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
     {% else %}
     <div class="bg-white rounded-lg shadow p-8 text-center">
         <p class="text-gray-600 mb-4">{% trans "Ваша корзина пуста" %}</p>
@@ -96,7 +114,6 @@
     {% endif %}
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {

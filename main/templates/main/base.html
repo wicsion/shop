@@ -558,7 +558,7 @@ body {
         <div class="d-flex justify-content-center flex-grow-1">
             <ul class="nav nav-pills gap-4">
                 <li class="nav-item">
-                   <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#application">
+                   <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:application' %}">
     <i class></i>{% trans "Нанесение" %}
 </a>
                 </li>
@@ -706,28 +706,14 @@ body {
                     </button>
                 </form>
 
-                <div class="dropdown d-inline">
-                    <a class="btn btn-primary dropdown-toggle"
-                       href="{% url 'accounts:company_dashboard' %}"
-                       role="button"
-                       id="userMenu"
-                       data-bs-toggle="dropdown">
-                        <i class="fas fa-user-tie"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'accounts:company_dashboard' %}">
-                            <i class="fas fa-tachometer-alt me-2"></i>Личный кабинет
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Выход
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+                <a href="{% url 'accounts:company_dashboard' %}" class="btn btn-primary">
+    <i class="fas fa-user-tie"></i>
+</a>
+<form action="{% url 'accounts:logout' %}" method="post" class="d-inline ms-2">
+    {% csrf_token %}
+
+
+</form>
                 </div>
                  {% else %}
         <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-login">

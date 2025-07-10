@@ -46,3 +46,7 @@ def remove_tablemer(value):
     value = re.sub(r'<img[^>]*>', '', value)  # Удаляем изображение
     value = re.sub(r'<table[^>]*>.*?</table>', '', value, flags=re.DOTALL)  # Удаляем таблицу
     return value
+
+@register.filter
+def find_variant_by_size(variants, size):
+    return next((v for v in variants if v.size.upper() == size.upper()), None)

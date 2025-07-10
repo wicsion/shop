@@ -333,13 +333,7 @@
     <!-- Шапка бренда -->
     <section class="brand-header animate-fadeIn">
         <div class="container mx-auto px-4 text-center">
-            <div class="brand-logo-container animate-float">
-                {% if brand.logo %}
-                    <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="brand-logo">
-                {% else %}
-                    <img src="{% static 'images/brand-placeholder.svg' %}" alt="{{ brand.name }}" class="brand-logo">
-                {% endif %}
-            </div>
+
 
             <h1 class="brand-title">{{ brand.name }}</h1>
             {% if brand.description %}

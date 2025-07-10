@@ -1,0 +1,18 @@
+{% for product in products %}
+<div class="product-item">
+    <!-- Ваша разметка для каждого товара -->
+    {% include 'main/_product_card.html' with product=product %}
+</div>
+{% endfor %}
+
+{% if products.has_next %}
+<div id="load-more-container" class="mt-8 text-center">
+    <button id="load-more" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        {% trans "Загрузить еще" %}
+    </button>
+    <div id="loading-indicator" class="hidden py-4">
+        <div class="inline-block spinner"></div>
+        <span class="ml-2">{% trans "Загрузка..." %}</span>
+    </div>
+</div>
+{% endif %}

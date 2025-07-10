@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from main.models import XMLProduct, ProductVariant, ProductVariantThrough, Category
+from main.models import XMLProduct, ProductVariant, ProductVariantThrough
 from xml.etree import ElementTree as ET
 import requests
 import logging
@@ -7,13 +7,14 @@ import time
 from tqdm import tqdm
 from django.db import transaction
 from django.db.models import Q
-import re
+from pyrate_limiter import Duration, Rate, Limiter
+
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Optimized product quantities update from stock.xml with proper size handling'
+    help = 'Optimized product quantities update from stock.xml with rate limiting'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,145 +24,98 @@ class Command(BaseCommand):
             'XS': 'XS', 'S': 'S', 'M': 'M', 'L': 'L', 'XL': 'XL',
             'XXL': 'XXL', 'XXXL': 'XXXL', '3XL': 'XXXL', '4XL': '4XL', '5XL': '5XL'
         }
-        self.clothing_category_ids = set()
-        self.product_id_map = {}
         self.product_code_map = {}
+        self.product_id_map = {}
+        self.last_request_time = 0
+        self.min_interval = 0.2  # 5 requests per second = 1 request every 0.2 seconds
+        # Инициализация rate limiter
+        self.rate = Rate(5, Duration.SECOND)  # 5 запросов в секунду
+        self.limiter = Limiter(self.rate) # 5 запросов в секунду
+
 
     def add_arguments(self, parser):
-        parser.add_argument('--batch-size', type=int, default=500,
-                            help='Number of records to process in each batch')
+        parser.add_argument('--batch-size', type=int, default=1000,
+                          help='Batch size for DB operations')
         parser.add_argument('--max-retries', type=int, default=3,
-                            help='Maximum number of retries for downloading stock data')
-        parser.add_argument('--debug', action='store_true',
-                            help='Enable debug output')
+                          help='Max retries for failed requests')
 
     def handle(self, *args, **options):
-        if options['debug']:
-            logging.basicConfig(level=logging.DEBUG)
-
-        self.load_clothing_categories()
         stock_url = "https://api2.gifts.ru/export/v2/catalogue/stock.xml"
 
         try:
+            # 1. Build product lookup maps
             self.build_product_maps()
+
+            # 2. Download and parse stock data with rate limiting
             stock_data = self.download_and_parse_stock(stock_url, options['max_retries'])
+
+            # 3. Process updates
             self.process_updates(stock_data, options['batch_size'])
-            logger.info("Stock update completed successfully")
+
+            logger.info("Quantity update completed successfully")
+
         except Exception as e:
-            logger.error(f"Fatal error during stock update: {str(e)}", exc_info=True)
-            raise
+            logger.error(f"Fatal error: {str(e)}", exc_info=True)
+            self.stdout.write(self.style.ERROR(f"Error: {str(e)}"))
 
-    def load_clothing_categories(self):
-        """Load IDs of clothing-related categories"""
-        clothing_categories = Category.objects.filter(
-            Q(name__icontains='одежда') |
-            Q(name__icontains='футболк') |
-            Q(name__icontains='толстовк') |
-            Q(name__icontains='текстиль') |
-            Q(name__icontains='рубашк') |
-            Q(name__icontains='кофт') |
-            Q(name__icontains='свитер') |
-            Q(name__icontains='худи')
-        )
-        self.clothing_category_ids = {c.id for c in clothing_categories}
-        logger.debug(f"Loaded {len(self.clothing_category_ids)} clothing category IDs")
-
-    def is_clothing_product(self, product):
-        """Check if product belongs to clothing categories"""
-        if not product:
-            return False
-        return any(cat.id in self.clothing_category_ids for cat in product.categories.all())
-
-    def extract_size_from_code(self, code, product):
-        """
-        Extract size from product code with improved pattern matching
-        Handles cases like:
-        - '00548312L' (size at end)
-        - '00548312-L' (size with separator)
-        - '00548312XL' (multi-character size)
-        - '005483123XL' (size with number prefix)
-        """
-        if not code or not self.is_clothing_product(product):
-            return None
-
-        # Try to match size patterns in the code
-        code_upper = code.upper()
-
-        # Check for size at the end of the code (most common case)
-        for size_pattern in sorted(self.size_mapping.keys(), key=len, reverse=True):
-            if code_upper.endswith(size_pattern):
-                return self.size_mapping[size_pattern]
-
-        # Check for size with separator (like '00548312-L')
-        for size_pattern in sorted(self.size_mapping.keys(), key=len, reverse=True):
-            if f"-{size_pattern}" in code_upper:
-                return self.size_mapping[size_pattern]
-            if f"_{size_pattern}" in code_upper:
-                return self.size_mapping[size_pattern]
-
-        # Check for size in the middle of the code (less common)
-        for size_pattern in sorted(self.size_mapping.keys(), key=len, reverse=True):
-            if size_pattern in code_upper and not code_upper.endswith(size_pattern):
-                return self.size_mapping[size_pattern]
-
-        return None
+    def rate_limited_request(self):
+        """Ограничение запросов с ожиданием"""
+        while True:
+            try:
+                self.limiter.try_acquire("api_request")
+                break
+            except:
+                # Если лимит превышен, ждем 0.2 секунды перед повторной попыткой
+                time.sleep(0.2)
 
     def build_product_maps(self):
-        """Build lookup maps for products by ID and code"""
+        """Build in-memory maps for product lookup"""
+        logger.info("Building product lookup maps...")
         products = XMLProduct.objects.all().only(
             'id', 'product_id', 'code', 'price', 'old_price', 'quantity', 'in_stock'
-        ).prefetch_related('categories')
+        )
 
+        # Create maps for both product_id and code
         self.product_id_map = {p.product_id: p for p in products}
         self.product_code_map = {p.code: p for p in products}
 
-        logger.info(f"Built product maps: {len(self.product_id_map)} by ID, {len(self.product_code_map)} by code")
+        logger.info(f"Created maps for {len(products)} products")
 
     def download_and_parse_stock(self, url, max_retries):
-        """Download and parse stock XML with retry logic"""
+        """Download and parse stock data with retries and rate limiting"""
         for attempt in range(max_retries):
             try:
-                start_time = time.time()
+                self.rate_limited_request()
+                logger.info(f"Downloading stock data (attempt {attempt + 1})...")
                 response = self.session.get(url, timeout=30)
                 response.raise_for_status()
 
-                # Validate XML structure
-                try:
-                    root = ET.fromstring(response.content)
-                    if root.tag != 'doct':
-                        raise ValueError("Invalid XML root element, expected 'doct'")
+                # Parse XML and process stock data
+                root = ET.fromstring(response.content)
+                return self.process_stock_data(root)
 
-                    logger.info(f"Downloaded and parsed stock XML in {time.time() - start_time:.2f}s")
-                    return self.process_stock_data(root)
-
-                except ET.ParseError as e:
-                    logger.error(f"XML parsing error: {e}")
-                    if attempt == max_retries - 1:
-                        raise
-
-            except requests.RequestException as e:
-                logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
+            except requests.exceptions.RequestException as e:
                 if attempt == max_retries - 1:
                     raise
-                time.sleep((attempt + 1) * 5)
+                wait_time = (attempt + 1) * 5
+                logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            except ET.ParseError as e:
+                logger.error(f"XML parsing error: {str(e)}")
+                raise
 
     def process_stock_data(self, root):
-        """Process stock data from XML and organize by product with size variants"""
+        """Обработка данных о наличии"""
         stock_items = list(root.findall('stock'))
         stock_data = {}
-        logger.info(f"Processing {len(stock_items)} stock items")
 
         for item in tqdm(stock_items, desc="Processing stock items"):
             try:
-                product_id = item.find('product_id').text.strip() if item.find('product_id') is not None else None
-                code = item.find('code').text.strip() if item.find('code') is not None else None
-                free = int(item.find('free').text) if item.find('free') is not None else 0
+                product_id = item.find('product_id').text.strip()
+                code = item.find('code').text.strip()
+                free = int(item.find('free').text)
 
-                if not product_id or not code:
-                    logger.debug(f"Skipping item with missing product_id or code: {ET.tostring(item)}")
-                    continue
-
-                # Find product by ID or code
+                # Находим продукт
                 product = (
                         self.product_id_map.get(product_id) or
                         self.product_code_map.get(code) or
@@ -169,162 +123,182 @@ class Command(BaseCommand):
                 )
 
                 if not product:
-                    logger.debug(f"Product not found for ID: {product_id} or code: {code}")
                     continue
 
-                # Extract size for clothing products
+                # Извлекаем размер из кода
                 size = self.extract_size_from_code(code, product)
-                is_clothing = self.is_clothing_product(product)
 
-                # Initialize product entry if not exists
+                if not size:
+                    # Если размер не определен, используем основной продукт
+                    if product.product_id not in stock_data:
+                        stock_data[product.product_id] = {
+                            'product': product,
+                            'total_free': 0,
+                            'variants': {}
+                        }
+                    stock_data[product.product_id]['total_free'] += free
+                    continue
+
+                # Обрабатываем вариант с размером
                 if product.product_id not in stock_data:
                     stock_data[product.product_id] = {
                         'product': product,
                         'total_free': 0,
-                        'variants': {},
-                        'is_clothing': is_clothing
+                        'variants': {}
                     }
 
-                # Update total quantity
                 stock_data[product.product_id]['total_free'] += free
-
-                # Update size variants for clothing
-                if is_clothing and size:
-                    if size not in stock_data[product.product_id]['variants']:
-                        stock_data[product.product_id]['variants'][size] = 0
-                    stock_data[product.product_id]['variants'][size] += free
-                    logger.debug(f"Updated variant: {product.product_id} - {size}: {free}")
+                stock_data[product.product_id]['variants'][size] = free
 
             except Exception as e:
-                logger.warning(f"Error processing stock item: {str(e)}")
+                logger.debug(f"Skipping item: {str(e)}")
                 continue
 
         return stock_data
 
+    def find_product_by_alt_code(self, code):
+        """Find product by alternative code patterns with rate limiting"""
+        self.rate_limited_request()
+
+        # Try to match code without size suffix
+        for size in ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L', '3XL', '4XL', '5XL']:
+            if code.endswith(size):
+                base_code = code[:-len(size)].rstrip()
+                return self.product_code_map.get(base_code)
+
+        # Try to find similar code in DB
+        return XMLProduct.objects.filter(
+            Q(code__startswith=code[:6]) |
+            Q(code__contains=code[-4:])
+        ).first()
+
+    # В методе extract_size_from_code класса Command
+    def extract_size_from_code(self, code, product):
+        """Извлекаем размер из кода товара с полной фильтрацией"""
+        # Список исключаемых терминов
+        EXCLUDED_TERMS = [
+            'hat', 'cap', 'head', 'cm', 'one size', 'размер', 'обхват',
+            'головы', 'обуви', 'shoe', 'size', 'для', 'мужские', 'женские',
+            'унисекс', 'male', 'female', 'unisex', 'детские', 'муж', 'жен',
+            'м', 'ж', 'man', 'woman', 'men', 'women'
+        ]
+
+        # Удаляем числовые размеры (например, 42, 44, 46 и т.д.)
+        if any(part.isdigit() for part in code.split('.')):
+            return None
+
+        # Удаляем размеры с "см"
+        if 'cm' in code.lower() or 'см' in code.lower():
+            return None
+
+        parts = code.split('.')
+        last_part = parts[-1].upper()
+
+        # Проверяем стандартные размеры
+        size_mapping = {
+            'XS': 'XS', 'S': 'S', 'M': 'M', 'L': 'L', 'XL': 'XL',
+            'XXL': 'XXL', 'XXXL': 'XXXL', '3XL': 'XXXL', '4XL': '4XL', '5XL': '5XL'
+        }
+
+        # Проверяем, является ли последняя часть размером (исключая запрещенные термины)
+        for size_pattern in size_mapping:
+            if size_pattern in last_part:
+                # Проверяем, нет ли в размере исключенных терминов
+                size_lower = size_pattern.lower()
+                if not any(term.lower() in size_lower for term in EXCLUDED_TERMS):
+                    return size_mapping[size_pattern]
+
+        # Если размер не найден, проверяем предыдущую часть
+        if len(parts) > 1:
+            prev_part = parts[-2].upper()
+            for size_pattern in size_mapping:
+                if size_pattern in prev_part:
+                    size_lower = size_pattern.lower()
+                    if not any(term.lower() in size_lower for term in EXCLUDED_TERMS):
+                        return size_mapping[size_pattern]
+
+        return None
+
+    # В методе process_updates добавить очистку старых вариантов перед созданием новых
     def process_updates(self, stock_data, batch_size):
-        """Process updates in batches with proper variant handling"""
+        """Process all updates with batch optimization and clean old variants"""
         products_to_update = []
         variants_to_create = []
         through_to_create = []
 
-        logger.info(f"Preparing updates for {len(stock_data)} products")
+        logger.info("Preparing updates...")
 
-        # First pass: prepare all updates
-        for product_id, data in tqdm(stock_data.items(), desc="Preparing updates"):
+        # Сначала удаляем все существующие варианты для обновляемых товаров
+        product_ids = [data['product'].id for data in stock_data.values()]
+        ProductVariantThrough.objects.filter(product_id__in=product_ids).delete()
+        ProductVariant.objects.filter(product_id__in=product_ids).delete()
+
+        for product_id, data in tqdm(stock_data.items(), desc="Preparing data"):
             product = data['product']
             product.quantity = data['total_free']
             product.in_stock = data['total_free'] > 0
-
-            # Handle clothing sizes
-            if data['is_clothing']:
-                sizes = list(data['variants'].keys())
-                product.clothing_sizes = ', '.join(sorted(sizes)) if sizes else ''
-                logger.debug(f"Product {product_id} sizes: {product.clothing_sizes}")
-
             products_to_update.append(product)
 
-            # Prepare variants for clothing products
-            if data['is_clothing'] and data['variants']:
-                for size, quantity in data['variants'].items():
-                    variant = ProductVariant(
-                        size=size,
-                        quantity=quantity,
-                        price=product.price,
-                        old_price=product.old_price,
-                        sku=f"{product.code}-{size}" if product.code else f"{product_id}-{size}"
-                    )
-                    variants_to_create.append(variant)
-                    through_to_create.append({
-                        'product_id': product.id,
-                        'variant_sku': variant.sku,
-                        'quantity': quantity,
-                        'price': product.price,
-                        'old_price': product.old_price
-                    })
+            for size, quantity in data['variants'].items():
+                # Пропускаем пустые размеры
+                if not size:
+                    continue
 
-        # Process updates in batches
+                variant = ProductVariant(
+                    product_id=product.id,  # Явно устанавливаем связь
+                    size=size,
+                    quantity=quantity,
+                    price=product.price,
+                    old_price=product.old_price,
+                    sku=f"{product.code}-{size}"
+                )
+                variants_to_create.append(variant)
+                through_to_create.append({
+                    'product_id': product.id,
+                    'variant_sku': variant.sku,
+                    'quantity': quantity,
+                    'price': product.price,
+                    'old_price': product.old_price
+                })
+
+        # Остальной код метода остается без изменений...
+        logger.info("Executing bulk updates...")
         with transaction.atomic():
-            # Update products in batches
-            for i in range(0, len(products_to_update), batch_size):
-                batch = products_to_update[i:i + batch_size]
+            # Update products
+            if products_to_update:
                 XMLProduct.objects.bulk_update(
-                    batch,
-                    ['quantity', 'in_stock', 'clothing_sizes'],
+                    products_to_update,
+                    ['quantity', 'in_stock'],
                     batch_size=batch_size
                 )
-                logger.debug(f"Updated {len(batch)} products")
+                logger.info(f"Updated {len(products_to_update)} products")
 
-            # Handle variants - first delete old ones for updated products
+            # Create variants
             if variants_to_create:
-                product_ids = [p.id for p in products_to_update if stock_data[p.product_id]['is_clothing']]
-                if product_ids:
-                    # Delete old variants in batches
-                    for i in range(0, len(product_ids), batch_size):
-                        batch_ids = product_ids[i:i + batch_size]
-                        ProductVariantThrough.objects.filter(product_id__in=batch_ids).delete()
-                        ProductVariant.objects.filter(
-                            id__in=ProductVariantThrough.objects.filter(
-                                product_id__in=batch_ids
-                            ).values_list('variant_id', flat=True)
-                        ).delete()
-                        logger.debug(f"Deleted old variants for {len(batch_ids)} products")
-
-                # Create new variants in batches
-                created_variants = []
-                for i in range(0, len(variants_to_create), batch_size):
-                    batch = variants_to_create[i:i + batch_size]
-                    created = ProductVariant.objects.bulk_create(batch)
-                    created_variants.extend(created)
-                    logger.debug(f"Created {len(created)} variants")
+                created_variants = ProductVariant.objects.bulk_create(
+                    variants_to_create,
+                    batch_size=batch_size
+                )
+                logger.info(f"Created {len(created_variants)} variants")
 
                 # Create through relations
-                variant_map = {v.sku: v for v in created_variants}
-                through_objects = []
-                for item in through_to_create:
-                    if item['variant_sku'] in variant_map:
-                        through_objects.append(
-                            ProductVariantThrough(
-                                product_id=item['product_id'],
-                                variant_id=variant_map[item['variant_sku']].id,
-                                quantity=item['quantity'],
-                                price=item['price'],
-                                old_price=item['old_price']
-                            )
+                if through_to_create:
+                    variant_map = {v.sku: v for v in created_variants}
+                    through_objects = [
+                        ProductVariantThrough(
+                            product_id=item['product_id'],
+                            variant_id=variant_map[item['variant_sku']].id,
+                            quantity=item['quantity'],
+                            price=item['price'],
+                            old_price=item['old_price']
                         )
+                        for item in through_to_create
+                        if item['variant_sku'] in variant_map
+                    ]
 
-                # Create through relations in batches
-                for i in range(0, len(through_objects), batch_size):
-                    batch = through_objects[i:i + batch_size]
-                    ProductVariantThrough.objects.bulk_create(batch)
-                    logger.debug(f"Created {len(batch)} through relations")
+                    ProductVariantThrough.objects.bulk_create(
+                        through_objects,
+                        batch_size=batch_size
+                    )
+                    logger.info(f"Created {len(through_objects)} through relations")
 
-    def find_product_by_alt_code(self, code):
-        """Find product by alternative code patterns"""
-        if not code:
-            return None
-
-        # Try to find by partial match (first 6 characters)
-        product = XMLProduct.objects.filter(code__startswith(code[:6])).first()
-        if product:
-            return product
-
-        # Try to find by base code (without size suffix)
-        base_code = re.sub(r'[^a-zA-Z0-9]', '', code)
-        for size in self.size_mapping.values():
-            if base_code.endswith(size):
-                base_code = base_code[:-len(size)]
-                break
-
-        if base_code and len(base_code) >= 4:
-            product = XMLProduct.objects.filter(
-                Q(code__startswith(base_code)) |
-                Q(code__contains=base_code)
-            ).first()
-
-
-
-        return product
-
-
-if __name__ == '__main__':
-    Command().handle()

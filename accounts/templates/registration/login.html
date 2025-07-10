@@ -61,6 +61,11 @@
     .is-invalid {
         border-color: #dc3545 !important;
     }
+
+    .loading-spinner {
+        display: none;
+        margin-left: 8px;
+    }
 </style>
 
 <div class="login-container">
@@ -77,15 +82,17 @@
 
     <form method="post" id="loginForm">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+        <input type="hidden" name="old_session_key" value="{{ request.session.session_key }}">
 
         <div class="mb-4">
             <label class="form-label">Email <span class="text-danger">*</span></label>
             <input type="email"
-       name="username"
-       class="custom-input"
-       placeholder="example@company.com"
-       value="{{ form.username.value|default:'' }}"
-       required>
+                   name="username"
+                   class="custom-input"
+                   placeholder="example@company.com"
+                   value="{{ form.username.value|default:'' }}"
+                   required>
             <div class="error-message" id="email_error">Пожалуйста, введите корректный email</div>
         </div>
 
@@ -98,21 +105,32 @@
                    placeholder="Введите ваш пароль"
                    required>
             <span class="password-toggle" id="passwordToggle">
-
+                <i class="far fa-eye"></i>
             </span>
-            <div class="error-message" id="password_error">Пожалуйста, введите пароль</div>
+            <div class="error-message" id="password_error">Пароль должен содержать минимум 6 символов</div>
         </div>
 
         <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
-                <i class="fas fa-sign-in-alt me-2"></i>Войти
+            <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold" id="submitBtn">
+                <span id="btnText">Войти</span>
+                <span class="loading-spinner" id="loadingSpinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
             </button>
         </div>
 
-       <div class="text-center small">
-    <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">Забыли пароль?</a>
-</div>
+        <div class="text-center small">
+            <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">Забыли пароль?</a>
+        </div>
     </form>
+
+    <div class="text-center mt-4">
+        <p class="text-gray-600">Нет аккаунта?</p>
+        <a href="{% url 'accounts:company_register' %}?next={{ request.GET.next }}"
+           class="btn btn-outline-primary mt-2">
+            Зарегистрировать компанию
+        </a>
+    </div>
 </div>
 
 <script>
@@ -135,10 +153,11 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         let isValid = true;
         const form = this;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         // Проверка email
         const email = form.querySelector('[name="username"]');
-        if (!email.value.trim() || !email.value.includes('@')) {
+        if (!emailRegex.test(email.value.trim())) {
             document.getElementById('email_error').style.display = 'block';
             email.classList.add('is-invalid');
             isValid = false;
@@ -149,7 +168,7 @@
 
         // Проверка пароля
         const password = form.querySelector('[name="password"]');
-        if (!password.value.trim()) {
+        if (password.value.trim().length < 6) {
             document.getElementById('password_error').style.display = 'block';
             password.classList.add('is-invalid');
             isValid = false;
@@ -160,7 +179,17 @@
 
         if (!isValid) {
             e.preventDefault();
+        } else {
+            // Показываем индикатор загрузки
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'inline-block';
+            document.getElementById('submitBtn').disabled = true;
         }
     });
+
+    // DEBUG информация (только в development)
+    {% if debug %}
+    console.log('Debug Info - Session Key:', '{{ request.session.session_key }}');
+    {% endif %}
 </script>
 {% endblock %}

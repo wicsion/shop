@@ -27,10 +27,8 @@
                             </p>
                             {% endif %}
                             <p class="text-gray-800 font-medium mt-1">
-    {{ item.item.quantity }} × {{ item.product.price }} ₽ = {{ item.total_price }} ₽
-</p>
-                            <!-- Добавленное отображение количества -->
-
+                                {{ item.item.quantity }} × {{ item.product.price }} ₽ = {{ item.total_price }} ₽
+                            </p>
                         </div>
                     </div>
                     {% endfor %}
@@ -48,7 +46,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-semibold mb-4">{% trans "Контактная информация" %}</h2>
 
-                <form method="post" action="{% url 'main:checkout' %}">
+                <form method="post" action="{% url 'main:checkout' %}" id="order-form">
                     {% csrf_token %}
 
                     <div class="space-y-4">
@@ -94,27 +92,24 @@
                             {% endif %}
                         </div>
 
-                        <div>
-                            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="delivery-address-section">
+                            <label for="delivery_address" class="block text-sm font-medium text-gray-700 mb-1">
                                 {% trans "Адрес доставки" %} *
                             </label>
 
-                            {% if request.user.is_authenticated and request.user.company.delivery_addresses.exists %}
-                                <select name="delivery_address" id="delivery-address-select" class="w-full border rounded-lg px-3 py-2 text-sm mb-2">
-                                    <option value="">Выберите сохранённый адрес</option>
-                                    {% for address in request.user.company.delivery_addresses.all %}
-                                        <option value="{{ address.id }}" {% if address.is_default %}selected{% endif %}>
-                                            {{ address.address }}{% if address.is_default %} (по умолчанию){% endif %}
-                                        </option>
-                                    {% endfor %}
-                                    <option value="new">Добавить новый адрес</option>
-                                </select>
+                            {% if form.delivery_address.field.choices %}
+                                {{ form.delivery_address }}
+                                {% if form.delivery_address.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.delivery_address.errors.0 }}</p>
+                                {% endif %}
                             {% endif %}
 
-                            {{ form.address }}
-                            {% if form.address.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
-                            {% endif %}
+                            <div id="address-field-wrapper" class="mt-2">
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div>
@@ -164,46 +159,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Обработка выбора адреса доставки
+     const deliveryAddressSelect = document.querySelector('[name="delivery_address"]');
+    const addressField = document.getElementById('{{ form.address.id_for_label }}');
+    const addressWrapper = document.getElementById('address-field-wrapper');
+
+    if (deliveryAddressSelect) {
+        // Функция для обновления состояния поля адреса
+        function updateAddressField() {
+            const selectedOption = deliveryAddressSelect.options[deliveryAddressSelect.selectedIndex];
+
+            if (deliveryAddressSelect.value && deliveryAddressSelect.value !== 'new') {
+                // Выбран сохраненный адрес - скрываем поле и подставляем адрес
+                addressWrapper.style.display = 'none';
+                addressField.removeAttribute('required');
+                addressField.value = selectedOption.text;  // Используем текст опции (адрес)
+            } else {
+                // Не выбран адрес или выбрано "новый адрес" - показываем поле
+                addressWrapper.style.display = 'block';
+                addressField.setAttribute('required', 'required');
+
+                // Если выбрано "новый адрес", очищаем поле
+                if (deliveryAddressSelect.value === 'new') {
+                    addressField.value = '';
+                }
+            }
+        }
+
+        // Инициализация при загрузке
+        updateAddressField();
+
+        // Обработчик изменения выбора
+        deliveryAddressSelect.addEventListener('change', updateAddressField);
+    }
+
     // Проверка заполненности обязательных полей перед отправкой
-    const form = document.querySelector('form');
+    const form = document.getElementById('order-form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            const requiredFields = form.querySelectorAll('[required]');
             let isValid = true;
+            const errorMessages = [];
 
+            // Проверяем все обязательные поля
+            const requiredFields = form.querySelectorAll('[required]');
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     field.classList.add('border-red-500');
                     isValid = false;
+                    errorMessages.push(`Поле "${field.labels[0].textContent.trim()}" обязательно для заполнения`);
                 } else {
                     field.classList.remove('border-red-500');
                 }
             });
 
+            // Дополнительная проверка для адреса доставки
+            if (deliveryAddressSelect && deliveryAddressSelect.value === 'new' && !addressField.value.trim()) {
+                addressField.classList.add('border-red-500');
+                isValid = false;
+                errorMessages.push('Необходимо ввести адрес доставки');
+            }
+
             if (!isValid) {
                 e.preventDefault();
-                alert('Пожалуйста, заполните все обязательные поля');
-            }
-        });
-    }
-});
-document.addEventListener('DOMContentLoaded', function() {
-    const addressSelect = document.getElementById('delivery-address-select');
-    const addressField = document.getElementById('{{ form.address.id_for_label }}');
-
-    if (addressSelect) {
-        addressSelect.addEventListener('change', function() {
-            if (this.value === 'new') {
-                addressField.style.display = 'block';
-                addressField.value = '';
-                addressField.required = true;
-            } else if (this.value) {
-                // Здесь можно добавить AJAX-запрос для получения полного адреса по ID
-                addressField.style.display = 'none';
-                addressField.required = false;
-            } else {
-                addressField.style.display = 'block';
-                addressField.required = true;
+                alert(errorMessages.join('\n'));
             }
         });
     }
