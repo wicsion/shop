@@ -2588,12 +2588,11 @@
                 <button id="close-bubble" class="text-gray-400 hover:text-gray-600 text-sm">
                     Нет, спасибо
                 </button>
-                <a href="#contact" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                <a href="{% url 'accounts:support_ticket' %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                     Да, помочь
                 </a>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -2797,7 +2796,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     })
 })
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка кнопки "Да, помочь"
+    const helpLink = document.querySelector('a[href="#contact"]');
+    if (helpLink) {
+        helpLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = "{% url 'accounts:support_ticket' %}";
+        });
+    }
 
+    // Обработка кнопки "Нет, спасибо"
+    const closeBubble = document.getElementById('close-bubble');
+    if (closeBubble) {
+        closeBubble.addEventListener('click', function() {
+            document.getElementById('help-bubble').style.display = 'none';
+        });
+    }
+});
 
 
 

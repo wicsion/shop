@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
 from main.models import CartItem, Order, DeliveryAddress
-from .models import Company, CustomUser, Document
+from .models import Company, CustomUser, Document, SupportTicket
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 
@@ -132,3 +132,35 @@ class AddUserToCompanyForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['email', 'role', 'password1', 'password2']
+
+
+class SupportTicketForm(forms.ModelForm):
+    contact_email = forms.EmailField(
+        label='Email для связи',
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    contact_phone = forms.CharField(
+        label='Телефон для связи',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = SupportTicket
+        fields = ['ticket_type', 'message', 'contact_email', 'contact_phone']
+        widgets = {
+            'ticket_type': forms.Select(attrs={'class': 'form-control'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contact_email = cleaned_data.get('contact_email')
+        contact_phone = cleaned_data.get('contact_phone')
+
+        if not contact_email and not contact_phone:
+            raise forms.ValidationError(
+                "Пожалуйста, укажите либо email, либо телефон для связи"
+            )
+        return cleaned_data

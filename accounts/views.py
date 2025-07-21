@@ -4,7 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from pdfkit import pdfkit
 
 from .models import Company, Document, AuditLog, CustomUser, SupportTicket
-from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm, AddUserToCompanyForm
+from .forms import CompanyRegistrationForm, DocumentUploadForm, DeliveryAddressForm, AddUserToCompanyForm, \
+    SupportTicketForm
 import random
 import string
 from django.core.mail import send_mail
@@ -745,16 +746,30 @@ class TeamDashboardView(LoginRequiredMixin, TemplateView):
         context['company'] = self.request.user.company
         return context
 
+
 class SupportTicketCreateView(LoginRequiredMixin, CreateView):
     model = SupportTicket
-    fields = ['ticket_type', 'message']
+    form_class = SupportTicketForm
     template_name = 'accounts/support_ticket.html'
     success_url = reverse_lazy('accounts:company_dashboard')
 
     def form_valid(self, form):
         form.instance.company = self.request.user.company
-        messages.success(self.request, 'Ваше обращение успешно отправлено!')
-        return super().form_valid(form)
+        form.instance.user = self.request.user
+
+        if not form.cleaned_data.get('contact_email'):
+            form.instance.contact_email = self.request.user.email
+
+        if not form.cleaned_data.get('contact_phone'):
+            form.instance.contact_phone = self.request.user.phone
+
+        response = super().form_valid(form)
+
+        # Добавляем сообщение в сессию
+        messages.success(self.request,
+                         'Ваше обращение успешно отправлено! Служба поддержки свяжется с вами в ближайшее время.')
+
+        return response
 
 
 def add_delivery_address(request):

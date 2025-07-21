@@ -2,6 +2,29 @@ from django import forms
 from .models import CartItem, Order, DeliveryAddress
 
 
+class SelectSizesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        product = kwargs.pop('product', None)
+        cart_item = kwargs.pop('cart_item', None)
+        super().__init__(*args, **kwargs)
+
+        if product and product.has_variants:
+            available_sizes = product.get_available_sizes()
+
+            # Устанавливаем начальные значения из cart_item.selected_sizes если они есть
+            initial_sizes = getattr(cart_item, 'selected_sizes', {}) or {}
+
+            for size in available_sizes:
+                self.fields[f'size_{size}'] = forms.IntegerField(
+                    label=size,
+                    min_value=0,
+                    initial=initial_sizes.get(size, 0),
+                    required=False,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'size-quantity-input border rounded px-3 py-1 w-20 text-center',
+                        'placeholder': '0'
+                    })
+                )
 class AddToCartForm(forms.ModelForm):
     quantity = forms.IntegerField(
         min_value=1,
@@ -141,3 +164,5 @@ class SearchForm(forms.Form):
             'placeholder': 'Поиск...',
         })
     )
+
+

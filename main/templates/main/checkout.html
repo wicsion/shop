@@ -25,6 +25,13 @@
                             <p class="text-sm text-gray-600 mt-1">
                                 {% trans "Размер" %}: {{ item.size }}
                             </p>
+                            {% elif item.selected_sizes %}
+                            <p class="text-sm text-gray-600 mt-1">
+                                {% trans "Размеры" %}:
+                                {% for size, quantity in item.selected_sizes.items %}
+                                    {{ size }} × {{ quantity }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
                             {% endif %}
                             <p class="text-gray-800 font-medium mt-1">
                                 {{ item.item.quantity }} × {{ item.product.price }} ₽ = {{ item.total_price }} ₽
@@ -160,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Обработка выбора адреса доставки
-     const deliveryAddressSelect = document.querySelector('[name="delivery_address"]');
+    const deliveryAddressSelect = document.querySelector('[name="delivery_address"]');
     const addressField = document.getElementById('{{ form.address.id_for_label }}');
     const addressWrapper = document.getElementById('address-field-wrapper');
 

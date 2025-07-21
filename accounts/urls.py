@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 
 from . import views  # Добавьте этот импорт
 from .forms import EmailAuthenticationForm
-from .views import add_delivery_address, delete_delivery_address
+from .views import add_delivery_address, delete_delivery_address, SupportTicketCreateView
 from .views import download_document
 app_name = 'accounts'
 
@@ -82,6 +82,7 @@ path('password-reset/complete/',
     path('orders/', views.order_list, name='order_list'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
     path('documents/<int:pk>/download/', download_document, name='download_document'),
+
 
 
 

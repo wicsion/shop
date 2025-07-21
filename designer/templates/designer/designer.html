@@ -1,0 +1,887 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <h1 class="text-2xl font-bold mb-6">Конструктор товара: {{ template.name }}</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Design area -->
+        <div class="lg:w-2/3">
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <div class="flex justify-between mb-4">
+                    <div>
+                        <button id="front-btn" class="btn btn-primary active">Лицевая сторона</button>
+                        {% if back_image %}
+                        <button id="back-btn" class="btn btn-outline">Тыльная сторона</button>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <button id="add-text-btn" class="btn btn-outline mr-2">Добавить текст</button>
+                        <button id="add-image-btn" class="btn btn-outline">Добавить изображение</button>
+                    </div>
+                </div>
+
+                <div class="relative" id="design-container">
+                    {% if front_image %}
+                    <img id="product-image" src="{{ front_image.image.url }}"
+                         class="w-full h-auto" alt="Product template">
+                    {% endif %}
+
+                    <!-- Existing areas for front side -->
+                    <div id="front-elements-container" class="absolute inset-0">
+                        {% for area in areas %}
+                        <div class="design-area absolute p-0"
+                             style="left: {{ area.x_position }}px; top: {{ area.y_position }}px;
+                                    width: {{ area.width }}px; height: {{ area.height }}px;"
+                             data-area-id="{{ area.id }}">
+                            <div class="area-content h-full flex items-center justify-center">
+                                {% for element in design.elements.all %}
+                                    {% if element.area == area and element.side == 'front' %}
+                                        {% if element.image %}
+                                            <img src="{{ element.image.url }}" class="max-w-full max-h-full element-display"
+                                                 data-element-id="{{ element.id }}" data-area-id="{{ area.id }}">
+                                        {% elif element.text_content %}
+                                            <span class="element-display"
+                                                  style="color: {{ element.color }}; font-size: {{ element.font_size }}px; transform: rotate({{ element.rotation }}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
+                                                  data-element-id="{{ element.id }}" data-area-id="{{ area.id }}">
+                                                {{ element.text_content }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% empty %}
+                                    <span class="text-gray-400">Кликните для редактирования</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Existing areas for back side (hidden by default) -->
+                    {% if back_image %}
+                    <div id="back-elements-container" class="absolute inset-0 hidden">
+                        {% for area in areas %}
+                        <div class="design-area absolute p-0"
+                             style="left: {{ area.x_position }}px; top: {{ area.y_position }}px;
+                                    width: {{ area.width }}px; height: {{ area.height }}px;"
+                             data-area-id="{{ area.id }}">
+                            <div class="area-content h-full flex items-center justify-center">
+                                {% for element in design.elements.all %}
+                                    {% if element.area == area and element.side == 'back' %}
+                                        {% if element.image %}
+                                            <img src="{{ element.image.url }}" class="max-w-full max-h-full element-display"
+                                                 data-element-id="{{ element.id }}" data-area-id="{{ area.id }}">
+                                        {% elif element.text_content %}
+                                            <span class="element-display"
+                                                  style="color: {{ element.color }}; font-size: {{ element.font_size }}px; transform: rotate({{ element.rotation }}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
+                                                  data-element-id="{{ element.id }}" data-area-id="{{ area.id }}">
+                                                {{ element.text_content }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% empty %}
+                                    <span class="text-gray-400">Кликните для редактирования</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="lg:w-1/3">
+            <div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
+                <div id="element-controls" class="mb-6 hidden">
+                    <h3 class="text-lg font-semibold mb-2">Редактирование элемента</h3>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Текст</label>
+                        <input type="text" id="element-text" class="w-full border rounded px-3 py-2">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Цвет текста</label>
+                        <input type="color" id="element-color" value="#000000" class="w-full">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Размер шрифта</label>
+                        <input type="range" id="element-font-size" min="8" max="72" value="14" class="w-full">
+                        <span id="font-size-value">14px</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Вращение (градусы)</label>
+                        <input type="range" id="element-rotation" min="0" max="360" value="0" class="w-full">
+                        <span id="rotation-value">0°</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Изображение</label>
+                        <input type="file" id="element-image" class="w-full" accept="image/*">
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button id="save-element-btn" class="btn btn-primary">Сохранить</button>
+                        <button id="delete-element-btn" class="btn btn-danger">Удалить</button>
+                        <button id="cancel-edit-btn" class="btn btn-outline">Отмена</button>
+                    </div>
+                </div>
+
+                <div id="product-controls">
+                    <h3 class="text-lg font-semibold mb-4">Настройки товара</h3>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Цвет товара</label>
+                        <div class="flex flex-wrap gap-2">
+                            {% for color in colors %}
+                            <div class="color-option w-8 h-8 rounded-full cursor-pointer border-2
+                                        {% if forloop.first %}border-blue-500{% else %}border-transparent{% endif %}"
+                                 style="background-color: {{ color.hex_code }};"
+                                 data-color-id="{{ color.id }}"
+                                 title="{{ color.name }}"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Размер</label>
+                        <select id="product-size" class="w-full border rounded px-3 py-2">
+                            {% for size in sizes %}
+                            <option value="{{ size.name }}">{{ size.name }} ({{ size.description }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-1">Количество</label>
+                        <input type="number" id="product-quantity" min="1" value="1" class="w-full border rounded px-3 py-2">
+                    </div>
+
+                    <button id="preview-btn" class="btn btn-outline mb-2">Предпросмотр</button>
+                    <button id="save-order-btn" class="btn btn-primary w-full">Добавить в корзину</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentElement = null;
+    let currentAreaId = null;
+    let currentSide = 'front';
+    const designId = {{ design.id }};
+    const designContainer = document.getElementById('design-container');
+    const frontElementsContainer = document.getElementById('front-elements-container');
+    const backElementsContainer = document.getElementById('back-elements-container');
+    let originalElement = null;
+
+    // Add new text element
+    document.getElementById('add-text-btn').addEventListener('click', function() {
+        const container = currentSide === 'front' ? frontElementsContainer : backElementsContainer;
+
+        const newElement = document.createElement('div');
+        newElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+        newElement.style.width = '200px';
+        newElement.style.height = '50px';
+        newElement.style.left = '100px';
+        newElement.style.top = '100px';
+        newElement.dataset.side = currentSide;
+        newElement.innerHTML = `
+            <div class="element-content h-full flex items-center justify-center">
+                <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
+            </div>
+            <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
+                <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+            </div>
+        `;
+
+        newElement.addEventListener('click', function(e) {
+            if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
+            selectElement(newElement);
+        });
+
+        makeElementDraggable(newElement);
+        makeElementResizable(newElement);
+        makeElementRotatable(newElement);
+
+        container.appendChild(newElement);
+        selectElement(newElement);
+    });
+
+    // Add new image element
+    document.getElementById('add-image-btn').addEventListener('click', function() {
+        const container = currentSide === 'front' ? frontElementsContainer : backElementsContainer;
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const newElement = document.createElement('div');
+                    newElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+                    newElement.style.width = '150px';
+                    newElement.style.height = '150px';
+                    newElement.style.left = '100px';
+                    newElement.style.top = '100px';
+                    newElement.dataset.side = currentSide;
+                    newElement.innerHTML = `
+                        <div class="element-content h-full flex items-center justify-center">
+                            <img src="${event.target.result}" class="max-w-full max-h-full">
+                        </div>
+                        <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
+                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                        </div>
+                    `;
+
+                    newElement.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
+                        selectElement(newElement);
+                    });
+
+                    makeElementDraggable(newElement);
+                    makeElementResizable(newElement);
+                    makeElementRotatable(newElement);
+
+                    container.appendChild(newElement);
+                    selectElement(newElement);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    });
+
+    // Select element function
+    function selectElement(element) {
+        if (currentElement) {
+            currentElement.classList.remove('border-blue-500');
+            currentElement.classList.add('border-transparent');
+        }
+
+        currentElement = element;
+        currentElement.classList.remove('border-transparent');
+        currentElement.classList.add('border-blue-500');
+
+        document.getElementById('element-controls').classList.remove('hidden');
+        document.getElementById('product-controls').classList.add('hidden');
+
+        const content = element.querySelector('.element-content');
+        if (content.querySelector('img')) {
+            document.getElementById('element-text').value = '';
+        } else if (content.querySelector('span')) {
+            const span = content.querySelector('span');
+            document.getElementById('element-text').value = span.textContent;
+            document.getElementById('element-color').value = span.style.color || '#000000';
+
+            // Get font size (remove 'px' if present)
+            let fontSize = span.style.fontSize || '14px';
+            fontSize = parseInt(fontSize.replace('px', ''));
+            document.getElementById('element-font-size').value = fontSize;
+            document.getElementById('font-size-value').textContent = fontSize + 'px';
+
+            // Get rotation (extract from transform)
+            let rotation = 0;
+            if (span.style.transform) {
+                const match = span.style.transform.match(/rotate\((\d+)deg\)/);
+                if (match) rotation = parseInt(match[1]);
+            }
+            document.getElementById('element-rotation').value = rotation;
+            document.getElementById('rotation-value').textContent = rotation + '°';
+        }
+    }
+
+    // Make element draggable
+    function makeElementDraggable(element) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        let originalElement = null;
+
+        element.onmousedown = function(e) {
+            if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
+
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        };
+
+        function elementDrag(e) {
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            const containerRect = designContainer.getBoundingClientRect();
+            const elementRect = element.getBoundingClientRect();
+
+            let newTop = element.offsetTop - pos2;
+            let newLeft = element.offsetLeft - pos1;
+
+            // Boundary checks
+            newTop = Math.max(0, Math.min(newTop, containerRect.height - elementRect.height));
+            newLeft = Math.max(0, Math.min(newLeft, containerRect.width - elementRect.width));
+
+            element.style.top = newTop + 'px';
+            element.style.left = newLeft + 'px';
+        }
+
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+
+    // Make element resizable
+    function makeElementResizable(element) {
+        const resizeHandle = element.querySelector('.resize-handle');
+        let startX, startY, startWidth, startHeight;
+
+        resizeHandle.onmousedown = function(e) {
+            e.preventDefault();
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
+            startHeight = parseInt(document.defaultView.getComputedStyle(element).height, 10);
+            document.onmousemove = resizeElement;
+            document.onmouseup = stopResize;
+        };
+
+        function resizeElement(e) {
+            const width = startWidth + (e.clientX - startX);
+            const height = startHeight + (e.clientY - startY);
+
+            if (width > 50) element.style.width = width + 'px';
+            if (height > 20) element.style.height = height + 'px';
+
+            // Update text to fit container
+            const content = element.querySelector('.element-content');
+            if (content && content.querySelector('span')) {
+                const span = content.querySelector('span');
+                const containerWidth = parseInt(element.style.width);
+                const containerHeight = parseInt(element.style.height);
+
+                // Рассчитываем оптимальный размер шрифта
+                let fontSize = Math.min(containerHeight, containerWidth / span.textContent.length * 1.5);
+                fontSize = Math.max(8, Math.min(72, fontSize)); // Ограничиваем мин/макс размер
+
+                span.style.fontSize = fontSize + 'px';
+                span.style.lineHeight = containerHeight + 'px';
+                span.style.width = '100%';
+                span.style.textAlign = 'center';
+                span.style.display = 'flex';
+                span.style.alignItems = 'center';
+                span.style.justifyContent = 'center';
+                span.dataset.originalFontSize = fontSize;
+            }
+        }
+
+        function stopResize() {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        }
+    }
+
+    // Make element rotatable
+    function makeElementRotatable(element) {
+        const rotateHandle = element.querySelector('.rotate-handle');
+        let startAngle = 0;
+        let initialAngle = 0;
+        let centerX, centerY;
+
+        rotateHandle.onmousedown = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const rect = element.getBoundingClientRect();
+            centerX = rect.left + rect.width / 2;
+            centerY = rect.top + rect.height / 2;
+
+            // Get current rotation
+            const content = element.querySelector('.element-content span');
+            if (content && content.style.transform) {
+                const match = content.style.transform.match(/rotate\((\d+)deg\)/);
+                if (match) initialAngle = parseInt(match[1]);
+            }
+
+            startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+
+            document.onmousemove = rotateElement;
+            document.onmouseup = stopRotate;
+        };
+
+        function rotateElement(e) {
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+            const rotation = (initialAngle + angle - startAngle) % 360;
+
+            const content = element.querySelector('.element-content span');
+            if (content) {
+                content.style.transform = `rotate(${rotation}deg)`;
+                document.getElementById('element-rotation').value = rotation;
+                document.getElementById('rotation-value').textContent = rotation + '°';
+            }
+        }
+
+        function stopRotate() {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        }
+    }
+
+    // Save element
+    document.getElementById('save-element-btn').addEventListener('click', function() {
+        if (!currentElement) return;
+
+        const content = currentElement.querySelector('.element-content');
+        const textContent = document.getElementById('element-text').value;
+        const color = document.getElementById('element-color').value;
+        const fontSize = document.getElementById('element-font-size').value;
+        const rotation = document.getElementById('element-rotation').value;
+        const imageInput = document.getElementById('element-image');
+        const side = currentElement.dataset.side || 'front';
+
+        if (imageInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('design_id', designId);
+            formData.append('x_position', parseInt(currentElement.style.left));
+            formData.append('y_position', parseInt(currentElement.style.top));
+            formData.append('width', parseInt(currentElement.style.width));
+            formData.append('height', parseInt(currentElement.style.height));
+            formData.append('image', imageInput.files[0]);
+            formData.append('side', side);
+            formData.append('rotation', rotation);
+
+            fetch('{% url "designer:save_custom_element" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove the editing element
+                    currentElement.remove();
+
+                    // Create and display the saved element without border
+                    const container = side === 'front' ? frontElementsContainer : backElementsContainer;
+                    const savedElement = document.createElement('div');
+                    savedElement.className = 'design-area absolute p-0';
+                    savedElement.style.left = currentElement.style.left;
+                    savedElement.style.top = currentElement.style.top;
+                    savedElement.style.width = currentElement.style.width;
+                    savedElement.style.height = currentElement.style.height;
+                    savedElement.dataset.areaId = data.area_id;
+
+                    if (imageInput.files.length > 0) {
+                        savedElement.innerHTML = `
+                            <div class="area-content h-full flex items-center justify-center">
+                                <img src="${URL.createObjectURL(imageInput.files[0])}"
+                                     class="max-w-full max-h-full element-display"
+                                     data-element-id="${data.element_id}"
+                                     data-area-id="${data.area_id}">
+                            </div>
+                        `;
+                    } else {
+                        savedElement.innerHTML = `
+                            <div class="area-content h-full flex items-center justify-center">
+                                <span class="element-display"
+                                      style="color: ${color}; font-size: ${fontSize}px; transform: rotate(${rotation}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
+                                      data-element-id="${data.element_id}"
+                                      data-area-id="${data.area_id}">
+                                    ${textContent}
+                                </span>
+                            </div>
+                        `;
+                    }
+
+                    container.appendChild(savedElement);
+
+                    // Add click handler to the new element
+                    const displayElement = savedElement.querySelector('.element-display');
+                    displayElement.addEventListener('click', handleElementClick);
+
+                    // Reset UI
+                    currentElement = null;
+                    document.getElementById('element-controls').classList.add('hidden');
+                    document.getElementById('product-controls').classList.remove('hidden');
+                }
+            });
+        } else if (textContent) {
+            fetch('{% url "designer:save_custom_element" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `design_id=${designId}&x_position=${parseInt(currentElement.style.left)}&y_position=${parseInt(currentElement.style.top)}&width=${parseInt(currentElement.style.width)}&height=${parseInt(currentElement.style.height)}&text_content=${encodeURIComponent(textContent)}&color=${encodeURIComponent(color)}&font_size=${fontSize}&rotation=${rotation}&side=${side}`
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove the editing element
+                    currentElement.remove();
+
+                    // Create and display the saved element without border
+                    const container = side === 'front' ? frontElementsContainer : backElementsContainer;
+                    const savedElement = document.createElement('div');
+                    savedElement.className = 'design-area absolute p-0';
+                    savedElement.style.left = currentElement.style.left;
+                    savedElement.style.top = currentElement.style.top;
+                    savedElement.style.width = currentElement.style.width;
+                    savedElement.style.height = currentElement.style.height;
+                    savedElement.dataset.areaId = data.area_id;
+                    savedElement.innerHTML = `
+                        <div class="area-content h-full flex items-center justify-center">
+                            <span class="element-display"
+                                  style="color: ${color}; font-size: ${fontSize}px; transform: rotate(${rotation}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
+                                  data-element-id="${data.element_id}"
+                                  data-area-id="${data.area_id}">
+                                ${textContent}
+                            </span>
+                        </div>
+                    `;
+
+                    container.appendChild(savedElement);
+
+                    // Add click handler to the new element
+                    const displayElement = savedElement.querySelector('.element-display');
+                    displayElement.addEventListener('click', handleElementClick);
+
+                    // Reset UI
+                    currentElement = null;
+                    document.getElementById('element-controls').classList.add('hidden');
+                    document.getElementById('product-controls').classList.remove('hidden');
+                }
+            });
+        }
+    });
+
+    // Handle click on saved element
+    function handleElementClick(e) {
+        const elementDisplay = e.currentTarget;
+        const elementId = elementDisplay.dataset.elementId;
+        const areaId = elementDisplay.dataset.areaId;
+        const side = elementDisplay.closest('#front-elements-container') ? 'front' : 'back';
+
+        // Find the parent area element
+        const areaElement = elementDisplay.closest('.design-area');
+        if (areaElement) {
+            // Remove the original element
+            areaElement.remove();
+
+            // Create a temporary editable element
+            const tempElement = document.createElement('div');
+            tempElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+            tempElement.style.left = areaElement.style.left;
+            tempElement.style.top = areaElement.style.top;
+            tempElement.style.width = areaElement.style.width;
+            tempElement.style.height = areaElement.style.height;
+            tempElement.dataset.elementId = elementId;
+            tempElement.dataset.areaId = areaId;
+            tempElement.dataset.side = side;
+
+            // Copy the content
+            if (elementDisplay.tagName === 'IMG') {
+                tempElement.innerHTML = `
+                    <div class="element-content h-full flex items-center justify-center">
+                        <img src="${elementDisplay.src}" class="max-w-full max-h-full">
+                    </div>
+                    <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                    </div>
+                `;
+            } else {
+                const style = elementDisplay.getAttribute('style') || '';
+                tempElement.innerHTML = `
+                    <div class="element-content h-full flex items-center justify-center">
+                        <span style="${style}">${elementDisplay.textContent}</span>
+                    </div>
+                    <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                    </div>
+                `;
+            }
+
+            // Add to container
+            const container = side === 'front' ? frontElementsContainer : backElementsContainer;
+            container.appendChild(tempElement);
+
+            // Make interactive
+            makeElementDraggable(tempElement);
+            makeElementResizable(tempElement);
+            makeElementRotatable(tempElement);
+            selectElement(tempElement);
+
+            // Set as current element
+            currentElement = tempElement;
+        }
+    }
+
+    // Delete element
+    document.getElementById('delete-element-btn').addEventListener('click', function() {
+        if (!currentElement) return;
+
+        if (confirm('Удалить этот элемент?')) {
+            if (currentElement.dataset.elementId) {
+                fetch('{% url "designer:delete_custom_element" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `element_id=${currentElement.dataset.elementId}`
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        currentElement.remove();
+                        currentElement = null;
+                        document.getElementById('element-controls').classList.add('hidden');
+                        document.getElementById('product-controls').classList.remove('hidden');
+                    }
+                });
+            } else {
+                currentElement.remove();
+                currentElement = null;
+                document.getElementById('element-controls').classList.add('hidden');
+                document.getElementById('product-controls').classList.remove('hidden');
+            }
+        }
+    });
+
+    // Cancel editing
+    document.getElementById('cancel-edit-btn').addEventListener('click', function() {
+        if (currentElement) {
+            // If we were editing an existing element, restore it
+            if (currentElement.dataset.elementId) {
+                const side = currentElement.dataset.side || 'front';
+                const container = side === 'front' ? frontElementsContainer : backElementsContainer;
+
+                // Create the saved element again
+                const savedElement = document.createElement('div');
+                savedElement.className = 'design-area absolute p-0';
+                savedElement.style.left = currentElement.style.left;
+                savedElement.style.top = currentElement.style.top;
+                savedElement.style.width = currentElement.style.width;
+                savedElement.style.height = currentElement.style.height;
+                savedElement.dataset.areaId = currentElement.dataset.areaId;
+
+                const content = currentElement.querySelector('.element-content');
+                if (content.querySelector('img')) {
+                    const img = content.querySelector('img');
+                    savedElement.innerHTML = `
+                        <div class="area-content h-full flex items-center justify-center">
+                            <img src="${img.src}" class="max-w-full max-h-full element-display"
+                                 data-element-id="${currentElement.dataset.elementId}"
+                                 data-area-id="${currentElement.dataset.areaId}">
+                        </div>
+                    `;
+                } else {
+                    const span = content.querySelector('span');
+                    savedElement.innerHTML = `
+                        <div class="area-content h-full flex items-center justify-center">
+                            <span class="element-display"
+                                  style="${span.getAttribute('style')}"
+                                  data-element-id="${currentElement.dataset.elementId}"
+                                  data-area-id="${currentElement.dataset.areaId}">
+                                ${span.textContent}
+                            </span>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(savedElement);
+
+                // Add click handler to the new element
+                const displayElement = savedElement.querySelector('.element-display');
+                displayElement.addEventListener('click', handleElementClick);
+            }
+
+            // Remove the editing element
+            currentElement.remove();
+            currentElement = null;
+        }
+        document.getElementById('element-controls').classList.add('hidden');
+        document.getElementById('product-controls').classList.remove('hidden');
+    });
+
+    // Front/back buttons
+    document.getElementById('front-btn').addEventListener('click', function() {
+        {% if front_image %}
+        document.getElementById('product-image').src = '{{ front_image.image.url }}';
+        {% endif %}
+        frontElementsContainer.classList.remove('hidden');
+        if (backElementsContainer) backElementsContainer.classList.add('hidden');
+        this.classList.add('active');
+        document.getElementById('back-btn').classList.remove('active');
+        currentSide = 'front';
+    });
+
+    {% if back_image %}
+    document.getElementById('back-btn').addEventListener('click', function() {
+        document.getElementById('product-image').src = '{{ back_image.image.url }}';
+        frontElementsContainer.classList.add('hidden');
+        backElementsContainer.classList.remove('hidden');
+        this.classList.add('active');
+        document.getElementById('front-btn').classList.remove('active');
+        currentSide = 'back';
+    });
+    {% endif %}
+
+    // Font size slider
+    document.getElementById('element-font-size').addEventListener('input', function() {
+        document.getElementById('font-size-value').textContent = this.value + 'px';
+        if (currentElement) {
+            const span = currentElement.querySelector('.element-content span');
+            if (span) {
+                span.style.fontSize = this.value + 'px';
+                span.dataset.originalFontSize = this.value;
+            }
+        }
+    });
+
+    // Rotation slider
+    document.getElementById('element-rotation').addEventListener('input', function() {
+        document.getElementById('rotation-value').textContent = this.value + '°';
+        if (currentElement) {
+            const span = currentElement.querySelector('.element-content span');
+            if (span) {
+                span.style.transform = `rotate(${this.value}deg)`;
+            }
+        }
+    });
+
+    // Color options
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('border-blue-500');
+                opt.classList.add('border-transparent');
+            });
+            this.classList.add('border-blue-500');
+            this.classList.remove('border-transparent');
+        });
+    });
+
+    // Add click handlers to existing elements
+    document.querySelectorAll('.element-display').forEach(element => {
+        element.addEventListener('click', handleElementClick);
+    });
+
+    // Preview and save buttons
+    document.getElementById('preview-btn').addEventListener('click', function() {
+        window.location.href = '{% url "designer:preview_custom_design" design.id %}';
+    });
+
+    document.getElementById('save-order-btn').addEventListener('click', function() {
+        const colorId = document.querySelector('.color-option.border-blue-500').dataset.colorId;
+        const size = document.getElementById('product-size').value;
+        const quantity = document.getElementById('product-quantity').value;
+
+        fetch('{% url "designer:save_custom_design_order" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `design_id=${designId}&color_id=${colorId}&size=${encodeURIComponent(size)}&quantity=${quantity}`
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect_url || '{% url "main:cart_view" %}';
+            } else {
+                alert(data.message || 'Ошибка при сохранении заказа');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+.btn-outline {
+    background-color: white;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+}
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+}
+.btn.active {
+    background-color: #2563eb;
+}
+.design-area {
+    background-color: transparent;
+    cursor: pointer;
+    border: none !important;
+    padding: 0 !important;
+}
+.user-element {
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 10;
+    border: 2px dashed blue;
+}
+.user-element:hover {
+    background-color: rgba(219, 234, 254, 0.7);
+}
+.color-option:hover {
+    transform: scale(1.1);
+}
+.element-controls {
+    display: none;
+    z-index: 20;
+}
+.user-element:hover .element-controls {
+    display: flex;
+}
+.element-display {
+    cursor: pointer;
+}
+.element-display:hover {
+    outline: 1px dashed #ccc;
+}
+.area-content {
+    width: 100%;
+    height: 100%;
+}
+.resize-handle {
+    cursor: nwse-resize;
+}
+.rotate-handle {
+    cursor: grab;
+}
+.element-content span {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-word;
+    white-space: pre-wrap;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

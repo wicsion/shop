@@ -21,9 +21,12 @@ from io import BytesIO
 from PIL import Image
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+
+
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
-from .forms import AddToCartForm, OrderForm, SearchForm
+from .forms import AddToCartForm, OrderForm, SearchForm, SelectSizesForm
 from .models import DeliveryAddress
+
 
 
 logger = logging.getLogger(__name__)
@@ -443,7 +446,7 @@ def add_to_cart(request, product_id):
             quantity = form.cleaned_data['quantity']
             selected_size = form.cleaned_data.get('selected_size', None)
 
-            # Создаем или обновляем элемент корзины
+            # Create cart item
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 xml_product=product,
@@ -473,6 +476,39 @@ def add_to_cart(request, product_id):
             messages.error(request, 'Ошибка при добавлении в корзину')
             return redirect(product.get_absolute_url())
 
+
+def select_sizes(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id)
+    product = cart_item.xml_product
+
+    if not product.has_variants:
+        messages.error(request, 'Для этого товара не требуется выбор размеров')
+        return redirect('main:cart_view')
+
+    if request.method == 'POST':
+        form = SelectSizesForm(request.POST, product=product, cart_item=cart_item)
+        if form.is_valid():
+            selected_sizes = {}
+            for size in product.get_available_sizes():
+                quantity = form.cleaned_data.get(f'size_{size}', 0)
+                if quantity and quantity > 0:
+                    selected_sizes[size] = quantity
+
+            if selected_sizes:
+                cart_item.selected_sizes = selected_sizes
+                cart_item.save()
+                messages.success(request, 'Размеры успешно выбраны')
+                return redirect('main:cart_view')
+            else:
+                messages.error(request, 'Выберите хотя бы один размер')
+    else:
+        form = SelectSizesForm(product=product, cart_item=cart_item)
+
+    return render(request, 'main/select_sizes.html', {
+        'form': form,
+        'product': product,
+        'cart_item': cart_item,
+    })
 
 
 
@@ -531,29 +567,39 @@ def update_cart(request, item_id):
 
 
 def cart_view(request):
+    print("DEBUG: Starting cart_view")  # Отладочный вывод
     cart = get_cart(request)
     order_form = OrderForm()
 
-    # Prepare cart items with product data
+    # Подготовка cart_items с информацией о товарах
     cart_items = []
     for item in cart.items.all():
         if item.xml_product:
+            print(f"DEBUG: CartItem {item.id} - size={item.size}, selected_sizes={item.selected_sizes}")  # Отладочный вывод
             cart_items.append({
                 'item': item,
                 'product': item.xml_product,
                 'image': item.xml_product.main_image,
                 'total_price': item.quantity * item.xml_product.price,
-                'size': item.size  # Добавляем размер в контекст
+                'size': item.size
             })
+
+    # Проверка на отсутствие размеров
+    has_missing_sizes = any(
+        item.xml_product and item.xml_product.has_variants and
+        not item.size and not item.selected_sizes
+        for item in cart.items.all()
+    )
+    print(f"DEBUG: has_missing_sizes={has_missing_sizes}")  # Отладочный вывод
 
     context = {
         'cart': cart,
         'cart_items': cart_items,
         'order_form': order_form,
+        'has_missing_sizes': has_missing_sizes,
         'search_form': SearchForm(),
     }
     return render(request, 'main/cart.html', context)
-
 
 def send_order_confirmation_email(request, order):
     # Рендерим HTML содержимое письма из шаблона
@@ -607,6 +653,12 @@ def checkout(request):
     if cart.items.count() == 0:
         messages.warning(request, 'Ваша корзина пуста')
         return redirect('main:cart_view')
+
+    for item in cart.items.all():
+        if item.xml_product and item.xml_product.has_variants:
+            if not item.size and not item.selected_sizes:
+                messages.error(request, f'Для товара "{item.xml_product.name}" необходимо выбрать размеры')
+                return redirect('main:cart_view')
 
     # Подготовка cart_items
     cart_items = []
@@ -1028,3 +1080,5 @@ def test_email(request, order_id):
     order.status = Order.STATUS_IN_PROGRESS
     order.save()
     return HttpResponse("Order status changed, check if email was sent")
+
+

@@ -50,3 +50,49 @@ def remove_tablemer(value):
 @register.filter
 def find_variant_by_size(variants, size):
     return next((v for v in variants if v.size.upper() == size.upper()), None)
+
+@register.filter
+def split(value, arg):
+    """Разделяет строку по заданному аргументу и возвращает часть после разделителя"""
+    if not value or not arg:
+        return value
+    parts = str(value).split(arg, 1)  # Разделяем только по первому вхождению
+    if len(parts) > 1:
+        # Берем часть после разделителя и удаляем все HTML теги после
+        result = parts[1].split('<')[0].strip()
+        # Удаляем возможные точки или запятые в конце
+        result = result.rstrip('.,').strip()
+        return result
+    return value
+@register.filter
+def remove_capacity(value):
+    """Удаляет информацию о емкости из описания товара"""
+    patterns = [
+        r'<br>Емкость\s*\d+\s*мл[.,]?\s*',
+        r'<br>емкость\s*\d+\s*мл[.,]?\s*',
+        r'<br>Объем\s*\d+\s*мл[.,]?\s*',
+        r'<br>объем\s*\d+\s*мл[.,]?\s*',
+        r'Емкость\s*\d+\s*мл[.,]?\s*',
+        r'емкость\s*\d+\s*мл[.,]?\s*',
+        r'Объем\s*\d+\s*мл[.,]?\s*',
+        r'объем\s*\d+\s*мл[.,]?\s*'
+    ]
+    for pattern in patterns:
+        value = re.sub(pattern, '', value, flags=re.IGNORECASE)
+    return value
+
+@register.filter
+def strip(value):
+    """Удаляет пробелы в начале и конце строки"""
+    return value.strip() if value else value
+
+@register.filter
+def trim_spaces(value):
+    """Удаляет все лишние пробелы (в начале, конце и между словами)"""
+    if not value:
+        return value
+    return ' '.join(str(value).strip().split())
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

@@ -800,6 +800,26 @@
             </div>
         </div>
         {% endif %}
+    <!-- В блоке характеристик (примерно строка 400) добавить: -->
+<!-- В блоке характеристик (примерно строка 400) замените на: -->
+{% with desc=product.description %}
+    {% if "Емкость" in desc or "емкость" in desc or "Объем" in desc or "объем" in desc %}
+    <div class="characteristic-item">
+        <div class="text-xs md:text-sm text-gray-500">Емкость</div>
+        <div class="text-lg md:text-xl font-bold">
+            {% if "Емкость" in desc %}
+                {{ desc|split:"Емкость" }}
+            {% elif "емкость" in desc %}
+                {{ desc|split:"емкость" }}
+            {% elif "Объем" in desc %}
+                {{ desc|split:"Объем" }}
+            {% elif "объем" in desc %}
+                {{ desc|split:"объем" }}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% endwith %}
 
         <!-- Третья строка - Цвет и Вес -->
         {% if product.xml_data.filters %}
@@ -819,6 +839,21 @@
             <div class="text-lg md:text-xl font-bold">{{ product.weight }} г</div>
         </div>
         {% endif %}
+
+        <!-- Добавляем блок с размерами -->
+{% with excluded_sizes="XXS,XS,S,M,L,XL,XXL,XXXL,3XL,4XL,5XL" %}
+    {% if product.xml_data.attributes.size %}
+        {% with size=product.xml_data.attributes.size %}
+            {# Only show if it contains measurement units #}
+            {% if "см" in size or "мм" in size or "м" in size or "г" in size or "кг" in size %}
+                <div class="characteristic-item">
+                    <div class="text-xs md:text-sm text-gray-500">Размеры</div>
+                    <div class="text-lg md:text-xl font-bold">{{ size }}</div>
+                </div>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+{% endwith %}
     </div>
 </div>
 
@@ -827,6 +862,7 @@
                         <h3 class="section-title">Нанесение</h3>
 
                         <!-- Замените текущий блок с методами нанесения на этот: -->
+<!-- В секции Нанесение, после методов нанесения -->
 {% if printing_data.methods %}
 <div class="printing-info mb-4">
     <h4 class="font-medium text-gray-700 mb-2">Доступные методы нанесения</h4>
@@ -840,6 +876,11 @@
         </label>
         {% endfor %}
     </div>
+
+    <!-- Добавляем кнопку конструктора -->
+<a href="/designer/custom/" class="mt-4 btn btn-primary hover:bg-blue-700 transition">
+    Открыть конструктор
+</a>
 </div>
 {% endif %}
 
@@ -908,26 +949,27 @@
                 {% endif %}
 
                 <!-- Вкладки (Описание и Видео) -->
-                <div class="tabs" style="margin-top: 30px;">
-                    <div class="tab active" data-tab="description">Описание</div>
-                    {% if product.xml_data.video_link %}
-                    <div class="tab" data-tab="video">Видео</div>
-                    {% endif %}
-                </div>
+              <!-- Вкладки (Описание и Видео) -->
+<div class="tabs" style="margin-top: 30px;">
+    <div class="tab active" data-tab="description">Описание</div>
+    {% if product.xml_data.video_link %}
+    <div class="tab" data-tab="video">Видео</div>
+    {% endif %}
+</div>
 
-                <div class="tab-content active" id="description">
-                    <div class="scrollable-description prose max-w-none">
-                        {{ product.description|remove_tablemer|safe }}
-                    </div>
-                </div>
+<div class="tab-content active" id="description">
+    <div class="scrollable-description prose max-w-none">
+        {{ product.description|remove_tablemer|remove_capacity|safe }}
+    </div>
+</div>
 
-                {% if product.xml_data.video_link %}
-                <div class="tab-content" id="video">
-                    <div class="video-container">
-                        <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                </div>
-                {% endif %}
+{% if product.xml_data.video_link %}
+<div class="tab-content" id="video">
+    <div class="video-container">
+        <iframe src="{{ product.xml_data.video_link }}" frameborder="0" allowfullscreen></iframe>
+    </div>
+</div>
+{% endif %}
             </div>
         </div>
     </div>

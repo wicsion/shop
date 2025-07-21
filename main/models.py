@@ -11,7 +11,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 import uuid
 from django.conf import settings
 from model_utils import FieldTracker
-from accounts.models import Document
+
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -455,7 +455,6 @@ class XMLProduct(models.Model):
         size_info['available_sizes'] = [s['size'] for s in size_info['sizes_with_quantities']]
 
         return size_info
-
 
 
     def get_add_to_cart_form(self):
@@ -1039,6 +1038,12 @@ class CartItem(models.Model):
     size = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    selected_sizes = models.JSONField(
+        _('Выбранные размеры'),
+        default=dict,
+        blank=True,
+        help_text="Словарь с размерами и их количеством в формате {'size': quantity}"
+    )
 
     class Meta:
         verbose_name = _('Элемент корзины')
@@ -1284,5 +1289,7 @@ class Partner(models.Model):
 
     def __str__(self):
         return self.name
+
+
 
 

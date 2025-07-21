@@ -185,14 +185,34 @@ class Document(models.Model):
         related_name='document_link'
     )
 
+
 class SupportTicket(models.Model):
     TICKET_TYPES = (
         ('general', 'Общий вопрос'),
         ('legal', 'Юридический'),
         ('payment', 'Оплата'),
+        ('technical', 'Технический'),
     )
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    STATUS_CHOICES = (
+        ('new', 'Новый'),
+        ('in_progress', 'В обработке'),
+        ('resolved', 'Решен'),
+    )
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='Компания')
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
     ticket_type = models.CharField('Тип обращения', max_length=20, choices=TICKET_TYPES)
     message = models.TextField('Сообщение')
-    created_at = models.DateTimeField(auto_now_add=True)
-    resolved = models.BooleanField('Решено', default=False)
+    contact_email = models.EmailField('Email для связи', blank=True, null=True)
+    contact_phone = models.CharField('Телефон для связи', max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='new')
+    admin_notes = models.TextField('Заметки администратора', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Обращение в поддержку'
+        verbose_name_plural = 'Обращения в поддержку'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Обращение #{self.id} от {self.company}"

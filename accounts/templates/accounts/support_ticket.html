@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %}
 {% load static %}
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
@@ -21,7 +21,28 @@
                     <option value="general">Общий вопрос</option>
                     <option value="legal">Юридический вопрос</option>
                     <option value="payment">Вопрос по оплате</option>
+                    <option value="technical">Технический вопрос</option>
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="id_contact_email">
+                    Email для связи
+                </label>
+                <input type="email" name="contact_email" id="id_contact_email"
+                       value="{{ request.user.email }}"
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       placeholder="Ваш email">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="id_contact_phone">
+                    Телефон для связи
+                </label>
+                <input type="text" name="contact_phone" id="id_contact_phone"
+                       value="{{ request.user.phone }}"
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       placeholder="Ваш телефон">
             </div>
 
             <div class="mb-6">
@@ -30,8 +51,19 @@
                 </label>
                 <textarea name="message" id="id_message" rows="5"
                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                          placeholder="Опишите вашу проблему или вопрос..."></textarea>
+                          placeholder="Опишите вашу проблему или вопрос..." required></textarea>
+                <p class="text-xs text-gray-500 mt-1">Пожалуйста, укажите либо email, либо телефон для связи</p>
             </div>
+
+            {% if form.errors %}
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
             <div class="flex items-center justify-between">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -41,4 +73,52 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем наличие уведомления в localStorage
+    const notificationMessage = localStorage.getItem('support_notification');
+    if (notificationMessage) {
+        showGlobalNotification(notificationMessage);
+        localStorage.removeItem('support_notification');
+    }
+});
+
+function showGlobalNotification(message) {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg mb-2 flex items-center animate-fade-in-up';
+    notification.innerHTML = `
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>${message}</span>
+    `;
+
+    // Добавляем на страницу
+    document.body.appendChild(notification);
+
+    // Удаляем через 5 секунд
+    setTimeout(() => {
+        notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+</script>
+
+    <style>
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 {% endblock %}
