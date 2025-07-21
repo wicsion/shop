@@ -802,25 +802,19 @@
         {% endif %}
     <!-- В блоке характеристик (примерно строка 400) добавить: -->
 <!-- В блоке характеристик (примерно строка 400) замените на: -->
-{% with desc=product.description %}
-    {% if "Емкость" in desc or "емкость" in desc or "Объем" in desc or "объем" in desc %}
-    <div class="characteristic-item">
-        <div class="text-xs md:text-sm text-gray-500">Емкость</div>
-        <div class="text-lg md:text-xl font-bold">
-            {% if "Емкость" in desc %}
-                {{ desc|split:"Емкость" }}
-            {% elif "емкость" in desc %}
-                {{ desc|split:"емкость" }}
-            {% elif "Объем" in desc %}
-                {{ desc|split:"Объем" }}
-            {% elif "объем" in desc %}
-                {{ desc|split:"объем" }}
+<!-- В блоке характеристик замените на: -->
+{% with desc=product.description|lower %}
+    {% if "емкость" in desc and not "емкость-" in desc and not "емкость," in desc %}
+        {% with capacity=desc|extract_capacity %}
+            {% if capacity %}
+                <div class="characteristic-item">
+                    <div class="text-xs md:text-sm text-gray-500">Емкость</div>
+                    <div class="text-lg md:text-xl font-bold">{{ capacity }}</div>
+                </div>
             {% endif %}
-        </div>
-    </div>
+        {% endwith %}
     {% endif %}
 {% endwith %}
-
         <!-- Третья строка - Цвет и Вес -->
         {% if product.xml_data.filters %}
             {% for filter in product.xml_data.filters %}
@@ -910,41 +904,76 @@
                     </div>
                     {% endif %}
 
-                    {% if product.xml_data.attributes.size_table %}
-                    <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
-                        <!-- Изображение с размерами -->
-                        <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
-                            <img src="//files.giftsoffer.ru/images/tablemer/Tshirt_with_sleeve.svg"
-                                 alt="Схема размеров"
-                                 class="object-contain h-auto">
-                        </div>
+<!-- В блоке таблицы размеров (примерно строка 500) замените на: -->
+<!-- Блок с размерами -->
+{% if size_data.available_sizes or product.xml_data.attributes.size_table %}
+<div class="size-info-section mt-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
 
-                        <!-- Таблица размеров -->
-                        <div class="md:w-3/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
-                            <table class="size-table w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Размер</th>
-                                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                                        <th>{{ size }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for param in product.xml_data.attributes.size_table.parameters %}
-                                    <tr>
-                                        <td class="font-medium">{{ param }}</td>
-                                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                                        <td>{{ product.xml_data.attributes.size_table.data|get_item:size|get_item:param }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
-                        </div>
-                    </div>
-                    {% endif %}
+    {% if size_data.available_sizes %}
+    <div class="mb-4">
+        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
+        <div class="flex flex-wrap gap-2">
+            {% for size in size_data.available_sizes %}
+                {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
+                    <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if product.xml_data.attributes.size_table %}
+    <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
+        <!-- Изображение с размерами -->
+        {% if product.get_size_table_image %}
+        <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
+            <img src="{{ product.get_size_table_image }}" alt="Схема размеров" class="object-contain h-auto">
+        </div>
+        {% endif %}
+
+        <!-- Таблица размеров -->
+        <div class="md:w-4/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
+            <table class="size-table w-full">
+                <thead>
+                    <tr>
+                        <th>Размер</th>
+                        {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                            {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
+                                <th>{{ size }}</th>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for param in product.xml_data.attributes.size_table.parameters %}
+                        {% with row_values=product.xml_data.attributes.size_table.data %}
+                            {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
+                                {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
+                                    {% with cell_value=row_values|get_item:size|get_item:param %}
+                                        {% if cell_value != None %}
+                                            {% if forloop.first %}
+                                            <tr>
+                                                <td class="font-medium">{{ param }}</td>
+                                            {% endif %}
+                                                <td>{{ cell_value }}</td>
+                                            {% if forloop.last %}
+                                            </tr>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
                 </div>
                 {% endif %}
 

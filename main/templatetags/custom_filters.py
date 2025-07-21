@@ -94,5 +94,59 @@ def trim_spaces(value):
     return ' '.join(str(value).strip().split())
 
 @register.filter
-def get_item(dictionary, key):
-    return dictionary.get(key)
+def get_item(form_or_dict, key):
+    if hasattr(form_or_dict, 'cleaned_data'):  # Это форма Django
+        return form_or_dict.cleaned_data.get(key)
+    elif hasattr(form_or_dict, 'get'):  # Это словарь
+        return form_or_dict.get(key)
+    return None
+
+
+@register.filter
+def extract_capacity(value):
+    """Извлекает только числовое значение и единицы измерения емкости"""
+    if not value:
+        return None
+
+    # Паттерн для поиска емкости:
+    # - число (может быть с пробелами, точкой или запятой как разделителями тысяч/десятичных)
+    # - единицы измерения (с учетом регистра для "мАч")
+    pattern = r'(\d{1,3}(?:[ \.,]?\d{3})*(?:[.,]\d+)?)\s*(мл|л|гр?|кг|см³|см3|mл|ml|g|kg|см\s*³|мАч|mAh|mA)'
+    matches = re.findall(pattern, value, flags=re.IGNORECASE)
+
+    if matches:
+        # Берем первое совпадение
+        number, unit = matches[0]
+
+        # Нормализуем число:
+        # - удаляем только пробелы как разделители тысяч
+        # - заменяем запятую на точку для десятичных чисел
+        normalized_number = number.replace(' ', '').replace(',', '.')
+
+        # Приводим единицы измерения к стандартному виду
+        unit_lower = unit.lower()
+        if unit_lower in ['mah', 'мач']:
+            unit = 'мАч'  # Приводим к правильному регистру
+        elif unit_lower in ['ml', 'mл']:
+            unit = 'мл'
+
+        return f"{normalized_number} {unit}"
+
+    return None
+@register.filter
+def ends_with(value, arg):
+    """Проверяет, заканчивается ли строка на заданный аргумент"""
+    if not value:
+        return False
+    return str(value).endswith(arg)
+
+@register.filter
+def trim(value):
+    """Удаляет пробелы в начале и конце строки"""
+    return value.strip() if value else value
+
+@register.filter
+def exclude_sizes(size):
+    """Check if size should be excluded"""
+    excluded_sizes = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
+    return str(size).upper() not in excluded_sizes

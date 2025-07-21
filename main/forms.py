@@ -10,21 +10,18 @@ class SelectSizesForm(forms.Form):
 
         if product and product.has_variants:
             available_sizes = product.get_available_sizes()
-
-            # Устанавливаем начальные значения из cart_item.selected_sizes если они есть
-            initial_sizes = getattr(cart_item, 'selected_sizes', {}) or {}
+            initial_sizes = getattr(cart_item, 'selected_sizes', {}) if cart_item else {}
 
             for size in available_sizes:
                 self.fields[f'size_{size}'] = forms.IntegerField(
                     label=size,
                     min_value=0,
+                    max_value=product.get_variant_quantity(size) or product.quantity,
                     initial=initial_sizes.get(size, 0),
                     required=False,
                     widget=forms.NumberInput(attrs={
-                        'class': 'size-quantity-input border rounded px-3 py-1 w-20 text-center',
-                        'placeholder': '0'
-                    })
-                )
+                        'class': 'size-quantity-input border rounded px-3 py-1 w-full',
+                    }))
 class AddToCartForm(forms.ModelForm):
     quantity = forms.IntegerField(
         min_value=1,

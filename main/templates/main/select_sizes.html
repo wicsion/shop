@@ -1,35 +1,45 @@
 {% extends "main/base.html" %}
-{% load static i18n %}
 
+{% load static i18n custom_filters %}
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">Выберите размеры для {{ product.name }}</h1>
-  <div class="bg-gray-100 p-4 mb-6 rounded-lg">
-        <h3 class="font-semibold mb-2">Отладочная информация:</h3>
-        <p>Доступные размеры: {{ product.get_available_sizes|join:", " }}</p>
-        <p>Текущие выбранные размеры: {{ cart_item.selected_sizes|default:"не выбраны" }}</p>
-    </div>
-    <form method="post">
-        {% csrf_token %}
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Выберите размеры для {{ product.name }}</h1>
+     <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 class="font-semibold mb-2">Отладочная информация:</h3>
+            <p>Доступные размеры: {{ product.get_available_sizes|join:", " }}</p>
+            <p>Текущие выбранные размеры: {{ cart_item.selected_sizes|default:"не выбраны" }}</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
 
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Доступные размеры</h2>
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Доступные размеры</h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% for size in product.get_available_sizes %}
-                <div class="border rounded-lg p-4">
-                    <label class="block font-medium mb-2">{{ size }}</label>
-                    {{ form|get_item:size }}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {% for size in product.get_available_sizes %}
+                        <div class="border rounded-lg p-4">
+                            <label class="block font-medium mb-2">{{ size }}</label>
+                            <input type="number"
+                                   name="size_{{ size }}"
+                                   min="0"
+                                   max="{{ product.get_variant_quantity|get_item:size|default:product.quantity }}"
+                                   value="{{ cart_item.selected_sizes|get_item:size|default:0 }}"
+                                   class="size-quantity-input w-full border rounded px-3 py-1">
+                        </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
-        </div>
 
-        <div class="flex justify-end">
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
-                Сохранить размеры
-            </button>
-        </div>
-    </form>
+            <div class="flex justify-between items-center">
+                <a href="{% url 'main:cart_view' %}" class="text-gray-600 hover:text-gray-800">
+                    &larr; Вернуться в корзину
+                </a>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                    Сохранить размеры
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

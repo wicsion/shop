@@ -145,22 +145,26 @@
                 {% endif %}
 
                 <!-- Фильтр по размерам -->
-                {% if sizes %}
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Размеры" %}</h3>
-                    <div class="space-y-2 max-h-60 overflow-y-auto">
-                        {% for size in sizes %}
-                        <div class="flex items-center">
-                            <input type="checkbox" id="size_{{ forloop.counter }}"
-                                   class="size-filter mr-2" value="{{ size }}"
-                                   {% if size in selected_sizes %}checked{% endif %}
-                                   aria-labelledby="size_{{ forloop.counter }}_label">
-                            <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ size }}</label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+<!-- Фильтр по размерам -->
+<!-- Фильтр по размерам -->
+<!-- Фильтр по размерам -->
+{% if sizes and category.name in "Одежда,Футболки,Кепки и бейсболки,Панамы,Футболки поло,Футболки с длинным рукавом,Промо футболки,Ветровки,Толстовки,Свитшоты,Худи,Куртки,Флисовые куртки и кофты,Шарфы,Трикотажные шапки,Перчатки и варежки,Вязаные комплекты,Джемперы,Жилеты,Офисные рубашки,Фартуки,Спортивная одежда,Брюки и шорты,Детская одежда,Аксессуары,Худи под нанесение логотипа,Футболки с логотипом,Толстовки с логотипом,Свитшоты под нанесение логотипа,Брюки и шорты с логотипом" or category.parent.name in "Одежда,Футболки,Кепки и бейсболки,Панамы,Футболки поло,Футболки с длинным рукавом,Промо футболки,Ветровки,Толстовки,Свитшоты,Худи,Куртки,Флисовые куртки и кофты,Шарфы,Трикотажные шапки,Перчатки и варежки,Вязаные комплекты,Джемперы,Жилеты,Офисные рубашки,Фартуки,Спортивная одежда,Брюки и шорты,Детская одежда,Аксессуары,Худи под нанесение логотипа,Футболки с логотипом,Толстовки с логотипом,Свитшоты под нанесение логотипа,Брюки и шорты с логотипом" %}
+<div class="mb-6">
+    <h3 class="font-semibold text-lg mb-4">{% trans "Размеры" %}</h3>
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+        {% for size in sizes %}
+            <div class="flex items-center">
+                <input type="checkbox" id="size_{{ forloop.counter }}"
+                       class="size-filter mr-2" value="{{ size }}"
+                       {% if size in selected_sizes %}checked{% endif %}
+                       aria-labelledby="size_{{ forloop.counter }}_label">
+                <label for="size_{{ forloop.counter }}" id="size_{{ forloop.counter }}_label">{{ size }}</label>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 
                 <!-- Фильтр по стране производства -->
                 <div class="mb-6">

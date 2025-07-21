@@ -378,12 +378,57 @@ class CategoryDetailView(DetailView):
         size_set = set()
         STANDARD_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
 
+        # Определяем категории одежды
+        CLOTHING_CATEGORIES = [
+            'Одежда', 'Футболки', 'Кепки и бейсболки', 'Панамы', 'Футболки поло',
+            'Футболки с длинным рукавом', 'Промо футболки', 'Ветровки', 'Толстовки',
+            'Свитшоты', 'Худи', 'Куртки', 'Флисовые куртки и кофты', 'Шарфы',
+            'Трикотажные шапки', 'Перчатки и варежки', 'Вязаные комплекты',
+            'Джемперы', 'Жилеты', 'Офисные рубашки', 'Фартуки', 'Спортивная одежда',
+            'Брюки и шорты', 'Детская одежда', 'Аксессуары',
+            'Худи под нанесение логотипа', 'Футболки с логотипом',
+            'Толстовки с логотипом', 'Свитшоты под нанесение логотипа',
+            'Брюки и шорты с логотипом'
+        ]
+
+        # Проверяем, относится ли текущая категория к одежде
+        is_clothing = self.object.name in CLOTHING_CATEGORIES or \
+                      any(parent.name in CLOTHING_CATEGORIES for parent in self.object.get_ancestors())
+
+        if not is_clothing:
+            return []
+
         for product in products:
-            if product.sizes_available:
+            # 1. Проверяем варианты размеров
+            if product.variants.exists():
+                for variant in product.variants.all():
+                    size = str(variant.size).strip().upper()
+                    if size in STANDARD_SIZES:
+                        size_set.add(size)
+
+            # 2. Проверяем поле sizes_available
+            elif product.sizes_available:
                 for size in product.sizes_available.split(','):
                     size = str(size).strip().upper()
-                    if size in STANDARD_SIZES or (size.isdigit() and 30 <= int(size) <= 60):
+                    if size in STANDARD_SIZES:
                         size_set.add(size)
+
+            # 3. Проверяем таблицу размеров в XML
+            if product.xml_data and 'attributes' in product.xml_data and 'size_table' in product.xml_data['attributes']:
+                size_table = product.xml_data['attributes']['size_table']
+                if 'headers' in size_table and len(size_table['headers']) > 1:
+                    for size in size_table['headers'][1:]:
+                        size = str(size).strip().upper()
+                        if size in STANDARD_SIZES:
+                            size_set.add(size)
+
+            # 4. Проверяем фильтры из XML (type_id=1 - размеры одежды)
+            if product.xml_data and 'filters' in product.xml_data:
+                for f in product.xml_data['filters']:
+                    if str(f.get('type_id')) == '1' and f.get('filter_name'):
+                        size = str(f['filter_name']).strip().upper()
+                        if size in STANDARD_SIZES:
+                            size_set.add(size)
 
         return sorted(size_set, key=lambda x: (
             STANDARD_SIZES.index(x) if x in STANDARD_SIZES else len(STANDARD_SIZES),
@@ -496,6 +541,8 @@ def select_sizes(request, item_id):
 
             if selected_sizes:
                 cart_item.selected_sizes = selected_sizes
+                # Устанавливаем общее количество
+                cart_item.quantity = sum(selected_sizes.values())
                 cart_item.save()
                 messages.success(request, 'Размеры успешно выбраны')
                 return redirect('main:cart_view')
@@ -567,37 +614,40 @@ def update_cart(request, item_id):
 
 
 def cart_view(request):
-    print("DEBUG: Starting cart_view")  # Отладочный вывод
     cart = get_cart(request)
     order_form = OrderForm()
 
     # Подготовка cart_items с информацией о товарах
     cart_items = []
+    has_missing_sizes = False
+
     for item in cart.items.all():
         if item.xml_product:
-            print(f"DEBUG: CartItem {item.id} - size={item.size}, selected_sizes={item.selected_sizes}")  # Отладочный вывод
-            cart_items.append({
+            cart_item_data = {
                 'item': item,
                 'product': item.xml_product,
                 'image': item.xml_product.main_image,
                 'total_price': item.quantity * item.xml_product.price,
-                'size': item.size
-            })
+                'size': item.size,
+                'selected_sizes': item.selected_sizes
+            }
+            cart_items.append(cart_item_data)
 
-    # Проверка на отсутствие размеров
-    has_missing_sizes = any(
-        item.xml_product and item.xml_product.has_variants and
-        not item.size and not item.selected_sizes
-        for item in cart.items.all()
-    )
-    print(f"DEBUG: has_missing_sizes={has_missing_sizes}")  # Отладочный вывод
+            # Проверяем, нужно ли выбирать размеры
+            if item.xml_product.has_variants:
+                # Если есть selected_sizes и там есть хотя бы один размер с количеством > 0
+                has_selected_sizes = bool(item.selected_sizes) and any(
+                    qty > 0 for qty in item.selected_sizes.values()
+                )
+
+                if not item.size and not has_selected_sizes:
+                    has_missing_sizes = True
 
     context = {
         'cart': cart,
         'cart_items': cart_items,
         'order_form': order_form,
         'has_missing_sizes': has_missing_sizes,
-        'search_form': SearchForm(),
     }
     return render(request, 'main/cart.html', context)
 

@@ -4,7 +4,25 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">{% trans "Корзина" %}</h1>
-
+<!-- Добавьте этот блок перед основным содержимым корзины -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="font-semibold mb-2">Отладочная информация:</h3>
+    {% for cart_item in cart_items %}
+        <div class="mb-4">
+            <p>Товар: {{ cart_item.product.name }}</p>
+            <p>Размер: {{ cart_item.size|default:"не указан" }}</p>
+            <p>Выбранные размеры: {{ cart_item.selected_sizes|default:"не выбраны" }}</p>
+            <p>has_variants: {{ cart_item.product.has_variants }}</p>
+            <p>Проверка missing sizes:
+                {% if cart_item.product.has_variants and not cart_item.size and not cart_item.selected_sizes %}
+                    TRUE (требуются размеры)
+                {% else %}
+                    FALSE (размеры указаны)
+                {% endif %}
+            </p>
+        </div>
+    {% endfor %}
+</div>
     {% if cart_items %}
     <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
         <div class="divide-y divide-gray-200">
@@ -66,6 +84,9 @@
                                         <a href="{% url 'main:select_sizes' cart_item.item.id %}" class="font-medium underline text-yellow-700 hover:text-yellow-600">
                                             Выберите размеры
                                         </a>
+                                    </p>
+                                    <p class="text-xs text-yellow-600 mt-1">
+                                        Доступные размеры: {{ cart_item.product.get_available_sizes|join:", " }}
                                     </p>
                                 </div>
                             </div>

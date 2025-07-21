@@ -368,6 +368,52 @@ class XMLProduct(models.Model):
     def __str__(self):
         return self.name
 
+    def get_size_table_image(self):
+        """Возвращает URL изображения таблицы размеров для товара"""
+        if not self.xml_data:
+            return ""
+
+        # Проверяем наличие изображения в описании
+        description = self.description or ""
+        if 'src="//files.giftsoffer.ru/images/tablemer/' not in description:
+            return ""
+
+        # Извлекаем имя файла изображения из описания
+        import re
+        match = re.search(r'src="//files\.giftsoffer\.ru/images/tablemer/([^"]+)"', description)
+        if match:
+            return f"//files.giftsoffer.ru/images/tablemer/{match.group(1)}"
+
+        # Если изображение не найдено в описании, определяем его по категории
+        main_category = self.categories.first()
+        if main_category:
+            category_name = main_category.name.lower()
+
+            # Сопоставление категорий с изображениями
+            category_to_image = {
+                'брюки': 'pants.svg',
+                'штаны': 'pants.svg',
+                'джоггеры': 'pants.svg',
+                'футболки': 'Tshirt_with_sleeve.svg',
+                'рубашки': 'shirt_short_sleeve.svg',
+                'толстовки': 'sweatshirt_setin.svg',
+                'худи': 'sweatshirt_setin.svg',
+                'ветровки': 'raincoat.svg',
+                'куртки': 'raincoat.svg',
+                'свитшоты': 'sweatshirt_setin.svg',
+                'рубашки с длинным рукавом': 'shirt_long_sleeve.svg',
+                'рубашки с коротким рукавом': 'shirt_short_sleeve.svg'
+            }
+
+            for keyword, image in category_to_image.items():
+                if keyword in category_name:
+                    return f"//files.giftsoffer.ru/images/tablemer/{image}"
+
+        # Если ничего не найдено, возвращаем пустую строку
+        return ""
+
+        # Если ничего не найдено, возвращаем пустую строку
+        return ""
     def get_materials_from_filters(self):
         """Получает материалы из фильтров товара"""
         materials = []
@@ -400,7 +446,7 @@ class XMLProduct(models.Model):
         return size_str if size_str else None
 
     def get_size_info(self):
-        """Получает информацию о размерах без излишней фильтрации"""
+        """Получает информацию о размерах с учетом специальных случаев (варежки и др.)"""
         size_info = {
             'available_sizes': [],
             'sizes_with_quantities': [],
@@ -442,6 +488,23 @@ class XMLProduct(models.Model):
                             'in_stock': self.in_stock
                         })
 
+        # 4. Специальная обработка для варежек и подобных товаров
+        if "варежки" in self.name.lower() or "варежки" in self.description.lower():
+            # Ищем размеры в описании
+            import re
+            size_matches = re.findall(r'Размер (\S+): ширина (\d+) см, длина (\d+) см, манжета (\d+) см',
+                                      self.description)
+            if size_matches:
+                for match in size_matches:
+                    size_code = match[0]
+                    size_desc = f"{size_code}: ширина {match[1]} см, длина {match[2]} см, манжета {match[3]} см"
+                    size_info['available_sizes'].append(size_desc)
+                    size_info['sizes_with_quantities'].append({
+                        'size': size_desc,
+                        'quantity': self.quantity,
+                        'in_stock': self.in_stock
+                    })
+
         size_info['is_available'] = any(size['in_stock'] for size in size_info['sizes_with_quantities'])
 
         # Сортируем размеры по стандартному порядку
@@ -476,13 +539,64 @@ class XMLProduct(models.Model):
     @property
     def has_variants(self):
         """Есть ли варианты у товара"""
-        return self.variants.exists()
+        return bool(self.get_available_sizes()) or bool(self.variants.exists())
 
     def get_available_sizes(self):
         """Возвращает список доступных размеров"""
-        if self.has_variants:
+        CLOTHING_CATEGORIES = [
+            'Одежда', 'Футболки', 'Кепки и бейсболки', 'Панамы', 'Футболки поло',
+            'Футболки с длинным рукавом', 'Промо футболки', 'Ветровки', 'Толстовки',
+            'Свитшоты', 'Худи', 'Куртки', 'Флисовые куртки и кофты', 'Шарфы',
+            'Трикотажные шапки', 'Перчатки и варежки', 'Вязаные комплекты',
+            'Джемперы', 'Жилеты', 'Офисные рубашки', 'Фартуки', 'Спортивная одежда',
+            'Брюки и шорты', 'Детская одежда', 'Аксессуары',
+            'Худи под нанесение логотипа', 'Футболки с логотипом',
+            'Толстовки с логотипом', 'Свитшоты под нанесение логотипа',
+            'Брюки и шорты с логотипом'
+        ]
+
+        # Проверяем, относится ли товар к категориям одежды
+        is_clothing = False
+        for category in self.categories.all():
+            if (category.name in CLOTHING_CATEGORIES or
+                    (category.parent and category.parent.name in CLOTHING_CATEGORIES)):
+                is_clothing = True
+                break
+
+        if not is_clothing:
+            return []
+        sizes = []
+
+        # 1. Проверяем варианты размеров
+        if self.variants.exists():
             return list(self.variants.values_list('size', flat=True))
-        return [self.sizes_available] if self.sizes_available else []
+
+        # 2. Проверяем поле sizes_available
+        if self.sizes_available:
+            return [s.strip() for s in self.sizes_available.split(',') if s.strip()]
+
+        # 3. Проверяем фильтры из XML (type_id=1 - размеры одежды)
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) == '1' and f.get('filter_name'):
+                    sizes.append(f['filter_name'])
+
+        # 4. Проверяем таблицу размеров из XML
+        if self.xml_data and 'attributes' in self.xml_data and 'size_table' in self.xml_data['attributes']:
+            size_table = self.xml_data['attributes']['size_table']
+            if 'headers' in size_table and len(size_table['headers']) > 1:
+                for size in size_table['headers'][1:]:
+                    if size and size not in sizes:
+                        sizes.append(size)
+
+        # Удаляем дубликаты и сортируем
+        STANDARD_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
+        unique_sizes = list(set(sizes))
+
+        return sorted(unique_sizes, key=lambda x: (
+            STANDARD_ORDER.index(x) if x in STANDARD_ORDER else len(STANDARD_ORDER),
+            x
+        ))
 
     def get_variant_by_size(self, size):
         """Возвращает вариант по размеру"""
