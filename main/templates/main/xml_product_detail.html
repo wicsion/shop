@@ -686,25 +686,31 @@
 
                                 <!-- Блок выбора размера -->
                                 {% if size_data.sizes_with_quantities %}
-                                <div class="size-selector mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
-                                    <div class="size-options flex flex-wrap gap-2">
-                                        {% for size_info in size_data.sizes_with_quantities %}
-                                            <button type="button"
-                                                    class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
-                                                    data-size="{{ size_info.size }}"
-                                                    data-quantity="{{ size_info.quantity }}">
-                                                {{ size_info.size }}
-                                                <span class="quantity-indicator">
-                                                    {% if size_info.quantity > 0 %}({{ size_info.quantity }} шт.){% else %}(нет в наличии){% endif %}
-                                                </span>
-                                            </button>
-                                        {% endfor %}
-                                        <input type="hidden" name="selected_size" id="selected-size"
-                                               value="{% if size_data.sizes_with_quantities %}{{ size_data.sizes_with_quantities.0.size }}{% endif %}">
-                                    </div>
-                                </div>
-                                {% endif %}
+    {% with valid_sizes=size_data.sizes_with_quantities|exclude_sizes_list %}
+        {% if valid_sizes %}
+        <div class="size-selector mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
+            <div class="size-options flex flex-wrap gap-2">
+                {% for size_info in size_data.sizes_with_quantities %}
+                    {% if size_info.size|exclude_sizes %}
+                    <button type="button"
+                            class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
+                            data-size="{{ size_info.size }}"
+                            data-quantity="{{ size_info.quantity }}">
+                        {{ size_info.size }}
+                        <span class="quantity-indicator">
+                            {% if size_info.quantity > 0 %}({{ size_info.quantity }} шт.){% else %}(нет в наличии){% endif %}
+                        </span>
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                <input type="hidden" name="selected_size" id="selected-size"
+                       value="{% if size_data.sizes_with_quantities %}{{ size_data.sizes_with_quantities.0.size }}{% endif %}">
+            </div>
+        </div>
+        {% endif %}
+    {% endwith %}
+{% endif %}
 
                                 <!-- Поле для выбора количества -->
                                 <div class="flex items-center">
@@ -889,59 +895,43 @@
                 </div>
 
                 <!-- Блок с размерами -->
-                {% if size_data.available_sizes or product.xml_data.attributes.size_table %}
-                <div class="size-info-section mt-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
-
-                    {% if size_data.available_sizes %}
-                    <div class="mb-4">
-                        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
-                        <div class="flex flex-wrap gap-2">
-                            {% for size in size_data.available_sizes %}
-                            <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-<!-- В блоке таблицы размеров (примерно строка 500) замените на: -->
-<!-- Блок с размерами -->
-{% if size_data.available_sizes or product.xml_data.attributes.size_table %}
+{% if product.xml_data.attributes.size_table %}
 <div class="size-info-section mt-6">
     <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Размеры</h3>
 
+    <!-- Only show available sizes if there are valid sizes -->
     {% if size_data.available_sizes %}
-    <div class="mb-4">
-        <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
-        <div class="flex flex-wrap gap-2">
-            {% for size in size_data.available_sizes %}
-                {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
-                    <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+        {% with valid_sizes=size_data.available_sizes|exclude_sizes_list %}
+            {% if valid_sizes %}
+            <div class="mb-4">
+                <h4 class="font-medium text-gray-700 mb-2">Доступные размеры:</h4>
+                <div class="flex flex-wrap gap-2">
+                    {% for size in size_data.available_sizes %}
+                        {% if size|exclude_sizes %}
+                        <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">{{ size }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
     {% endif %}
 
-    {% if product.xml_data.attributes.size_table %}
+    <!-- Always show size table if it exists -->
     <div class="flex flex-col md:flex-row gap-4 items-stretch mt-4">
-        <!-- Изображение с размерами -->
         {% if product.get_size_table_image %}
         <div class="md:w-2/5 flex items-center justify-center bg-gray-50 p-2 rounded-lg">
             <img src="{{ product.get_size_table_image }}" alt="Схема размеров" class="object-contain h-auto">
         </div>
         {% endif %}
 
-        <!-- Таблица размеров -->
         <div class="md:w-4/5 bg-gray-50 p-2 rounded-lg overflow-x-auto">
             <table class="size-table w-full">
                 <thead>
                     <tr>
-                        <th>Размер</th>
+                        <th>Параметр</th>
                         {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                            {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
-                                <th>{{ size }}</th>
-                            {% endif %}
+                            <th>{{ size }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
@@ -949,20 +939,18 @@
                     {% for param in product.xml_data.attributes.size_table.parameters %}
                         {% with row_values=product.xml_data.attributes.size_table.data %}
                             {% for size in product.xml_data.attributes.size_table.headers|slice:"1:" %}
-                                {% if size|upper not in ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE'] %}
-                                    {% with cell_value=row_values|get_item:size|get_item:param %}
-                                        {% if cell_value != None %}
-                                            {% if forloop.first %}
-                                            <tr>
-                                                <td class="font-medium">{{ param }}</td>
-                                            {% endif %}
-                                                <td>{{ cell_value }}</td>
-                                            {% if forloop.last %}
-                                            </tr>
-                                            {% endif %}
+                                {% with cell_value=row_values|get_item:size|get_item:param %}
+                                    {% if cell_value != None %}
+                                        {% if forloop.first %}
+                                        <tr>
+                                            <td class="font-medium">{{ param }}</td>
                                         {% endif %}
-                                    {% endwith %}
-                                {% endif %}
+                                            <td>{{ cell_value }}</td>
+                                        {% if forloop.last %}
+                                        </tr>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endwith %}
                             {% endfor %}
                         {% endwith %}
                     {% endfor %}
@@ -971,11 +959,8 @@
             <p class="text-xs text-gray-500 mt-2">Допускаются отклонения в 5% от указанных параметров</p>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endif %}
-                </div>
-                {% endif %}
 
                 <!-- Вкладки (Описание и Видео) -->
               <!-- Вкладки (Описание и Видео) -->
@@ -1170,23 +1155,22 @@ function updateCartCounter(count) {
 // Обработка добавления в корзину
 document.addEventListener('DOMContentLoaded', function() {
     // Обработка выбора размера
-    document.querySelectorAll('.size-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.size-option').forEach(opt => {
-                opt.classList.remove('selected', 'bg-blue-100', 'border-blue-300');
-            });
-            this.classList.add('selected', 'bg-blue-100', 'border-blue-300');
-            document.getElementById('selected-size').value = this.dataset.size;
-
-            // Обновляем максимальное количество для выбранного размера
-            const quantityInput = document.querySelector('input[name="quantity"]');
-            const quantityIndicator = this.querySelector('.quantity-indicator');
-            if (quantityIndicator) {
-                const available = parseInt(quantityIndicator.textContent.match(/\d+/)[0]);
-                quantityInput.max = available;
-            }
+    // Обработка выбора размера
+document.querySelectorAll('.size-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.size-option').forEach(opt => {
+            opt.classList.remove('selected', 'bg-blue-100', 'border-blue-300');
         });
+        this.classList.add('selected', 'bg-blue-100', 'border-blue-300');
+        document.getElementById('selected-size').value = this.dataset.size;
+
+        // Обновляем поле выбора размера в форме
+        const sizeSelect = document.querySelector('select[name="size"]');
+        if (sizeSelect) {
+            sizeSelect.value = this.dataset.size;
+        }
     });
+});
 
     // Обработка отправки формы
     const form = document.getElementById('add-to-cart-form');

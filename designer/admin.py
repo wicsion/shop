@@ -3,8 +3,15 @@ from .models import (
     CustomProductTemplate, CustomProductImage,
     CustomDesignArea, UserCustomDesign,
     CustomDesignElement, CustomProductColor,
-    CustomProductOrder, CustomProductSize
+    CustomProductOrder, CustomProductSize,
+    ProductSilhouette
 )
+
+class ProductSilhouetteInline(admin.TabularInline):
+    model = ProductSilhouette
+    extra = 1
+    fields = ('mask_image',)
+    max_num = 1
 
 class CustomProductImageInline(admin.TabularInline):
     model = CustomProductImage
@@ -26,17 +33,37 @@ class CustomProductSizeInline(admin.TabularInline):
 
 @admin.register(CustomProductTemplate)
 class CustomProductTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'base_price', 'active', 'created_at')
+    list_display = ('name', 'base_price', 'active', 'created_at', 'has_silhouette')
     list_editable = ('base_price', 'active')
     list_filter = ('active', 'created_at')
     search_fields = ('name', 'description')
-    inlines = [CustomProductImageInline, CustomDesignAreaInline]
+    inlines = [CustomProductImageInline, CustomDesignAreaInline, ProductSilhouetteInline]
     filter_horizontal = ('sizes',)
     fieldsets = (
         (None, {
             'fields': ('name', 'description', 'base_price', 'active', 'sizes')
         }),
     )
+
+    def has_silhouette(self, obj):
+        return bool(obj.silhouette.first())
+    has_silhouette.boolean = True
+    has_silhouette.short_description = 'Has Silhouette'
+
+@admin.register(ProductSilhouette)
+class ProductSilhouetteAdmin(admin.ModelAdmin):
+    list_display = ('template', 'preview_mask', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('template__name',)
+    readonly_fields = ('preview_mask',)
+
+    def preview_mask(self, obj):
+        if obj.mask_image:
+            return f'<img src="{obj.mask_image.url}" style="max-height: 50px;" />'
+        return '-'
+    preview_mask.short_description = 'Mask Preview'
+    preview_mask.allow_tags = True
+
 
 @admin.register(CustomProductColor)
 class CustomProductColorAdmin(admin.ModelAdmin):

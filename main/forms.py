@@ -22,6 +22,8 @@ class SelectSizesForm(forms.Form):
                     widget=forms.NumberInput(attrs={
                         'class': 'size-quantity-input border rounded px-3 py-1 w-full',
                     }))
+
+
 class AddToCartForm(forms.ModelForm):
     quantity = forms.IntegerField(
         min_value=1,
@@ -30,11 +32,11 @@ class AddToCartForm(forms.ModelForm):
             'class': 'border rounded px-3 py-2 w-20 mr-4',
         }))
     selected_size = forms.CharField(
-        required=False,
+        required=False,  # Делаем необязательным
         widget=forms.HiddenInput()
     )
-    size = forms.ChoiceField(  # Добавляем поле size в начало класса
-        required=False,
+    size = forms.ChoiceField(
+        required=False,  # Делаем необязательным
         widget=forms.Select(attrs={
             'class': 'border rounded px-3 py-2 w-full mb-4',
         })
@@ -48,10 +50,6 @@ class AddToCartForm(forms.ModelForm):
         self.product = kwargs.pop('product', None)
         super().__init__(*args, **kwargs)
 
-        # Если у товара есть варианты размеров, делаем поле обязательным
-        if self.product and self.product.variants.exists():
-            self.fields['selected_size'].required = True
-
         if self.product:
             # Устанавливаем максимальное значение для quantity
             if self.product.variants.exists():
@@ -61,34 +59,36 @@ class AddToCartForm(forms.ModelForm):
             self.fields['quantity'].widget.attrs['max'] = max_quantity
 
             # Добавляем варианты размеров
-            if self.product.variants.exists():
+            if self.product.variants.exists() or self.product.sizes_available:
                 size_choices = []
-                for variant in self.product.variants.all().order_by('size'):
-                    if variant.quantity > 0:  # Показываем только доступные размеры
+                if self.product.variants.exists():
+                    for variant in self.product.variants.all().order_by('size'):
                         size_choices.append((variant.size, variant.size))
-                self.fields['size'].choices = [('', 'Выберите размер')] + size_choices
-                self.fields['size'].required = True
-            elif self.product.sizes_available:
-                sizes = [s.strip() for s in self.product.sizes_available.split(',') if s.strip()]
-                self.fields['size'].choices = [('', 'Выберите размер')] + [(s, s) for s in sizes]
-                self.fields['size'].required = True
+                elif self.product.sizes_available:
+                    sizes = [s.strip() for s in self.product.sizes_available.split(',') if s.strip()]
+                    size_choices = [(s, s) for s in sizes]
+
+                if size_choices:
+                    self.fields['size'].choices = [('', 'Выберите размер')] + size_choices
+                else:
+                    self.fields['size'].widget = forms.HiddenInput()
             else:
                 self.fields['size'].widget = forms.HiddenInput()
 
     def clean(self):
         cleaned_data = super().clean()
         size = cleaned_data.get('size')
+        selected_size = cleaned_data.get('selected_size')
         quantity = cleaned_data.get('quantity')
-        if self.product and self.product.variants.exists():
-            selected_size = cleaned_data.get('selected_size')
-            if not selected_size:
-                raise forms.ValidationError({"selected_size": "Пожалуйста, выберите размер"})
 
-            # Проверяем, что выбранный размер существует среди вариантов
-            if not self.product.variants.filter(size__iexact=selected_size).exists():
-                raise forms.ValidationError(
-                    {"__all__": "Выбранный размер недоступен"}
-                )
+        # Если есть варианты размеров, но размер не выбран
+        if (self.product.variants.exists() or self.product.sizes_available) and not size and not selected_size:
+            raise forms.ValidationError("Пожалуйста, выберите размер")
+
+        # Если размер выбран, проверяем его доступность
+        if size and self.product.variants.exists():
+            if not self.product.variants.filter(size__iexact=size).exists():
+                raise forms.ValidationError("Выбранный размер недоступен")
 
         if self.product:
             if size and self.product.variants.exists():

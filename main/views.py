@@ -481,45 +481,68 @@ class BrandDetailView(DetailView):
         return context
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def add_to_cart(request, product_id):
-    product = get_object_or_404(XMLProduct, product_id=product_id)
-    cart = get_cart(request)
+    logger.info(f"Add to cart request for product_id: {product_id}")
 
-    if request.method == 'POST':
-        form = AddToCartForm(request.POST, product=product)
-        if form.is_valid():
-            quantity = form.cleaned_data['quantity']
-            selected_size = form.cleaned_data.get('selected_size', None)
+    try:
+        product = get_object_or_404(XMLProduct, product_id=product_id)
+        logger.info(f"Product found: {product.name} (ID: {product.product_id})")
 
-            # Create cart item
-            cart_item, created = CartItem.objects.get_or_create(
-                cart=cart,
-                xml_product=product,
-                size=selected_size,
-                defaults={'quantity': quantity}
-            )
+        cart = get_cart(request)
+        logger.info(f"Cart obtained: {cart.id} (User: {cart.user}, Session: {cart.session_key})")
 
-            if not created:
-                cart_item.quantity += quantity
-                cart_item.save()
+        if request.method == 'POST':
+            logger.debug("POST data: %s", request.POST)
+            form = AddToCartForm(request.POST, product=product)
 
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Товар добавлен в корзину',
-                    'cart_total': cart.total_quantity
-                })
+            if form.is_valid():
+                logger.debug("Form is valid")
+                quantity = form.cleaned_data['quantity']
+                selected_size = form.cleaned_data.get('size') or form.cleaned_data.get('selected_size')
+                logger.info(f"Adding to cart: {product.name}, Qty: {quantity}, Size: {selected_size}")
 
-            messages.success(request, 'Товар добавлен в корзину')
-            return redirect('main:cart_view')
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': False,
-                    'errors': form.errors.as_json()
-                }, status=400)
-            messages.error(request, 'Ошибка при добавлении в корзину')
-            return redirect(product.get_absolute_url())
+                # Create cart item
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart,
+                    xml_product=product,
+                    size=selected_size,
+                    defaults={'quantity': quantity}
+                )
+
+                if not created:
+                    cart_item.quantity += quantity
+                    cart_item.save()
+
+                logger.info(f"Cart item {'created' if created else 'updated'}: {cart_item.id}")
+
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Товар добавлен в корзину',
+                        'cart_total': cart.total_quantity
+                    })
+
+                messages.success(request, 'Товар добавлен в корзину')
+                return redirect('main:cart_view')
+            else:
+                logger.error("Form errors: %s", form.errors.as_json())
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'errors': form.errors.as_json()
+                    }, status=400)
+
+                messages.error(request, 'Ошибка при добавлении в корзину')
+                return redirect(product.get_absolute_url())
+
+    except Exception as e:
+        logger.exception("Error in add_to_cart view")
+        raise
 
 
 def select_sizes(request, item_id):

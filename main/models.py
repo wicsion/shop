@@ -368,6 +368,8 @@ class XMLProduct(models.Model):
     def __str__(self):
         return self.name
 
+
+
     def get_size_table_image(self):
         """Возвращает URL изображения таблицы размеров для товара"""
         if not self.xml_data:
@@ -843,6 +845,11 @@ class XMLProduct(models.Model):
         if not self.sizes_available:
             return None
         return ', '.join([s.strip() for s in self.sizes_available.split(',') if s.strip()])
+
+    def should_show_size(self, size):
+        """Проверяет, нужно ли показывать размер в списке"""
+        excluded_sizes = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
+        return str(size).upper() not in excluded_sizes
 
     def save(self, *args, **kwargs):
         # Очищаем и нормализуем размеры перед сохранением

@@ -37,21 +37,34 @@ def custom_designer_start(request):
         logger.error(f"Error creating user design: {e}")
         return redirect('main:home')
 
-    # Создаём контекст, как в `custom_designer_edit`
-    areas = template.design_areas.all()
+    # Получаем все активные цвета
     colors = CustomProductColor.objects.filter(active=True)
+
+    # Сохранение выбранного цвета в сессии
+    selected_color_id = request.session.get('selected_color_id')
+    if selected_color_id:
+        try:
+            selected_color = colors.get(id=selected_color_id)
+        except CustomProductColor.DoesNotExist:
+            selected_color = colors.first()
+    else:
+        selected_color = colors.first()
+
+    # Создаём контекст
+    areas = template.design_areas.all()
     sizes = template.get_available_sizes()
     front_image = template.images.filter(is_front=True).first()
     back_image = template.images.filter(is_back=True).first()
 
     context = {
-        'design': user_design,  # Используем созданный user_design
+        'design': user_design,
         'template': template,
         'areas': areas,
         'colors': colors,
         'sizes': sizes,
         'front_image': front_image,
         'back_image': back_image,
+        'selected_color': selected_color,
     }
 
     return render(request, 'designer/designer.html', context)
@@ -234,4 +247,47 @@ def delete_custom_element(request):
         element.delete()
         area.delete()
         return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@csrf_exempt
+def save_selected_color(request):
+    if request.method == 'POST':
+        color_id = request.POST.get('color_id')
+        request.session['selected_color_id'] = color_id
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@csrf_exempt
+def add_custom_color(request):
+    if request.method == 'POST':
+        color_type = request.POST.get('type')
+
+        if color_type == 'solid':
+            hex_code = request.POST.get('value')
+            color = CustomProductColor.objects.create(
+                name=f"Custom Color {hex_code}",
+                hex_code=hex_code,
+                active=True
+            )
+        elif color_type == 'gradient':
+            gradient_css = request.POST.get('value')
+            color = CustomProductColor.objects.create(
+                name=f"Custom Gradient",
+                gradient_css=gradient_css,
+                active=True
+            )
+        elif color_type == 'pattern' and request.FILES.get('image'):
+            pattern_image = request.FILES['image']
+            color = CustomProductColor.objects.create(
+                name=f"Custom Pattern",
+                pattern_image=pattern_image,
+                is_pattern=True,
+                active=True
+            )
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+        return JsonResponse({'status': 'success', 'color_id': color.id})
+
     return JsonResponse({'status': 'error'}, status=400)

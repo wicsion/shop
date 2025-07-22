@@ -150,3 +150,15 @@ def exclude_sizes(size):
     """Check if size should be excluded"""
     excluded_sizes = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
     return str(size).upper() not in excluded_sizes
+
+@register.filter
+def exclude_sizes_list(sizes):
+    """Проверяет, есть ли в списке размеров хотя бы один не исключенный размер"""
+    excluded = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
+    return any(str(size).upper() not in excluded for size in sizes)
+
+@register.filter
+def max_available_quantity(product):
+    if product.has_variants:
+        return max(variant.quantity for variant in product.variants.all())
+    return product.quantity

@@ -107,15 +107,26 @@ class CustomDesignElement(models.Model):
     def __str__(self):
         return f"Element for {self.design.template.name}"
 
+
 class CustomProductColor(models.Model):
     name = models.CharField(max_length=50)
     hex_code = models.CharField(max_length=7)
-    preview_image = models.ImageField(upload_to='product_colors/')
+    preview_image = models.ImageField(upload_to='product_colors/', blank=True, null=True)
     active = models.BooleanField(default=True)
+    is_pattern = models.BooleanField(default=False)
+    pattern_image = models.ImageField(upload_to='color_patterns/', blank=True, null=True)
+    gradient_css = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.name
 
+    @property
+    def display_value(self):
+        if self.gradient_css:
+            return self.gradient_css
+        elif self.pattern_image:
+            return f"url('{self.pattern_image.url}')"
+        return self.hex_code
 
 class CustomProductOrder(models.Model):
     design = models.ForeignKey(UserCustomDesign, on_delete=models.CASCADE)
@@ -126,3 +137,8 @@ class CustomProductOrder(models.Model):
 
     def __str__(self):
         return f"Order for {self.design.template.name}"
+
+class ProductSilhouette(models.Model):
+    template = models.OneToOneField(CustomProductTemplate, on_delete=models.CASCADE, related_name='silhouette')
+    mask_image = models.ImageField(upload_to='product_silhouettes/')
+    created_at = models.DateTimeField(auto_now_add=True)

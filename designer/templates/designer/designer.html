@@ -50,7 +50,11 @@
                                         {% endif %}
                                     {% endif %}
                                 {% empty %}
-                                    <span class="text-gray-400">Кликните для редактирования</span>
+                                    <span class="element-display text-gray-400"
+                                          style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"
+                                          data-area-id="{{ area.id }}">
+                                        Кликните для редактирования
+                                    </span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -80,7 +84,11 @@
                                         {% endif %}
                                     {% endif %}
                                 {% empty %}
-                                    <span class="text-gray-400">Кликните для редактирования</span>
+                                    <span class="element-display text-gray-400"
+                                          style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"
+                                          data-area-id="{{ area.id }}">
+                                        Кликните для редактирования
+                                    </span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -136,14 +144,88 @@
 
                     <div class="mb-4">
                         <label class="block mb-1">Цвет товара</label>
-                        <div class="flex flex-wrap gap-2">
-                            {% for color in colors %}
-                            <div class="color-option w-8 h-8 rounded-full cursor-pointer border-2
-                                        {% if forloop.first %}border-blue-500{% else %}border-transparent{% endif %}"
-                                 style="background-color: {{ color.hex_code }};"
-                                 data-color-id="{{ color.id }}"
-                                 title="{{ color.name }}"></div>
-                            {% endfor %}
+
+                        <div class="mb-2">
+                            <div class="flex gap-2 mb-2">
+                                <button class="color-type-btn btn btn-primary" data-type="solid">Сплошной</button>
+                                <button class="color-type-btn btn btn-outline" data-type="gradient">Градиент</button>
+                                <button class="color-type-btn btn btn-outline" data-type="pattern">Текстура</button>
+                            </div>
+
+                            <!-- Solid colors -->
+                            <div id="solid-colors" class="color-options">
+                                <div class="flex flex-wrap gap-2">
+                                    {% for color in colors %}
+                                    <div class="color-option w-8 h-8 rounded cursor-pointer border-2
+                                                {% if color == selected_color and not color.is_pattern and not color.gradient_css %}border-blue-500{% else %}border-transparent{% endif %}"
+                                         style="background-color: {{ color.hex_code }};"
+                                         data-color-id="{{ color.id }}"
+                                         data-color-type="solid"
+                                         data-color-value="{{ color.hex_code }}"
+                                         title="{{ color.name }}"></div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-2">
+                                    <input type="color" id="custom-solid-color" value="#000000" class="w-full">
+                                    <button id="add-solid-color" class="btn btn-sm btn-outline mt-1">Добавить свой цвет</button>
+                                </div>
+                            </div>
+
+                            <!-- Gradients -->
+                            <div id="gradient-colors" class="color-options hidden">
+                                <div class="flex flex-wrap gap-2">
+                                    {% for color in colors %}
+                                        {% if color.gradient_css %}
+                                        <div class="color-option w-8 h-8 rounded cursor-pointer border-2
+                                                    {% if color == selected_color and color.gradient_css %}border-blue-500{% else %}border-transparent{% endif %}"
+                                             style="background: {{ color.gradient_css }};"
+                                             data-color-id="{{ color.id }}"
+                                             data-color-type="gradient"
+                                             data-color-value="{{ color.gradient_css }}"
+                                             title="{{ color.name }}"></div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-2">
+                                    <div class="flex gap-2">
+                                        <input type="color" id="gradient-color-1" value="#000000" class="flex-1">
+                                        <input type="color" id="gradient-color-2" value="#ffffff" class="flex-1">
+                                    </div>
+                                    <select id="gradient-direction" class="w-full mt-1 border rounded px-2 py-1">
+                                        <option value="to right">Горизонтальный</option>
+                                        <option value="to bottom">Вертикальный</option>
+                                        <option value="to bottom right">Диагональный</option>
+                                    </select>
+                                    <button id="add-gradient-color" class="btn btn-sm btn-outline mt-1">Добавить градиент</button>
+                                </div>
+                            </div>
+
+                            <!-- Patterns -->
+                            <div id="pattern-colors" class="color-options hidden">
+                                <div class="flex flex-wrap gap-2">
+                                    {% for color in colors %}
+                                        {% if color.pattern_image %}
+                                        <div class="color-option w-8 h-8 rounded cursor-pointer border-2
+                                                    {% if color == selected_color and color.pattern_image %}border-blue-500{% else %}border-transparent{% endif %}"
+                                             style="background-image: url('{{ color.pattern_image.url }}'); background-size: cover;"
+                                             data-color-id="{{ color.id }}"
+                                             data-color-type="pattern"
+                                             data-color-value="url('{{ color.pattern_image.url }}')"
+                                             title="{{ color.name }}"></div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-2">
+                                    <input type="file" id="custom-pattern" accept="image/*" class="w-full">
+                                    <button id="add-pattern" class="btn btn-sm btn-outline mt-1">Добавить текстуру</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="color-preview" class="w-full h-12 rounded border mt-2"
+                             style="{% if selected_color.gradient_css %}background: {{ selected_color.gradient_css }};
+                                    {% elif selected_color.pattern_image %}background-image: url('{{ selected_color.pattern_image.url }}'); background-size: cover;
+                                    {% else %}background-color: {{ selected_color.hex_code }}{% endif %}">
                         </div>
                     </div>
 
@@ -179,6 +261,175 @@ document.addEventListener('DOMContentLoaded', function() {
     const frontElementsContainer = document.getElementById('front-elements-container');
     const backElementsContainer = document.getElementById('back-elements-container');
     let originalElement = null;
+    let selectedColorId = null;
+
+    // Color type switching
+    document.querySelectorAll('.color-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.color-type-btn').forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline');
+            });
+            this.classList.remove('btn-outline');
+            this.classList.add('btn-primary');
+
+            const type = this.dataset.type;
+            document.querySelectorAll('.color-options').forEach(opt => opt.classList.add('hidden'));
+            document.getElementById(`${type}-colors`).classList.remove('hidden');
+        });
+    });
+
+    // Color selection
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('border-blue-500');
+                opt.classList.add('border-transparent');
+            });
+            this.classList.add('border-blue-500');
+            this.classList.remove('border-transparent');
+
+            const colorId = this.dataset.colorId;
+            const colorType = this.dataset.colorType;
+            const colorValue = this.dataset.colorValue;
+
+            // Update preview
+            const preview = document.getElementById('color-preview');
+            if (colorType === 'solid') {
+                preview.style.background = colorValue;
+                preview.style.backgroundImage = 'none';
+            } else if (colorType === 'gradient') {
+                preview.style.background = colorValue;
+            } else if (colorType === 'pattern') {
+                preview.style.backgroundImage = colorValue;
+                preview.style.backgroundSize = 'cover';
+            }
+
+            // Save selected color
+            fetch('{% url "designer:save_selected_color" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `color_id=${colorId}`
+            });
+
+            // Apply color to product
+            applyColorToProduct(colorValue, colorType);
+        });
+    });
+
+    // Add custom solid color
+    document.getElementById('add-solid-color').addEventListener('click', function() {
+        const colorValue = document.getElementById('custom-solid-color').value;
+
+        // Save to DB via AJAX
+        fetch('{% url "designer:add_custom_color" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `type=solid&value=${encodeURIComponent(colorValue)}`
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload page to see new color
+                location.reload();
+            }
+        });
+    });
+
+    // Add custom gradient
+    document.getElementById('add-gradient-color').addEventListener('click', function() {
+        const color1 = document.getElementById('gradient-color-1').value;
+        const color2 = document.getElementById('gradient-color-2').value;
+        const direction = document.getElementById('gradient-direction').value;
+        const gradientValue = `linear-gradient(${direction}, ${color1}, ${color2})`;
+
+        // Save to DB via AJAX
+        fetch('{% url "designer:add_custom_color" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `type=gradient&value=${encodeURIComponent(gradientValue)}`
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload page to see new color
+                location.reload();
+            }
+        });
+    });
+
+    // Add custom pattern
+    document.getElementById('add-pattern').addEventListener('click', function() {
+        const fileInput = document.getElementById('custom-pattern');
+        if (fileInput.files.length === 0) return;
+
+        const formData = new FormData();
+        formData.append('type', 'pattern');
+        formData.append('image', fileInput.files[0]);
+
+        // Save to DB via AJAX
+        fetch('{% url "designer:add_custom_color" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: formData
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload page to see new pattern
+                location.reload();
+            }
+        });
+    });
+
+    function applyColorToProduct(colorValue, colorType) {
+        const productImage = document.getElementById('product-image');
+        const existingOverlay = document.getElementById('color-overlay');
+
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'color-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.pointerEvents = 'none';
+
+        // Используем маску из изображения
+        {% if template.silhouette.first %}
+        overlay.style.maskImage = 'url({{ template.silhouette.first.mask_image.url }})';
+        overlay.style.maskSize = '100% 100%';
+        overlay.style.maskRepeat = 'no-repeat';
+        overlay.style.maskPosition = 'center';
+        {% endif %}
+
+        if (colorType === 'solid') {
+            overlay.style.backgroundColor = colorValue;
+            overlay.style.opacity = '0.3';
+            overlay.style.mixBlendMode = 'multiply';
+        } else if (colorType === 'gradient') {
+            overlay.style.background = colorValue;
+            overlay.style.opacity = '0.5';
+        } else if (colorType === 'pattern') {
+            overlay.style.backgroundImage = colorValue;
+            overlay.style.backgroundSize = 'cover';
+            overlay.style.opacity = '0.7';
+        }
+
+        designContainer.appendChild(overlay);
+    }
 
     // Add new text element
     document.getElementById('add-text-btn').addEventListener('click', function() {
@@ -566,11 +817,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle click on saved element
+    // Handle click on saved element or empty area
     function handleElementClick(e) {
         const elementDisplay = e.currentTarget;
         const elementId = elementDisplay.dataset.elementId;
-        const areaId = elementDisplay.dataset.areaId;
+        const areaId = elementDisplay.dataset.areaId || elementDisplay.closest('.design-area').dataset.areaId;
         const side = elementDisplay.closest('#front-elements-container') ? 'front' : 'back';
 
         // Find the parent area element
@@ -586,12 +837,22 @@ document.addEventListener('DOMContentLoaded', function() {
             tempElement.style.top = areaElement.style.top;
             tempElement.style.width = areaElement.style.width;
             tempElement.style.height = areaElement.style.height;
-            tempElement.dataset.elementId = elementId;
+            tempElement.dataset.elementId = elementId || '';
             tempElement.dataset.areaId = areaId;
             tempElement.dataset.side = side;
 
-            // Copy the content
-            if (elementDisplay.tagName === 'IMG') {
+            // If it's a new empty area, create default text element
+            if (!elementId) {
+                tempElement.innerHTML = `
+                    <div class="element-content h-full flex items-center justify-center">
+                        <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
+                    </div>
+                    <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                    </div>
+                `;
+            } else if (elementDisplay.tagName === 'IMG') {
                 tempElement.innerHTML = `
                     <div class="element-content h-full flex items-center justify-center">
                         <img src="${elementDisplay.src}" class="max-w-full max-h-full">
@@ -706,11 +967,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add click handler to the new element
                 const displayElement = savedElement.querySelector('.element-display');
                 displayElement.addEventListener('click', handleElementClick);
-            }
 
-            // Remove the editing element
-            currentElement.remove();
-            currentElement = null;
+                // Remove the editing element
+                currentElement.remove();
+                currentElement = null;
+            }
         }
         document.getElementById('element-controls').classList.add('hidden');
         document.getElementById('product-controls').classList.remove('hidden');
@@ -760,23 +1021,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 span.style.transform = `rotate(${this.value}deg)`;
             }
         }
-    });
-
-    // Color options
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.color-option').forEach(opt => {
-                opt.classList.remove('border-blue-500');
-                opt.classList.add('border-transparent');
-            });
-            this.classList.add('border-blue-500');
-            this.classList.remove('border-transparent');
-        });
-    });
-
-    // Add click handlers to existing elements
-    document.querySelectorAll('.element-display').forEach(element => {
-        element.addEventListener('click', handleElementClick);
     });
 
     // Preview and save buttons
@@ -882,6 +1126,37 @@ document.addEventListener('DOMContentLoaded', function() {
     word-break: break-word;
     white-space: pre-wrap;
     overflow: hidden;
+}
+#color-overlay {
+    z-index: 5;
+    -webkit-mask-image: inherit;
+    mask-image: inherit;
+    -webkit-mask-size: inherit;
+    mask-size: inherit;
+    -webkit-mask-repeat: inherit;
+    mask-repeat: inherit;
+    -webkit-mask-position: inherit;
+    mask-position: inherit;
+}
+.color-options {
+    transition: all 0.3s ease;
+}
+.color-type-btn.active {
+    background-color: #3b82f6;
+    color: white;
+}
+.color-preview {
+    width: 100%;
+    height: 40px;
+    border-radius: 4px;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+}
+.color-option {
+    transition: transform 0.2s;
+}
+.color-option:hover {
+    transform: scale(1.1);
 }
 </style>
 {% endblock %}
