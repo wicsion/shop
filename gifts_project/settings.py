@@ -33,7 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    #'whitenoise.middleware.WhiteNoiseMiddleware',
     'main.middleware.HTTP2PushMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -53,6 +53,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates',
                  BASE_DIR / 'accounts' / 'templates',
+                 BASE_DIR / 'designer' / 'templates',
                  ],
         'APP_DIRS': True,
         'OPTIONS': {

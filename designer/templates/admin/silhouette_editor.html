@@ -1,0 +1,584 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+{% load custom_filters %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'admin/js/jquery.init.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="silhouette-editor" class="content">
+    <h1>
+        {% if original or object %}
+            {% with silhouette=original|default:object %}
+                {% blocktrans with template_name=silhouette.template.name %}Редактирование силуэта для {{ template_name }}{% endblocktrans %}
+            {% endwith %}
+        {% else %}
+            {% trans "Добавление нового силуэта" %}
+            {% if template_id %}
+                {% blocktrans %}для шаблона #{{ template_id }}{% endblocktrans %}
+            {% endif %}
+        {% endif %}
+    </h1>
+
+    {% if original or object %}
+    <div class="current-silhouette">
+        {% with silhouette=original|default:object %}
+            {% with silhouette_image=silhouette.template.images.all|filter_is_silhouette:True|first %}
+                {% if silhouette_image %}
+                    <p>{% blocktrans %}Текущее изображение силуэта: {{ silhouette_image.name }}{% endblocktrans %}</p>
+                {% endif %}
+            {% endwith %}
+        {% endwith %}
+    </div>
+    {% endif %}
+
+    <div class="editor-container">
+        <div class="image-container">
+            {% if original or object %}
+                {% with silhouette=original|default:object %}
+                    {% if silhouette.mask_image %}
+                        <img id="silhouette-image" src="{{ silhouette.mask_image.url }}" alt="Silhouette" style="display: none;">
+                        <canvas id="drawing-canvas"></canvas>
+                        <canvas id="temp-canvas" style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                        <div id="image-background" style="display: none;"></div>
+                    {% else %}
+                        <div class="no-image">{% trans "Изображение не выбрано" %}</div>
+                        <canvas id="drawing-canvas"></canvas>
+                        <canvas id="temp-canvas" style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <div class="no-image">{% trans "Изображение не выбрано" %}</div>
+                <canvas id="drawing-canvas"></canvas>
+                <canvas id="temp-canvas" style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+            {% endif %}
+        </div>
+
+        <div class="controls">
+            <form method="post" enctype="multipart/form-data" id="silhouette-form">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    {{ form.base_image.label_tag }}
+                    {{ form.base_image }}
+                    {% if form.base_image.help_text %}
+                    <div class="help">{{ form.base_image.help_text|safe }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    {{ form.mask_image.label_tag }}
+                    {{ form.mask_image }}
+                    {% if form.mask_image.help_text %}
+                    <div class="help">{{ form.mask_image.help_text|safe }}</div>
+                    {% endif %}
+                </div>
+
+                <input type="hidden" name="colored_areas" id="colored-areas-input"
+                       value='{% if original or object %}{{ original.colored_areas|default:object.colored_areas|safe }}{% else %}[]{% endif %}'>
+
+                <div class="tools">
+                    <div class="tool-buttons">
+                        <button type="button" id="freehand-tool" class="btn btn-primary">{% trans "Ручка" %}</button>
+                        <button type="button" id="fill-tool" class="btn btn-secondary">{% trans "Заливка" %}</button>
+                        <button type="button" id="clear-all" class="btn btn-danger">{% trans "Очистить все" %}</button>
+                    </div>
+                    <div class="tool-options">
+                        <label for="brush-color">{% trans "Цвет выделения:" %}</label>
+                        <input type="color" id="brush-color" value="#3b82f6" class="form-control-color">
+                        <label for="brush-size">{% trans "Размер кисти:" %}</label>
+                        <input type="range" id="brush-size" min="1" max="50" value="5" class="form-control-range">
+                        <button type="button" id="preview-btn" class="btn btn-secondary">{% trans "Предпросмотр" %}</button>
+                    </div>
+                </div>
+
+                <div class="submit-row">
+                    <input type="submit" value="{% trans 'Сохранить' %}" class="btn btn-success">
+                    <a href="{% url 'admin:designer_productsilhouette_changelist' %}" class="btn btn-secondary">{% trans "Отмена" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.editor-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.image-container {
+    position: relative;
+    flex: 1;
+    border: 3px solid #ddd;
+    min-height: 500px;
+    background-color: #f8f8f8;
+    min-width: 600px;
+    overflow: hidden;
+}
+
+#silhouette-image {
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
+}
+
+#drawing-canvas, #temp-canvas {
+    transform-origin:0 0 ;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background-color: transparent;
+    cursor: crosshair;
+}
+
+#temp-canvas {
+    z-index: -5;
+}
+
+#image-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.controls {
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.tools {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tool-buttons, .tool-options {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.current-silhouette {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.no-image {
+    padding: 20px;
+    background: #f0f0f0;
+    border: 1px dashed #ccc;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    border-radius: 4px;
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6b7280;
+    color: white;
+}
+
+.form-control-color {
+    width: 40px;
+    height: 40px;
+    padding: 2px;
+}
+
+.form-control-range {
+    width: 100px;
+}
+
+#preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    display: none;
+}
+
+.preview-zone {
+    position: absolute;
+    background-color: rgba(59, 130, 246, 0.3);
+    border: 2px solid #3b82f6;
+}
+
+.form-row {
+    margin-bottom: 15px;
+}
+
+.form-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-row select,
+.form-row input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.submit-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('drawing-canvas');
+    const tempCanvas = document.getElementById('temp-canvas');
+    const img = document.getElementById('silhouette-image');
+    const imageBg = document.getElementById('image-background');
+    const ctx = canvas.getContext('2d');
+    const tempCtx = tempCanvas.getContext('2d');
+    const coloredAreasInput = document.getElementById('colored-areas-input');
+    const previewBtn = document.getElementById('preview-btn');
+    const previewOverlay = document.getElementById('preview-overlay');
+    const brushColor = document.getElementById('brush-color');
+    const brushSize = document.getElementById('brush-size');
+    const freehandToolBtn = document.getElementById('freehand-tool');
+    const fillToolBtn = document.getElementById('fill-tool');
+
+    let isDrawing = false;
+    let currentTool = 'freehand';
+    let coloredAreas = JSON.parse(coloredAreasInput.value || '[]');
+    let currentPath = [];
+    let scale = 1;
+    let lastPos = null;
+
+    // Фиксированные настройки размеров
+    const DEFAULT_BRUSH_SIZE = 5;
+    const MIN_BRUSH_SIZE = 1;
+    const MAX_BRUSH_SIZE = 20;
+    const fillBorderWidth = 1;
+    const maxCanvasWidth = 800;
+    const maxCanvasHeight = 800;
+
+    // Инициализация параметров кисти
+    brushSize.value = DEFAULT_BRUSH_SIZE;
+    brushSize.min = MIN_BRUSH_SIZE;
+    brushSize.max = MAX_BRUSH_SIZE;
+
+    // Сохранение настроек в localStorage
+    const savedBrushSize = localStorage.getItem('brushSize');
+    if (savedBrushSize) {
+        brushSize.value = savedBrushSize;
+    }
+
+    // Функция для получения правильных координат с учетом масштаба
+    function getCanvasCoordinates(e) {
+        const rect = tempCanvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) / scale,
+            y: (e.clientY - rect.top) / scale
+        };
+    }
+
+    // Initialize canvas with image
+    function initCanvas() {
+        if (img && img.src) {
+            imageBg.style.backgroundImage = `url('${img.src}')`;
+            imageBg.style.display = 'block';
+
+            img.onload = function() {
+                scale = Math.min(1, maxCanvasWidth / img.naturalWidth);
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                tempCanvas.width = img.naturalWidth;
+                tempCanvas.height = img.naturalHeight;
+
+                canvas.style.transform = `scale(${scale})`;
+                tempCanvas.style.transform = `scale(${scale})`;
+
+                // Корректируем размер кисти с учетом масштаба
+                const adjustedBrushSize = Math.max(MIN_BRUSH_SIZE, brushSize.value / scale);
+                brushSize.value = adjustedBrushSize;
+
+                drawExistingAreas();
+            };
+        } else {
+            const width = Math.min(maxCanvasWidth, canvas.offsetWidth);
+            const height = Math.min(maxCanvasHeight, canvas.offsetHeight);
+
+            canvas.width = width;
+            canvas.height = height;
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            scale = 1;
+
+            drawExistingAreas();
+        }
+    }
+
+    // Draw existing areas
+    function drawExistingAreas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        coloredAreas.forEach(area => {
+            if (area.type === 'path') {
+                drawPath(area.points, area.color);
+            } else if (area.type === 'fill') {
+                drawFill(area.points, area.color);
+            }
+        });
+    }
+
+    function drawPath(points, color) {
+        if (points.length < 2) return;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = brushSize.value;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        ctx.stroke();
+    }
+
+    function drawFill(points, color) {
+        if (points.length < 3) return;
+
+        ctx.fillStyle = color + '4D';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = fillBorderWidth;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // Tool selection
+    freehandToolBtn.addEventListener('click', () => {
+        currentTool = 'freehand';
+        freehandToolBtn.classList.add('btn-primary');
+        freehandToolBtn.classList.remove('btn-secondary');
+        fillToolBtn.classList.remove('btn-primary');
+        fillToolBtn.classList.add('btn-secondary');
+    });
+
+    fillToolBtn.addEventListener('click', () => {
+        currentTool = 'fill';
+        fillToolBtn.classList.add('btn-primary');
+        fillToolBtn.classList.remove('btn-secondary');
+        freehandToolBtn.classList.remove('btn-primary');
+        freehandToolBtn.classList.add('btn-secondary');
+    });
+
+    // Clear all areas
+    document.getElementById('clear-all').addEventListener('click', () => {
+        if (confirm('{% trans "Вы уверены, что хотите очистить все зоны?" %}')) {
+            coloredAreas = [];
+            coloredAreasInput.value = JSON.stringify(coloredAreas);
+            drawExistingAreas();
+            updatePreviewIfVisible();
+        }
+    });
+
+    // Сохранение размера кисти при изменении
+    brushSize.addEventListener('input', () => {
+        localStorage.setItem('brushSize', brushSize.value);
+    });
+
+    // Canvas events
+    tempCanvas.addEventListener('mousedown', startDrawing);
+    tempCanvas.addEventListener('mousemove', draw);
+    tempCanvas.addEventListener('mouseup', stopDrawing);
+    tempCanvas.addEventListener('mouseout', stopDrawing);
+
+    function startDrawing(e) {
+        isDrawing = true;
+        const pos = getCanvasCoordinates(e);
+        currentPath = [{x: pos.x, y: pos.y}];
+        lastPos = pos;
+
+        // Для обоих инструментов начинаем рисовать сразу в точке клика
+        if (currentTool === 'freehand') {
+            // Рисуем первую точку точно под курсором
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, brushSize.value/2, 0, Math.PI * 2);
+            ctx.fillStyle = brushColor.value;
+            ctx.fill();
+
+            // Сохраняем в массив
+            coloredAreas.push({
+                type: 'path',
+                points: [{x: pos.x, y: pos.y}],
+                color: brushColor.value
+            });
+        } else if (currentTool === 'fill') {
+            // Для заливки сразу добавляем первую точку
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.beginPath();
+            tempCtx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+            tempCtx.fillStyle = brushColor.value;
+            tempCtx.fill();
+        }
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+
+        const pos = getCanvasCoordinates(e);
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        if (currentTool === 'freehand') {
+            // Рисуем линию от предыдущей позиции к текущей
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = brushColor.value;
+            ctx.lineWidth = brushSize.value;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Добавляем точку в текущий путь
+            currentPath.push({x: pos.x, y: pos.y});
+
+            // Обновляем последнюю позицию
+            lastPos = pos;
+
+            // Показываем предпросмотр точки под курсором
+            tempCtx.beginPath();
+            tempCtx.arc(pos.x, pos.y, brushSize.value/2, 0, Math.PI * 2);
+            tempCtx.fillStyle = brushColor.value;
+            tempCtx.fill();
+
+        } else if (currentTool === 'fill') {
+            // Для заливки добавляем точку в путь
+            currentPath.push({x: pos.x, y: pos.y});
+
+            // Рисуем временный многоугольник
+            tempCtx.beginPath();
+            tempCtx.moveTo(currentPath[0].x, currentPath[0].y);
+            for (let i = 1; i < currentPath.length; i++) {
+                tempCtx.lineTo(currentPath[i].x, currentPath[i].y);
+            }
+            tempCtx.closePath();
+            tempCtx.fillStyle = brushColor.value + '4D';
+            tempCtx.strokeStyle = brushColor.value;
+            tempCtx.lineWidth = fillBorderWidth;
+            tempCtx.fill();
+            tempCtx.stroke();
+
+            // Показываем точку под курсором
+            tempCtx.beginPath();
+            tempCtx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+            tempCtx.fillStyle = brushColor.value;
+            tempCtx.fill();
+        }
+    }
+
+    function stopDrawing() {
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        if (currentTool === 'freehand') {
+            // Для ручки уже сохраняли точки в процессе рисования
+            // Нужно только обновить последний сегмент
+            if (currentPath.length > 1) {
+                coloredAreas[coloredAreas.length-1].points = [...currentPath];
+            }
+        } else if (currentTool === 'fill' && currentPath.length > 2) {
+            // Для заливки сохраняем весь путь
+            coloredAreas.push({
+                type: 'fill',
+                points: [...currentPath],
+                color: brushColor.value
+            });
+
+            // Рисуем финальную версию на основном canvas
+            ctx.beginPath();
+            ctx.moveTo(currentPath[0].x, currentPath[0].y);
+            for (let i = 1; i < currentPath.length; i++) {
+                ctx.lineTo(currentPath[i].x, currentPath[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = brushColor.value + '4D';
+            ctx.strokeStyle = brushColor.value;
+            ctx.lineWidth = fillBorderWidth;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        coloredAreasInput.value = JSON.stringify(coloredAreas);
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    }
+
+    function updatePreviewIfVisible() {
+        if (previewOverlay && previewOverlay.style.display !== 'none') {
+            updatePreviewOverlay();
+        }
+    }
+
+    // Form submission handling
+    document.getElementById('silhouette-form').addEventListener('submit', function(e) {
+        coloredAreasInput.value = JSON.stringify(coloredAreas);
+    });
+
+    // Initialize
+    initCanvas();
+    freehandToolBtn.click();
+});
+</script>
+{% endblock %}

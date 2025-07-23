@@ -47,12 +47,14 @@ class CustomProductTemplate(models.Model):
         return self.name
 
 
+# models.py - update CustomProductImage model
 class CustomProductImage(models.Model):
     template = models.ForeignKey(CustomProductTemplate, on_delete=models.CASCADE, related_name='images')
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='custom_products/')
     is_front = models.BooleanField(default=False)
     is_back = models.BooleanField(default=False)
+    is_silhouette = models.BooleanField(default=False, verbose_name="Use as silhouette")  # New field
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -138,7 +140,24 @@ class CustomProductOrder(models.Model):
     def __str__(self):
         return f"Order for {self.design.template.name}"
 
+# models.py
 class ProductSilhouette(models.Model):
     template = models.OneToOneField(CustomProductTemplate, on_delete=models.CASCADE, related_name='silhouette')
     mask_image = models.ImageField(upload_to='product_silhouettes/')
+    background_image = models.ImageField(upload_to='product_silhouettes/', blank=True, null=True)  # Новое поле
+    colored_areas = models.JSONField(default=list, blank=True)  # Для хранения координат зон
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Silhouette for {self.template.name}"
+
+
+class ProductMask(models.Model):
+    template = models.ForeignKey(CustomProductTemplate, on_delete=models.CASCADE, related_name='masks')
+    name = models.CharField(max_length=100)
+    mask_image = models.ImageField(upload_to='product_masks/')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Mask for {self.template.name}"

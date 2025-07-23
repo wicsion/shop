@@ -22,11 +22,13 @@
                     </div>
                 </div>
 
-                <div class="relative" id="design-container">
+                <div class="relative" id="design-container" style="background-color: #f0f0f0;">
                     {% if front_image %}
                     <img id="product-image" src="{{ front_image.image.url }}"
                          class="w-full h-auto" alt="Product template">
                     {% endif %}
+
+                    <!-- Color overlay will be inserted here by JavaScript -->
 
                     <!-- Existing areas for front side -->
                     <div id="front-elements-container" class="absolute inset-0">
@@ -391,12 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function applyColorToProduct(colorValue, colorType) {
-        const productImage = document.getElementById('product-image');
         const existingOverlay = document.getElementById('color-overlay');
-
-        if (existingOverlay) {
-            existingOverlay.remove();
-        }
+        if (existingOverlay) existingOverlay.remove();
 
         const overlay = document.createElement('div');
         overlay.id = 'color-overlay';
@@ -406,29 +404,38 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.style.width = '100%';
         overlay.style.height = '100%';
         overlay.style.pointerEvents = 'none';
+        overlay.style.mixBlendMode = 'multiply';
 
-        // Используем маску из изображения
-        {% if template.silhouette.first %}
-        overlay.style.maskImage = 'url({{ template.silhouette.first.mask_image.url }})';
+        // Apply mask if exists
+        {% if template.silhouette %}
+        overlay.style.maskImage = 'url({{ template.silhouette.mask_image.url }})';
         overlay.style.maskSize = '100% 100%';
         overlay.style.maskRepeat = 'no-repeat';
-        overlay.style.maskPosition = 'center';
+        overlay.style.maskMode = 'luminance';
+        overlay.style.webkitMaskImage = 'url({{ template.silhouette.mask_image.url }})';
+        overlay.style.webkitMaskSize = '100% 100%';
+        overlay.style.webkitMaskRepeat = 'no-repeat';
+        overlay.style.webkitMaskMode = 'luminance';
         {% endif %}
 
+        // Set color
         if (colorType === 'solid') {
             overlay.style.backgroundColor = colorValue;
-            overlay.style.opacity = '0.3';
-            overlay.style.mixBlendMode = 'multiply';
+            overlay.style.backgroundImage = 'none';
         } else if (colorType === 'gradient') {
             overlay.style.background = colorValue;
-            overlay.style.opacity = '0.5';
         } else if (colorType === 'pattern') {
             overlay.style.backgroundImage = colorValue;
             overlay.style.backgroundSize = 'cover';
-            overlay.style.opacity = '0.7';
         }
 
-        designContainer.appendChild(overlay);
+        // Insert overlay right after the product image
+        const productImage = document.getElementById('product-image');
+        if (productImage) {
+            productImage.parentNode.insertBefore(overlay, productImage.nextSibling);
+        } else {
+            designContainer.insertBefore(overlay, designContainer.firstChild);
+        }
     }
 
     // Add new text element
@@ -1129,14 +1136,18 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 #color-overlay {
     z-index: 5;
-    -webkit-mask-image: inherit;
     mask-image: inherit;
-    -webkit-mask-size: inherit;
     mask-size: inherit;
-    -webkit-mask-repeat: inherit;
     mask-repeat: inherit;
-    -webkit-mask-position: inherit;
     mask-position: inherit;
+    mask-mode: luminance;
+    -webkit-mask-image: inherit;
+    -webkit-mask-size: inherit;
+    -webkit-mask-repeat: inherit;
+    -webkit-mask-position: inherit;
+    -webkit-mask-mode: luminance;
+    mix-blend-mode: multiply;
+    opacity: 0.9;
 }
 .color-options {
     transition: all 0.3s ease;

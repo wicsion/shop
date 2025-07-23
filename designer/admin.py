@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.shortcuts import redirect
+
+from .views import SilhouetteEditView
 from .models import (
     CustomProductTemplate, CustomProductImage,
     CustomDesignArea, UserCustomDesign,
@@ -6,6 +9,10 @@ from .models import (
     CustomProductOrder, CustomProductSize,
     ProductSilhouette
 )
+from django.utils.safestring import mark_safe
+from . import views
+from django.urls import path, reverse
+
 
 class ProductSilhouetteInline(admin.TabularInline):
     model = ProductSilhouette
@@ -13,10 +20,11 @@ class ProductSilhouetteInline(admin.TabularInline):
     fields = ('mask_image',)
     max_num = 1
 
+# admin.py - update CustomProductImageInline
 class CustomProductImageInline(admin.TabularInline):
     model = CustomProductImage
     extra = 1
-    fields = ('name', 'image', 'is_front', 'is_back', 'order')
+    fields = ('name', 'image', 'is_front', 'is_back', 'is_silhouette', 'order')
     ordering = ('order',)
 
 class CustomDesignAreaInline(admin.TabularInline):
@@ -46,24 +54,80 @@ class CustomProductTemplateAdmin(admin.ModelAdmin):
     )
 
     def has_silhouette(self, obj):
-        return bool(obj.silhouette.first())
+        return hasattr(obj, 'silhouette') and obj.silhouette is not None
     has_silhouette.boolean = True
     has_silhouette.short_description = 'Has Silhouette'
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('<path:object_id>/add-silhouette/',
+                 self.admin_site.admin_view(self.add_silhouette_view),
+                 name='designer_customproducttemplate_add_silhouette'),
+        ]
+        return custom_urls + urls
+
+    def add_silhouette_view(self, request, object_id):
+        return redirect(reverse('admin:designer_productsilhouette_add') + f'?template_id={object_id}')
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['has_add_silhouette'] = True
+        return super().change_view(request, object_id, form_url, extra_context)
+
+
+# admin.py
 @admin.register(ProductSilhouette)
 class ProductSilhouetteAdmin(admin.ModelAdmin):
-    list_display = ('template', 'preview_mask', 'created_at')
+    list_display = ('template', 'preview_mask', 'preview_background', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('template__name',)
-    readonly_fields = ('preview_mask',)
+    readonly_fields = ('preview_mask', 'preview_background')
+    change_form_template = 'admin/silhouette_editor.html'
 
     def preview_mask(self, obj):
         if obj.mask_image:
-            return f'<img src="{obj.mask_image.url}" style="max-height: 50px;" />'
+            return mark_safe(f'<img src="{obj.mask_image.url}" style="max-height: 50px;" />')
         return '-'
-    preview_mask.short_description = 'Mask Preview'
-    preview_mask.allow_tags = True
 
+    preview_mask.short_description = 'Mask Preview'
+
+    def preview_background(self, obj):
+        if obj.background_image:
+            return mark_safe(f'<img src="{obj.background_image.url}" style="max-height: 50px;" />')
+        return '-'
+
+    preview_background.short_description = 'Background Preview'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('<path:object_id>/edit-mask/',
+                 self.admin_site.admin_view(SilhouetteEditView.as_view()),
+                 name='designer_productsilhouette_edit_mask'),
+        ]
+        return custom_urls + urls
+
+    def add_view(self, request, form_url='', extra_context=None):
+        # Get template_id from GET parameter
+        template_id = request.GET.get('template_id')
+        if template_id:
+            extra_context = extra_context or {}
+            extra_context['template_id'] = template_id
+
+        # Добавляем object=None для шаблона
+        extra_context = extra_context or {}
+        extra_context['object'] = None
+        return super().add_view(request, form_url, extra_context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # Добавляем object в контекст
+        extra_context = extra_context or {}
+        extra_context['object'] = self.get_object(request, object_id)
+        extra_context['has_edit_mask'] = True
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
 
 @admin.register(CustomProductColor)
 class CustomProductColorAdmin(admin.ModelAdmin):

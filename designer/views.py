@@ -1,13 +1,24 @@
+import os
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import (
     CustomProductTemplate, UserCustomDesign,
     CustomDesignElement, CustomProductColor,
-    CustomDesignArea, CustomProductOrder
+    CustomDesignArea, CustomProductOrder, ProductSilhouette
 )
 import uuid
 import logging
+from django.shortcuts import render
+from django.views.generic.edit import UpdateView
+from django.urls import reverse_lazy
+from .models import ProductSilhouette
+from .forms import SilhouetteEditForm
+from .models import CustomProductTemplate, ProductMask
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
+import json
 
 
 def custom_designer_start(request):
@@ -291,3 +302,74 @@ def add_custom_color(request):
         return JsonResponse({'status': 'success', 'color_id': color.id})
 
     return JsonResponse({'status': 'error'}, status=400)
+
+
+@staff_member_required
+def edit_mask(request, object_id):
+    silhouette = get_object_or_404(ProductSilhouette, pk=object_id)
+
+    if request.method == 'POST' and request.FILES.get('mask_image'):
+        silhouette.mask_image = request.FILES['mask_image']
+        silhouette.save()
+        return redirect('admin:designer_productsilhouette_change', object_id)
+
+    return render(request, 'admin/edit_mask.html', {
+        'silhouette': silhouette,
+        'opts': ProductSilhouette._meta,
+    })
+
+
+# views.py
+class SilhouetteEditView(UpdateView):
+    model = ProductSilhouette
+    form_class = SilhouetteEditForm
+    template_name = 'admin/silhouette_editor.html'
+    success_url = reverse_lazy('admin:designer_productsilhouette_changelist')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # For new objects, get template_id from GET parameter
+        if not self.object:
+            template_id = self.request.GET.get('template_id')
+            if template_id:
+                kwargs['template_id'] = template_id
+        else:
+            kwargs['template_id'] = self.object.template_id
+        return kwargs
+
+    def get_object(self, queryset=None):
+        # Для новых объектов
+        if 'pk' not in self.kwargs:
+            return None
+        return super().get_object(queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print("Debug: Object in view:", self.object)
+
+        return context
+
+    def form_valid(self, form):
+        colored_areas = self.request.POST.get('colored_areas', '[]')
+        try:
+            form.instance.colored_areas = json.loads(colored_areas)
+        except json.JSONDecodeError:
+            form.instance.colored_areas = []
+
+        if 'mask_image' in self.request.FILES:
+            form.instance.mask_image = self.request.FILES['mask_image']
+
+        # If this is a new object, set the template relationship
+        if not form.instance.pk and 'template_id' in self.request.GET:
+            form.instance.template_id = self.request.GET['template_id']
+
+        # If a base image is selected, use it as the mask
+        base_image = form.cleaned_data.get('base_image')
+        if base_image and not form.cleaned_data.get('mask_image'):
+            form.instance.mask_image = base_image.image
+            # Mark the image as silhouette
+            base_image.is_silhouette = True
+            base_image.save()
+
+        return super().form_valid(form)
+

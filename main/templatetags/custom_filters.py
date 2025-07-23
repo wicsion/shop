@@ -1,5 +1,8 @@
 from django import template
 import re
+import os
+
+
 register = template.Library()
 
 @register.filter
@@ -162,3 +165,13 @@ def max_available_quantity(product):
     if product.has_variants:
         return max(variant.quantity for variant in product.variants.all())
     return product.quantity
+
+@register.filter
+def filter_is_silhouette(queryset, value):
+    if hasattr(queryset, 'filter'):
+        return queryset.filter(is_silhouette=value)
+    return queryset
+
+@register.filter
+def file_exists(filepath):
+    return os.path.exists(filepath)
