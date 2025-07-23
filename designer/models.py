@@ -143,9 +143,9 @@ class CustomProductOrder(models.Model):
 # models.py
 class ProductSilhouette(models.Model):
     template = models.OneToOneField(CustomProductTemplate, on_delete=models.CASCADE, related_name='silhouette')
-    mask_image = models.ImageField(upload_to='product_silhouettes/')
-    background_image = models.ImageField(upload_to='product_silhouettes/', blank=True, null=True)  # Новое поле
-    colored_areas = models.JSONField(default=list, blank=True)  # Для хранения координат зон
+    front_mask_image = models.ImageField(upload_to='product_silhouettes/', verbose_name="Маска для передней стороны")
+    back_mask_image = models.ImageField(upload_to='product_silhouettes/', blank=True, null=True, verbose_name="Маска для тыловой стороны")
+    colored_areas = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

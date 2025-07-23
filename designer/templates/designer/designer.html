@@ -321,8 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
             applyColorToProduct(colorValue, colorType);
         });
     });
-
-    // Add custom solid color
+      // Add custom solid color
     document.getElementById('add-solid-color').addEventListener('click', function() {
         const colorValue = document.getElementById('custom-solid-color').value;
 
@@ -392,6 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Apply color to product with mask for current side
     function applyColorToProduct(colorValue, colorType) {
         const existingOverlay = document.getElementById('color-overlay');
         if (existingOverlay) existingOverlay.remove();
@@ -406,16 +406,21 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.style.pointerEvents = 'none';
         overlay.style.mixBlendMode = 'multiply';
 
-        // Apply mask if exists
+        // Apply mask based on current side
         {% if template.silhouette %}
-        overlay.style.maskImage = 'url({{ template.silhouette.mask_image.url }})';
-        overlay.style.maskSize = '100% 100%';
-        overlay.style.maskRepeat = 'no-repeat';
-        overlay.style.maskMode = 'luminance';
-        overlay.style.webkitMaskImage = 'url({{ template.silhouette.mask_image.url }})';
-        overlay.style.webkitMaskSize = '100% 100%';
-        overlay.style.webkitMaskRepeat = 'no-repeat';
-        overlay.style.webkitMaskMode = 'luminance';
+            if (currentSide === 'front' && '{{ template.silhouette.front_mask_image.url }}') {
+                overlay.style.maskImage = 'url({{ template.silhouette.front_mask_image.url }})';
+                overlay.style.webkitMaskImage = 'url({{ template.silhouette.front_mask_image.url }})';
+            } else if (currentSide === 'back' && '{{ template.silhouette.back_mask_image.url }}') {
+                overlay.style.maskImage = 'url({{ template.silhouette.back_mask_image.url }})';
+                overlay.style.webkitMaskImage = 'url({{ template.silhouette.back_mask_image.url }})';
+            }
+            overlay.style.maskSize = '100% 100%';
+            overlay.style.maskRepeat = 'no-repeat';
+            overlay.style.maskMode = 'luminance';
+            overlay.style.webkitMaskSize = '100% 100%';
+            overlay.style.webkitMaskRepeat = 'no-repeat';
+            overlay.style.webkitMaskMode = 'luminance';
         {% endif %}
 
         // Set color
@@ -994,6 +999,12 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.add('active');
         document.getElementById('back-btn').classList.remove('active');
         currentSide = 'front';
+
+        // Reapply color when switching sides
+        const selectedColor = document.querySelector('.color-option.border-blue-500');
+        if (selectedColor) {
+            applyColorToProduct(selectedColor.dataset.colorValue, selectedColor.dataset.colorType);
+        }
     });
 
     {% if back_image %}
@@ -1004,6 +1015,12 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.add('active');
         document.getElementById('front-btn').classList.remove('active');
         currentSide = 'back';
+
+        // Reapply color when switching sides
+        const selectedColor = document.querySelector('.color-option.border-blue-500');
+        if (selectedColor) {
+            applyColorToProduct(selectedColor.dataset.colorValue, selectedColor.dataset.colorType);
+        }
     });
     {% endif %}
 

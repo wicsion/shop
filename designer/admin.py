@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import redirect
-
-from .views import SilhouetteEditView
+from django.urls import path, reverse
+from django.utils.safestring import mark_safe
 from .models import (
     CustomProductTemplate, CustomProductImage,
     CustomDesignArea, UserCustomDesign,
@@ -9,18 +9,15 @@ from .models import (
     CustomProductOrder, CustomProductSize,
     ProductSilhouette
 )
-from django.utils.safestring import mark_safe
-from . import views
-from django.urls import path, reverse
-
+from .views import SilhouetteEditView
+from .forms import SilhouetteEditForm
 
 class ProductSilhouetteInline(admin.TabularInline):
     model = ProductSilhouette
     extra = 1
-    fields = ('mask_image',)
+    fields = ('front_mask_image', 'back_mask_image')
     max_num = 1
 
-# admin.py - update CustomProductImageInline
 class CustomProductImageInline(admin.TabularInline):
     model = CustomProductImage
     extra = 1
@@ -75,29 +72,26 @@ class CustomProductTemplateAdmin(admin.ModelAdmin):
         extra_context['has_add_silhouette'] = True
         return super().change_view(request, object_id, form_url, extra_context)
 
-
-# admin.py
 @admin.register(ProductSilhouette)
 class ProductSilhouetteAdmin(admin.ModelAdmin):
-    list_display = ('template', 'preview_mask', 'preview_background', 'created_at')
+    list_display = ('template', 'preview_front_mask', 'preview_back_mask', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('template__name',)
-    readonly_fields = ('preview_mask', 'preview_background')
+    readonly_fields = ('preview_front_mask', 'preview_back_mask')
+    form = SilhouetteEditForm
     change_form_template = 'admin/silhouette_editor.html'
 
-    def preview_mask(self, obj):
-        if obj.mask_image:
-            return mark_safe(f'<img src="{obj.mask_image.url}" style="max-height: 50px;" />')
+    def preview_front_mask(self, obj):
+        if obj.front_mask_image:
+            return mark_safe(f'<img src="{obj.front_mask_image.url}" style="max-height: 50px;" />')
         return '-'
+    preview_front_mask.short_description = 'Front Mask Preview'
 
-    preview_mask.short_description = 'Mask Preview'
-
-    def preview_background(self, obj):
-        if obj.background_image:
-            return mark_safe(f'<img src="{obj.background_image.url}" style="max-height: 50px;" />')
+    def preview_back_mask(self, obj):
+        if obj.back_mask_image:
+            return mark_safe(f'<img src="{obj.back_mask_image.url}" style="max-height: 50px;" />')
         return '-'
-
-    preview_background.short_description = 'Background Preview'
+    preview_back_mask.short_description = 'Back Mask Preview'
 
     def get_urls(self):
         urls = super().get_urls()
@@ -109,19 +103,16 @@ class ProductSilhouetteAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def add_view(self, request, form_url='', extra_context=None):
-        # Get template_id from GET parameter
         template_id = request.GET.get('template_id')
         if template_id:
             extra_context = extra_context or {}
             extra_context['template_id'] = template_id
 
-        # Добавляем object=None для шаблона
         extra_context = extra_context or {}
         extra_context['object'] = None
         return super().add_view(request, form_url, extra_context)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        # Добавляем object в контекст
         extra_context = extra_context or {}
         extra_context['object'] = self.get_object(request, object_id)
         extra_context['has_edit_mask'] = True
@@ -137,7 +128,7 @@ class CustomProductColorAdmin(admin.ModelAdmin):
     search_fields = ('name', 'hex_code')
 
     def preview_color(self, obj):
-        return f'<div style="width: 20px; height: 20px; background-color: {obj.hex_code};"></div>'
+        return mark_safe(f'<div style="width: 20px; height: 20px; background-color: {obj.hex_code};"></div>')
     preview_color.short_description = 'Preview'
     preview_color.allow_tags = True
 
