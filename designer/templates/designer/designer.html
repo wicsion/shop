@@ -119,14 +119,20 @@
 
                     <div class="mb-4">
                         <label class="block mb-1">Размер шрифта</label>
-                        <input type="range" id="element-font-size" min="8" max="72" value="14" class="w-full">
-                        <span id="font-size-value">14px</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-font text-gray-500"></i>
+                            <input type="range" id="element-font-size" min="8" max="72" value="14" class="flex-1">
+                            <span id="font-size-value">14px</span>
+                        </div>
                     </div>
 
                     <div class="mb-4">
                         <label class="block mb-1">Вращение (градусы)</label>
-                        <input type="range" id="element-rotation" min="0" max="360" value="0" class="w-full">
-                        <span id="rotation-value">0°</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-undo text-gray-500"></i>
+                            <input type="range" id="element-rotation" min="0" max="360" value="0" class="flex-1">
+                            <span id="rotation-value">0°</span>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -265,6 +271,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let originalElement = null;
     let selectedColorId = null;
 
+    // Load Font Awesome
+    const faScript = document.createElement('script');
+    faScript.src = 'https://kit.fontawesome.com/a076d05399.js';
+    faScript.crossOrigin = 'anonymous';
+    document.head.appendChild(faScript);
+
     // Color type switching
     document.querySelectorAll('.color-type-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -321,7 +333,8 @@ document.addEventListener('DOMContentLoaded', function() {
             applyColorToProduct(colorValue, colorType);
         });
     });
-      // Add custom solid color
+
+    // Add custom solid color
     document.getElementById('add-solid-color').addEventListener('click', function() {
         const colorValue = document.getElementById('custom-solid-color').value;
 
@@ -448,19 +461,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = currentSide === 'front' ? frontElementsContainer : backElementsContainer;
 
         const newElement = document.createElement('div');
-        newElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+        newElement.className = 'user-element absolute border-2 border-blue-500 p-2 cursor-move';
         newElement.style.width = '200px';
         newElement.style.height = '50px';
         newElement.style.left = '100px';
         newElement.style.top = '100px';
         newElement.dataset.side = currentSide;
         newElement.innerHTML = `
-            <div class="element-content h-full flex items-center justify-center">
+            <div class="element-content h-full w-full flex items-center justify-center">
                 <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
             </div>
             <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
-                <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                    <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                </button>
+                <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                    <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                </button>
             </div>
         `;
 
@@ -490,19 +507,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const newElement = document.createElement('div');
-                    newElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+                    newElement.className = 'user-element absolute border-2 border-blue-500 p-2 cursor-move';
                     newElement.style.width = '150px';
                     newElement.style.height = '150px';
                     newElement.style.left = '100px';
                     newElement.style.top = '100px';
                     newElement.dataset.side = currentSide;
                     newElement.innerHTML = `
-                        <div class="element-content h-full flex items-center justify-center">
+                        <div class="element-content h-full w-full flex items-center justify-center">
                             <img src="${event.target.result}" class="max-w-full max-h-full">
                         </div>
                         <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
-                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                                <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                            </button>
+                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                                <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                            </button>
                         </div>
                     `;
 
@@ -671,10 +692,14 @@ document.addEventListener('DOMContentLoaded', function() {
             centerY = rect.top + rect.height / 2;
 
             // Get current rotation
-            const content = element.querySelector('.element-content span');
-            if (content && content.style.transform) {
-                const match = content.style.transform.match(/rotate\((\d+)deg\)/);
-                if (match) initialAngle = parseInt(match[1]);
+            const content = element.querySelector('.element-content');
+            if (content) {
+                // Check if it's an image or text
+                const child = content.querySelector('img') || content.querySelector('span');
+                if (child && child.style.transform) {
+                    const match = child.style.transform.match(/rotate\((\d+)deg\)/);
+                    if (match) initialAngle = parseInt(match[1]);
+                }
             }
 
             startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
@@ -687,11 +712,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
             const rotation = (initialAngle + angle - startAngle) % 360;
 
-            const content = element.querySelector('.element-content span');
+            const content = element.querySelector('.element-content');
             if (content) {
-                content.style.transform = `rotate(${rotation}deg)`;
-                document.getElementById('element-rotation').value = rotation;
-                document.getElementById('rotation-value').textContent = rotation + '°';
+                const child = content.querySelector('img') || content.querySelector('span');
+                if (child) {
+                    child.style.transform = `rotate(${rotation}deg)`;
+                    document.getElementById('element-rotation').value = rotation;
+                    document.getElementById('rotation-value').textContent = rotation + '°';
+                }
             }
         }
 
@@ -748,16 +776,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (imageInput.files.length > 0) {
                         savedElement.innerHTML = `
-                            <div class="area-content h-full flex items-center justify-center">
+                            <div class="area-content h-full w-full flex items-center justify-center">
                                 <img src="${URL.createObjectURL(imageInput.files[0])}"
                                      class="max-w-full max-h-full element-display"
                                      data-element-id="${data.element_id}"
-                                     data-area-id="${data.area_id}">
+                                     data-area-id="${data.area_id}"
+                                     style="transform: rotate(${rotation}deg);">
                             </div>
                         `;
                     } else {
                         savedElement.innerHTML = `
-                            <div class="area-content h-full flex items-center justify-center">
+                            <div class="area-content h-full w-full flex items-center justify-center">
                                 <span class="element-display"
                                       style="color: ${color}; font-size: ${fontSize}px; transform: rotate(${rotation}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
                                       data-element-id="${data.element_id}"
@@ -804,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     savedElement.style.height = currentElement.style.height;
                     savedElement.dataset.areaId = data.area_id;
                     savedElement.innerHTML = `
-                        <div class="area-content h-full flex items-center justify-center">
+                        <div class="area-content h-full w-full flex items-center justify-center">
                             <span class="element-display"
                                   style="color: ${color}; font-size: ${fontSize}px; transform: rotate(${rotation}deg); width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;"
                                   data-element-id="${data.element_id}"
@@ -844,7 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Create a temporary editable element
             const tempElement = document.createElement('div');
-            tempElement.className = 'user-element absolute border-2 border-blue-500 p-2 bg-white bg-opacity-70 cursor-move';
+            tempElement.className = 'user-element absolute border-2 border-blue-500 p-2 cursor-move';
             tempElement.style.left = areaElement.style.left;
             tempElement.style.top = areaElement.style.top;
             tempElement.style.width = areaElement.style.width;
@@ -856,33 +885,46 @@ document.addEventListener('DOMContentLoaded', function() {
             // If it's a new empty area, create default text element
             if (!elementId) {
                 tempElement.innerHTML = `
-                    <div class="element-content h-full flex items-center justify-center">
+                    <div class="element-content h-full w-full flex items-center justify-center">
                         <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
                     </div>
                     <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
-                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                            <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                        </button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                            <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                        </button>
                     </div>
                 `;
             } else if (elementDisplay.tagName === 'IMG') {
+                const rotation = elementDisplay.style.transform ? elementDisplay.style.transform.match(/rotate\((\d+)deg\)/)[1] : 0;
                 tempElement.innerHTML = `
-                    <div class="element-content h-full flex items-center justify-center">
-                        <img src="${elementDisplay.src}" class="max-w-full max-h-full">
+                    <div class="element-content h-full w-full flex items-center justify-center">
+                        <img src="${elementDisplay.src}" class="max-w-full max-h-full" style="transform: rotate(${rotation}deg);">
                     </div>
                     <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
-                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                            <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                        </button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                            <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                        </button>
                     </div>
                 `;
             } else {
                 const style = elementDisplay.getAttribute('style') || '';
                 tempElement.innerHTML = `
-                    <div class="element-content h-full flex items-center justify-center">
+                    <div class="element-content h-full w-full flex items-center justify-center">
                         <span style="${style}">${elementDisplay.textContent}</span>
                     </div>
                     <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize"></button>
-                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab"></button>
+                        <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                            <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                        </button>
+                        <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                            <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                        </button>
                     </div>
                 `;
             }
@@ -953,17 +995,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const content = currentElement.querySelector('.element-content');
                 if (content.querySelector('img')) {
                     const img = content.querySelector('img');
+                    const rotation = img.style.transform ? img.style.transform.match(/rotate\((\d+)deg\)/)[1] : 0;
                     savedElement.innerHTML = `
-                        <div class="area-content h-full flex items-center justify-center">
+                        <div class="area-content h-full w-full flex items-center justify-center">
                             <img src="${img.src}" class="max-w-full max-h-full element-display"
                                  data-element-id="${currentElement.dataset.elementId}"
-                                 data-area-id="${currentElement.dataset.areaId}">
+                                 data-area-id="${currentElement.dataset.areaId}"
+                                 style="transform: rotate(${rotation}deg);">
                         </div>
                     `;
                 } else {
                     const span = content.querySelector('span');
                     savedElement.innerHTML = `
-                        <div class="area-content h-full flex items-center justify-center">
+                        <div class="area-content h-full w-full flex items-center justify-center">
                             <span class="element-display"
                                   style="${span.getAttribute('style')}"
                                   data-element-id="${currentElement.dataset.elementId}"
@@ -1040,9 +1084,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('element-rotation').addEventListener('input', function() {
         document.getElementById('rotation-value').textContent = this.value + '°';
         if (currentElement) {
-            const span = currentElement.querySelector('.element-content span');
-            if (span) {
-                span.style.transform = `rotate(${this.value}deg)`;
+            const content = currentElement.querySelector('.element-content');
+            if (content) {
+                const child = content.querySelector('img') || content.querySelector('span');
+                if (child) {
+                    child.style.transform = `rotate(${this.value}deg)`;
+                }
             }
         }
     });
@@ -1072,6 +1119,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(data.message || 'Ошибка при сохранении заказа');
             }
         });
+    });
+
+    // Enable editing for all elements on page load
+    document.querySelectorAll('.element-display').forEach(element => {
+        element.addEventListener('click', handleElementClick);
     });
 });
 </script>
@@ -1108,12 +1160,12 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 0 !important;
 }
 .user-element {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: transparent;
     z-index: 10;
-    border: 2px dashed blue;
+    border: 2px dashed blue !important;
 }
 .user-element:hover {
-    background-color: rgba(219, 234, 254, 0.7);
+    background-color: rgba(219, 234, 254, 0.3);
 }
 .color-option:hover {
     transform: scale(1.1);
@@ -1131,9 +1183,12 @@ document.addEventListener('DOMContentLoaded', function() {
 .element-display:hover {
     outline: 1px dashed #ccc;
 }
-.area-content {
+.area-content, .element-content {
     width: 100%;
     height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .resize-handle {
     cursor: nwse-resize;
@@ -1185,6 +1240,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 .color-option:hover {
     transform: scale(1.1);
+}
+.fas {
+    pointer-events: none;
 }
 </style>
 {% endblock %}
