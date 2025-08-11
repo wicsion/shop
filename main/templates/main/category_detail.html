@@ -15,8 +15,7 @@
     <nav class="breadcrumbs mb-6" aria-label="Хлебные крошки">
         <a href="{% url 'main:home' %}">{% trans "Главная" %}</a>
         <span class="separator" aria-hidden="true">/</span>
-        <a href="{% url 'main:category_list' %}">{% trans "Категории" %}</a>
-        <span class="separator" aria-hidden="true">/</span>
+
         <span>{{ category.name }}</span>
     </nav>
 
@@ -112,40 +111,28 @@
                 {% endif %}
 
                 <!-- Фильтр по брендам -->
-                {% if brands %}
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Бренды" %}</h3>
-                    <div class="space-y-2 max-h-60 overflow-y-auto">
-                        {% for brand in brands %}
-                        <div class="flex items-center">
-                            <input type="checkbox" id="brand_{{ forloop.counter }}"
-                                   class="brand-filter mr-2" value="{{ brand }}"
-                                   {% if brand in selected_brands %}checked{% endif %}
-                                   aria-labelledby="brand_{{ forloop.counter }}_label">
-                            <label for="brand_{{ forloop.counter }}" id="brand_{{ forloop.counter }}_label">{{ brand }}</label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+               <!-- Фильтр по брендам -->
+{% if brands %}
+<div class="mb-6">
+    <h3 class="font-semibold text-lg mb-4">{% trans "Бренды" %}</h3>
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+        {% for brand in brands %}
+            {% if brand %}  <!-- Добавленная проверка -->
+            <div class="flex items-center">
+                <input type="checkbox" id="brand_{{ forloop.counter }}"
+                       class="brand-filter mr-2" value="{{ brand }}"
+                       {% if brand in selected_brands %}checked{% endif %}
+                       aria-labelledby="brand_{{ forloop.counter }}_label">
+                <label for="brand_{{ forloop.counter }}" id="brand_{{ forloop.counter }}_label">{{ brand }}</label>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
                 <!-- Фильтр по материалам -->
-                {% if materials %}
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Материалы" %}</h3>
-                    <div class="space-y-2 max-h-60 overflow-y-auto">
-                        {% for material in materials %}
-                        <div class="flex items-center">
-                            <input type="checkbox" id="material_{{ forloop.counter }}"
-                                   class="material-filter mr-2" value="{{ material }}"
-                                   {% if material in selected_materials %}checked{% endif %}
-                                   aria-labelledby="material_{{ forloop.counter }}_label">
-                            <label for="material_{{ forloop.counter }}" id="material_{{ forloop.counter }}_label">{{ material }}</label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+
 
                 <!-- Фильтр по размерам -->
 <!-- Фильтр по размерам -->
@@ -171,40 +158,57 @@
 
 
                 <!-- Фильтр по полу -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Пол" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="gender_male" class="gender-filter mr-2" value="male"
-                                   {% if 'male' in selected_genders %}checked{% endif %}
-                                   aria-labelledby="gender_male_label">
-                            <label for="gender_male" id="gender_male_label">{% trans "Мужские" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="gender_female" class="gender-filter mr-2" value="female"
-                                   {% if 'female' in selected_genders %}checked{% endif %}
-                                   aria-labelledby="gender_female_label">
-                            <label for="gender_female" id="gender_female_label">{% trans "Женские" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="gender_unisex" class="gender-filter mr-2" value="unisex"
-                                   {% if 'unisex' in selected_genders %}checked{% endif %}
-                                   aria-labelledby="gender_unisex_label">
-                            <label for="gender_unisex" id="gender_unisex_label">{% trans "Унисекс" %}</label>
-                        </div>
-                    </div>
-                </div>
+            <!-- Фильтр по полу -->
+<!-- Фильтр по полу -->
+               <!-- Фильтр по полу -->
+{% if available_genders and category.name in "Одежда,Футболки,Кепки и бейсболки,Панамы,Футболки поло,Футболки с длинным рукавом,Промо футболки,Ветровки,Толстовки,Свитшоты,Худи,Куртки,Флисовые куртки и кофты,Шарфы,Трикотажные шапки,Перчатки и варежки,Вязаные комплекты,Джемперы,Жилеты,Офисные рубашки,Фартуки,Спортивная одежда,Брюки и шорты" or category.parent.name in "Одежда,Футболки,Кепки и бейсболки,Панамы,Футболки поло,Футболки с длинным рукавом,Промо футболки,Ветровки,Толстовки,Свитшоты,Худи,Куртки,Флисовые куртки и кофты,Шарфы,Трикотажные шапки,Перчатки и варежки,Вязаные комплекты,Джемперы,Жилеты,Офисные рубашки,Фартуки,Спортивная одежда,Брюки и шорты" %}
+<div class="mb-6">
+    <h3 class="font-semibold text-lg mb-4">{% trans "Пол" %}</h3>
+    <div class="space-y-2">
+        <!-- Мужские -->
+        {% if 'male' in available_genders %}
+        <div class="flex items-center">
+            <input type="checkbox" id="gender_male"
+                   class="gender-filter mr-2" value="male"
+                   {% if 'male' in selected_genders %}checked{% endif %}
+                   aria-labelledby="gender_male_label">
+            <label for="gender_male" id="gender_male_label">Мужские</label>
+        </div>
+        {% endif %}
+
+        <!-- Женские -->
+        {% if 'female' in available_genders %}
+        <div class="flex items-center">
+            <input type="checkbox" id="gender_female"
+                   class="gender-filter mr-2" value="female"
+                   {% if 'female' in selected_genders %}checked{% endif %}
+                   aria-labelledby="gender_female_label">
+            <label for="gender_female" id="gender_female_label">Женские</label>
+        </div>
+        {% endif %}
+
+        <!-- Унисекс -->
+        {% if 'unisex' in available_genders %}
+        <div class="flex items-center">
+            <input type="checkbox" id="gender_unisex"
+                   class="gender-filter mr-2" value="unisex"
+                   {% if 'unisex' in selected_genders %}checked{% endif %}
+                   aria-labelledby="gender_unisex_label">
+            <label for="gender_unisex" id="gender_unisex_label">Унисекс</label>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
                 <!-- Фильтр по типу нанесения -->
-              <!-- Фильтр по типу нанесения -->
+
+
 <!-- Фильтр по типу нанесения -->
-<!-- Фильтр по типу нанесения -->
-<!-- Фильтр по типу нанесения -->
-{% if application_types %}
 <div class="mb-6">
     <h3 class="font-semibold text-lg mb-4">{% trans "Тип нанесения" %}</h3>
     <div class="space-y-2 max-h-60 overflow-y-auto">
-        {% for app_type in application_types %}
+        {% for app_type in available_application_types %}
         <div class="flex items-center">
             <input type="checkbox" id="app_{{ forloop.counter }}"
                    class="app-type-filter mr-2" value="{{ app_type }}"
@@ -212,10 +216,11 @@
                    aria-labelledby="app_{{ forloop.counter }}_label">
             <label for="app_{{ forloop.counter }}" id="app_{{ forloop.counter }}_label">{{ app_type }}</label>
         </div>
+        {% empty %}
+        <p class="text-gray-500 text-sm">{% trans "Нет доступных типов нанесения" %}</p>
         {% endfor %}
     </div>
 </div>
-{% endif %}
 
                 <!-- Фильтр по типу упаковки -->
                 <div class="mb-6">
@@ -242,7 +247,20 @@
                     </div>
                 </div>
 
-                <!-- Фильтр по типу маркировки -->
+                                <!-- Фильтр по типу маркировки -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип маркировки" %}</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="mark_textile" class="marking-type-filter mr-2" value="textile"
+                                   {% if 'textile' in selected_marking_types %}checked{% endif %}
+                                   aria-labelledby="mark_textile_label">
+                            <label for="mark_textile" id="mark_textile_label">{% trans "Текстиль" %}</label>
+                        </div>
+
+                    </div>
+                </div>
+
 
 
                 <!-- Фильтр по механизму -->

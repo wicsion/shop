@@ -5,7 +5,7 @@ from django.views.generic import ListView, DetailView, TemplateView
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.urls import reverse
-from django.db.models import Q, F
+from django.db.models import Q, F, Case, When, Value, IntegerField
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_GET
 from django.conf import settings
@@ -211,9 +211,11 @@ class CategoryDetailView(DetailView):
     context_object_name = 'category'
     slug_url_kwarg = 'slug'
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         category = self.object
+
 
         # Получаем все подкатегории (включая вложенные)
         subcategories = category.get_descendants(include_self=True)
@@ -244,7 +246,7 @@ class CategoryDetailView(DetailView):
             except (ValueError, TypeError):
                 pass
 
-        # Остальная фильтрация (сохраняем существующую логику)
+        # Остальная фильтрация
         status = self.request.GET.get('status')
         brands = self.request.GET.get('brands', '').split(',') if self.request.GET.get('brands') else []
         materials = self.request.GET.get('materials', '').split(',') if self.request.GET.get('materials') else []
@@ -272,7 +274,7 @@ class CategoryDetailView(DetailView):
         requires_marking = self.request.GET.get('requires_marking') == 'true'
         individual_packaging = self.request.GET.get('individual_packaging') == 'true'
 
-        # Применяем остальные фильтры (сохраняем существующую логику)
+        # Применяем фильтры
         if status:
             products = products.filter(status=status)
         if brands:
@@ -287,15 +289,28 @@ class CategoryDetailView(DetailView):
             for size in sizes:
                 size_query |= Q(sizes_available__icontains=size)
             products = products.filter(size_query)
+
+        genders = self.request.GET.get('genders', '').split(',') if self.request.GET.get('genders') else []
+
         if genders:
             gender_query = Q()
             for gender in genders:
-                gender_query |= Q(gender__icontains=gender)
-            products = products.filter(gender_query)
-        # В методе get_context_data класса CategoryDetailView
-        # В методе get_context_data класса CategoryDetailView
+                if gender == 'male':
+                    gender_query |= Q(gender='male')
+                elif gender == 'female':
+                    gender_query |= Q(gender='female')
+                elif gender == 'unisex':
+                    # Только унисекс или без указания пола
+                    gender_query |= (
+                            Q(name__iregex=r'(унисекс|unisex|для всех|оверсайз)') |
+                            (
+                                    ~Q(name__iregex=r'(мужск|женск|men|women|man|woman|male|female|для муж|для жен)') &
+                                    ~Q(name__iregex=r'(унисекс|unisex|для всех|оверсайз)')
+                            )
+                    )
+            products = products.filter(gender_query).distinct()
+
         if application_types:
-            # Получаем все товары и фильтруем их в Python
             all_products = list(products)
             filtered_products = [
                 p for p in all_products
@@ -305,8 +320,8 @@ class CategoryDetailView(DetailView):
                     for app_type in application_types
                 )
             ]
-            # Создаем новый queryset с отфильтрованными товарами
             products = products.filter(id__in=[p.id for p in filtered_products])
+
         if is_featured:
             products = products.filter(is_featured=True)
         if is_bestseller:
@@ -342,9 +357,9 @@ class CategoryDetailView(DetailView):
             products = products.filter(umbrella_query)
 
         # Сортировка
+        # Сортировка
         sort_by = self.request.GET.get('sort', 'default')
 
-        # Если есть фильтр по цене и не указана другая сортировка - сортируем по возрастанию цены
         if has_price_filter and sort_by == 'default':
             sort_by = 'price_asc'
 
@@ -358,6 +373,36 @@ class CategoryDetailView(DetailView):
             products = products.order_by('-name')
         elif sort_by == 'newest':
             products = products.order_by('-created_at')
+        else:
+            # Сортировка по умолчанию: сначала женские/мужские, потом унисекс
+            products = products.annotate(
+                gender_order=Case(
+                    When(name__iregex=r'(женск|women|woman|female|для жен)', then=Value(1)),
+                    When(name__iregex=r'(мужск|men|man|male|для муж)', then=Value(2)),
+                    default=Value(3),
+                    output_field=IntegerField(),
+                )
+            ).order_by('gender_order', '-created_at')
+
+        # Получаем доступные типы нанесения
+        available_application_types = self._get_available_application_types(products)
+
+        # Получаем доступные полы из всех возможных источников
+        available_genders = set()
+        for product in products:
+            name = (product.name or '').lower()
+            if any(word in name for word in ['мужск', 'male', 'man', 'для муж']):
+                available_genders.add('male')
+            elif any(word in name for word in ['женск', 'female', 'woman', 'для жен']):
+                available_genders.add('female')
+            elif any(word in name for word in ['унисекс', 'unisex', 'для всех', 'оверсайз']):
+                available_genders.add('unisex')
+
+        # Если не найдено явных указаний, предлагаем все варианты
+        if not available_genders:
+            available_genders.update(['male', 'female', 'unisex'])
+
+        context['available_genders'] = sorted(available_genders)
 
         # Пагинация
         per_page = int(self.request.GET.get('per_page', 12))
@@ -365,7 +410,7 @@ class CategoryDetailView(DetailView):
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        # Добавляем контекст для отображения выбранных фильтров
+        # Добавляем контекст
         context.update({
             'subcategories': category.children.all().order_by('order'),
             'products': page_obj,
@@ -373,6 +418,7 @@ class CategoryDetailView(DetailView):
             'materials': products.exclude(material='').values_list('material', flat=True).distinct().order_by(
                 'material'),
             'sizes': self._get_available_sizes(products),
+            'available_genders': sorted(available_genders),
             'status_choices': [
                 ('new', 'Новинки'),
                 ('limited', 'Ограниченный тираж'),
@@ -401,9 +447,57 @@ class CategoryDetailView(DetailView):
             'is_eco_checked': is_eco,
             'requires_marking_checked': requires_marking,
             'individual_packaging_checked': individual_packaging,
-            'has_price_filter': has_price_filter,  # Добавляем флаг наличия фильтра по цене
+            'has_price_filter': has_price_filter,
+            'available_application_types': available_application_types,
         })
+
+        logger.debug(f"Available genders: {available_genders}")
+        logger.debug(f"Selected genders: {genders}")
+
+        logger.debug(f"Products after gender filter: {products.count()}")
         return context
+
+    @staticmethod
+    def get_normalized_gender(self):
+        """Возвращает нормализованное значение пола из всех возможных источников"""
+        # Проверяем основное поле gender
+        if self.gender:
+            normalized = self.normalize_gender_value(self.gender)
+            if normalized:
+                return normalized
+
+        # Проверяем XML атрибуты
+        if self.xml_data and 'attributes' in self.xml_data:
+            xml_gender = self.xml_data['attributes'].get('gender')
+            if xml_gender:
+                normalized = self.normalize_gender_value(xml_gender)
+                if normalized:
+                    return normalized
+
+        # Проверяем XML фильтры (type_id=23)
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) == '23' and f.get('filter_name'):
+                    normalized = self.normalize_gender_value(f['filter_name'])
+                    if normalized:
+                        return normalized
+
+        # Проверяем название товара и описание
+        name = self.name.lower()
+        description = (self.description or '').lower()
+
+        if any(word in name or word in description
+               for word in ['мужск', 'male', 'man', 'для муж']):
+            return 'male'
+        elif any(word in name or word in description
+                 for word in ['женск', 'female', 'woman', 'для жен']):
+            return 'female'
+        elif any(word in name or word in description
+                 for word in ['унисекс', 'unisex', 'для всех']):
+            return 'unisex'
+
+        return None
+
 
     def _get_available_sizes(self, products):
         size_set = set()
@@ -506,6 +600,29 @@ class CategoryDetailView(DetailView):
                         application_types.add(method)
 
         return sorted(application_types)
+
+    def _get_available_genders(self, products):
+        """Возвращает уникальные гендерные значения для товаров категории"""
+        gender_set = set()
+
+        for product in products:
+            name = (product.name or '').lower()
+
+            # Проверяем мужские (исключая женские и унисекс)
+            if (any(word in name for word in ['мужск', 'male', 'man', 'для муж']) and
+                    not any(word in name for word in ['женск', 'female', 'woman', 'для жен', 'унисекс', 'unisex'])):
+                gender_set.add('male')
+            # Проверяем женские (исключая мужские и унисекс)
+            elif (any(word in name for word in ['женск', 'female', 'woman', 'для жен']) and
+                  not any(word in name for word in ['мужск', 'male', 'man', 'для муж', 'унисекс', 'unisex'])):
+                gender_set.add('female')
+            # Все остальное - унисекс
+            else:
+                gender_set.add('unisex')
+
+        return sorted(gender_set, key=lambda x: {'male': 0, 'female': 1, 'unisex': 2}[x])
+
+
 
 
 
@@ -939,7 +1056,7 @@ def search(request):
     results = []
 
     if query:
-        # Поиск по категориям
+        # Поиск по категориям (оставляем как есть)
         categories = Category.objects.filter(
             Q(slug__iexact=query) |
             Q(name__iexact=query) |
@@ -950,13 +1067,21 @@ def search(request):
         if categories.exists():
             return redirect('main:category_detail', slug=categories.first().slug)
 
-        # Ищем товары, если категорий нет
-        results = XMLProduct.objects.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(code__icontains=query),
-            in_stock=True
-        ).distinct()
+        # Разбиваем запрос на отдельные слова и создаем Q-объекты для каждого слова
+        query_words = query.split()
+        q_objects = Q()
+
+        for word in query_words:
+            # Ищем товары, где название или описание содержит хотя бы одно слово из запроса
+            q_objects |= Q(name__icontains=word)
+            q_objects |= Q(description__icontains=word)
+            q_objects |= Q(code__icontains=word)
+
+        # Добавляем поиск по полному названию (точное совпадение)
+        q_objects |= Q(name__iexact=query_raw)
+
+        # Ищем товары, используя созданные Q-объекты
+        results = XMLProduct.objects.filter(q_objects, in_stock=True).distinct()
 
     paginator = Paginator(results, 12)
     page_number = request.GET.get('page')
@@ -979,7 +1104,7 @@ def search_suggestions(request):
     }
 
     if len(query) >= 2:
-        # Поиск по категориям
+        # Поиск по категориям (оставляем как есть)
         categories = Category.objects.filter(
             Q(name__iexact=query) |
             Q(name__icontains=query) |
@@ -995,13 +1120,20 @@ def search_suggestions(request):
             for cat in categories
         ]
 
-        # Поиск по товарам
-        products = XMLProduct.objects.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(code__icontains=query),
-            in_stock=True
-        )[:5]
+        # Разбиваем запрос на отдельные слова и создаем Q-объекты для каждого слова
+        query_words = query.split()
+        q_objects = Q()
+
+        for word in query_words:
+            q_objects |= Q(name__icontains=word)
+            q_objects |= Q(description__icontains=word)
+            q_objects |= Q(code__icontains=word)
+
+        # Добавляем поиск по полному названию (точное совпадение)
+        q_objects |= Q(name__iexact=query)
+
+        # Поиск по товарам с учетом всех условий
+        products = XMLProduct.objects.filter(q_objects, in_stock=True)[:5]
 
         results['products'] = [
             {

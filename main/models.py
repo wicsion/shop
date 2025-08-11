@@ -728,76 +728,36 @@ class XMLProduct(models.Model):
             'F1': 'Флекс (1 цвет)',
             'F2': 'Флекс (1 цвет)',
             'DTF2': 'Полноцвет с трансфером',
-            'B2': 'Шелкография на текстиль (6 цветов)',
-            '229': 'Шелкография',
-            '232': 'Термопечать',
-            '233': 'Вышивка',
-            '234': 'УФ-печать',
-            '235': 'Лазерная гравировка',
-            '236': 'Сублимация'
+            'B2': 'Шелкография на текстиль (6 цветов)'
         }
 
-        # 1. Обрабатываем поле application_type модели
-        if self.application_type:
-            printing_info['methods'].add(self.application_type)
+        # 1. Обрабатываем методы нанесения из поля prints
+        if self.xml_data and 'attributes' in self.xml_data and 'prints' in self.xml_data['attributes']:
+            for print_data in self.xml_data['attributes']['prints']:
+                if 'description' in print_data:
+                    printing_info['methods'].add(print_data['description'])
+                elif 'code' in print_data and print_data['code'] in PRINTING_METHODS:
+                    printing_info['methods'].add(PRINTING_METHODS[print_data['code']])
 
-        # 2. Обрабатываем методы нанесения из XML filters (type_id=28)
+        # 2. Также проверяем фильтры, где могут быть указаны методы нанесения
         if self.xml_data and 'filters' in self.xml_data:
             for f in self.xml_data['filters']:
-                if str(f.get('type_id')) == '28' and f.get('filter_name'):
-                    # Пробуем найти человекочитаемое название по коду
-                    method_name = PRINTING_METHODS.get(f.get('filter_id'), f.get('filter_name'))
-                    printing_info['methods'].add(method_name)
+                if str(f.get('type_id')) == '28':  # Вид нанесения
+                    printing_info['methods'].add(f.get('filter_name'))
 
-        # 3. Обрабатываем prints из XML
-        if self.xml_data and 'prints' in self.xml_data:
-            for p in self.xml_data['prints']:
-                if p.get('description'):
-                    printing_info['methods'].add(p['description'])
-                elif p.get('code') and p.get('code') in PRINTING_METHODS:
-                    printing_info['methods'].add(PRINTING_METHODS[p['code']])
+        # 3. Проверяем поле модели application_type
+        if self.application_type:
+            printing_info['methods'].add(self.get_application_type_display())
 
-        # Нормализация названий методов
-        normalized_methods = set()
-        for method in printing_info['methods']:
-            if method:
-                # Приводим к нижнему регистру для нормализации
-                method_lower = method.lower()
-                if 'шелкограф' in method_lower:
-                    normalized_methods.add('Шелкография')
-                elif 'вышив' in method_lower:
-                    normalized_methods.add('Вышивка')
-                elif 'флекс' in method_lower:
-                    normalized_methods.add('Флекс')
-                elif 'трансфер' in method_lower:
-                    normalized_methods.add('Трансфер')
-                elif 'лазер' in method_lower:
-                    normalized_methods.add('Лазерная гравировка')
-                elif 'наклей' in method_lower:
-                    normalized_methods.add('Наклейка')
-                elif 'водными чернилами' in method_lower:
-                    normalized_methods.add('Полноцвет водными чернилами')
-                elif 'сублимац' in method_lower:
-                    normalized_methods.add('Сублимация')
-                elif 'тампопечат' in method_lower:
-                    normalized_methods.add('Тампопечать')
-                elif 'тиснен' in method_lower:
-                    normalized_methods.add('Тиснение')
-                elif 'уф-dtf' in method_lower:
-                    normalized_methods.add('УФ-DTF-печать')
-                elif 'уф-печат' in method_lower or 'uv print' in method_lower:
-                    normalized_methods.add('УФ-печать')
-                elif 'офсет' in method_lower:
-                    normalized_methods.add('Цифровой офсет')
-                else:
-                    normalized_methods.add(method)
-
-        # Преобразуем в отсортированный список
-        printing_info['methods'] = sorted(normalized_methods) if normalized_methods else None
-
-        # Маркировка
+        # 4. Проверяем requires_marking
         if self.requires_marking:
             printing_info['marking'] = self.get_marking_type_display() if self.marking_type else 'Да'
+
+        # Преобразуем в отсортированный список по длине строки (от самой длинной к самой короткой)
+        if printing_info['methods']:
+            printing_info['methods'] = sorted(printing_info['methods'], key=lambda x: len(x), reverse=True)
+        else:
+            printing_info['methods'] = None
 
         return printing_info
 
@@ -890,6 +850,8 @@ class XMLProduct(models.Model):
         excluded_sizes = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
         return str(size).upper() not in excluded_sizes
 
+
+
     def save(self, *args, **kwargs):
         # Очищаем и нормализуем размеры перед сохранением
         self.sizes_available = self.clean_sizes()
@@ -898,6 +860,7 @@ class XMLProduct(models.Model):
         if self.variants.exists():
             self.quantity = sum(v.quantity for v in self.variants.all())
             self.in_stock = self.quantity > 0
+
         super().save(*args, **kwargs)
 
 
