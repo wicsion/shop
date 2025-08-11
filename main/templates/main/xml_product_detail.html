@@ -878,7 +878,9 @@
     </div>
 
     <!-- Добавляем кнопку конструктора -->
-<a href="/designer/custom/" class="mt-4 btn btn-primary hover:bg-blue-700 transition">
+
+<a href="{% url 'designer:custom_designer_start' %}?product_id={{ product.product_id }}&sizes={% for size in size_data.available_sizes %}{{ size }}{% if not forloop.last %},{% endif %}{% endfor %}"
+   class="mt-4 btn btn-primary hover:bg-blue-700 transition">
     Открыть конструктор
 </a>
 </div>

@@ -85,6 +85,11 @@ class UserCustomDesign(models.Model):
     template = models.ForeignKey(CustomProductTemplate, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    product = models.ForeignKey('main.XMLProduct', on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user_session', 'product')
+
 
     def __str__(self):
         return f"Custom Design for {self.template.name}"
@@ -99,12 +104,29 @@ class CustomDesignElement(models.Model):
     design = models.ForeignKey(UserCustomDesign, on_delete=models.CASCADE, related_name='elements')
     area = models.ForeignKey(CustomDesignArea, on_delete=models.CASCADE)
     text_content = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='user_custom_designs/', blank=True, null=True)
+    image = models.ImageField(upload_to='design_elements/', null=True, blank=True)
     color = models.CharField(max_length=7, default='#000000')  # HEX color
     font_size = models.IntegerField(default=14)
     rotation = models.IntegerField(default=0)
     side = models.CharField(max_length=10, choices=SIDE_CHOICES, default='front')  # Новое поле
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def has_image(self):
+        """Проверяет, есть ли у элемента изображение"""
+        try:
+            return bool(self.image) and bool(self.image.url)
+        except ValueError:
+            # Обработка случая, когда image есть, но файл не прикреплен
+            return False
+
+    def get_image_url(self):
+        """Безопасно возвращает URL изображения или None"""
+        try:
+            if self.image and hasattr(self.image, 'url'):
+                return self.image.url
+        except ValueError:
+            pass
+        return None
 
     def __str__(self):
         return f"Element for {self.design.template.name}"
@@ -134,11 +156,25 @@ class CustomProductOrder(models.Model):
     design = models.ForeignKey(UserCustomDesign, on_delete=models.CASCADE)
     selected_color = models.ForeignKey(CustomProductColor, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=1)
+    size = models.CharField(max_length=10, blank=True, null=True)
+    in_cart = models.BooleanField(default=True)
+    original_product = models.ForeignKey(
+        'main.XMLProduct',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Оригинальный товар'
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Order for {self.design.template.name}"
+
+    def get_preview_image(self):
+        if self.design.template.images.filter(is_front=True).exists():
+            return self.design.template.images.filter(is_front=True).first().image.url
+        return None
 
 # models.py
 class ProductSilhouette(models.Model):

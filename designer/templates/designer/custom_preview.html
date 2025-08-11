@@ -1,0 +1,443 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+    <h1 class="text-2xl font-bold mb-6">Предпросмотр вашего дизайна</h1>
+
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Design area -->
+            <div class="lg:w-2/3">
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
+                        <div class="flex space-x-2 mb-2 sm:mb-0">
+                            <button id="front-btn" class="btn btn-primary flex-1 sm:flex-none">
+                                <i class="fas fa-tshirt mr-2"></i>Лицевая сторона
+                            </button>
+                            {% if design.template.silhouette.back_mask_image %}
+                            <button id="back-btn" class="btn btn-outline flex-1 sm:flex-none">
+                                <i class="fas fa-tshirt mr-2"></i>Тыльная сторона
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="relative" id="design-container" style="background-color: #f0f0f0; height: 600px;">
+                        {% if front_image_url %}
+                        <img id="product-image" src="{{ front_image_url }}"
+                             class="absolute top-0 left-0 w-full h-full object-contain" alt="Product template">
+                        {% endif %}
+
+                        <!-- Color overlay -->
+                        {% if design.template.silhouette and design.template.silhouette.front_mask_image %}
+                        <div id="color-overlay" class="absolute inset-0"
+                             style="mix-blend-mode: multiply;
+                                    mask-image: url('{{ design.template.silhouette.front_mask_image.url }}');
+                                    -webkit-mask-image: url('{{ design.template.silhouette.front_mask_image.url }}');
+                                    mask-size: 100% 100%;
+                                    mask-repeat: no-repeat;
+                                    background-color: {% if design.selected_color %}{{ design.selected_color.hex_code }}{% else %}#ffffff{% endif %};">
+                        </div>
+                        {% endif %}
+
+                        <!-- Front elements -->
+                        <div id="front-elements-container" class="absolute inset-0">
+                            {% for element in design.elements.all %}
+                                {% if element.side == 'front' %}
+                                <div class="design-area absolute p-0"
+                                     style="left: {{ element.area.x_position }}px;
+                                            top: {{ element.area.y_position }}px;
+                                            width: {{ element.area.width }}px;
+                                            height: {{ element.area.height }}px;"
+                                     data-area-id="{{ element.area.id }}">
+                                    <div class="area-content h-full flex items-center justify-center">
+                                        {% if element.image %}
+                                            <img src="{{ element.image.url }}" class="max-w-full max-h-full"
+                                                 style="transform: rotate({{ element.rotation }}deg) scale({{ element.scale|default:1 }});">
+                                        {% elif element.text_content %}
+                                            <span style="color: {{ element.color }};
+                                                        font-size: {{ element.font_size }}px;
+                                                        transform: rotate({{ element.rotation }}deg) scale({{ element.scale|default:1 }});
+                                                        width: 100%;
+                                                        text-align: center;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: center;">
+                                                {{ element.text_content }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Back elements -->
+                        {% if design.template.silhouette.back_mask_image %}
+                        <div id="back-elements-container" class="absolute inset-0 hidden">
+                            {% for element in design.elements.all %}
+                                {% if element.side == 'back' %}
+                                <div class="design-area absolute p-0"
+                                     style="left: {{ element.area.x_position }}px;
+                                            top: {{ element.area.y_position }}px;
+                                            width: {{ element.area.width }}px;
+                                            height: {{ element.area.height }}px;"
+                                     data-area-id="{{ element.area.id }}">
+                                    <div class="area-content h-full flex items-center justify-center">
+                                        {% if element.image %}
+                                            <img src="{{ element.image.url }}" class="max-w-full max-h-full"
+                                                 style="transform: rotate({{ element.rotation }}deg) scale({{ element.scale|default:1 }});">
+                                        {% elif element.text_content %}
+                                            <span style="color: {{ element.color }};
+                                                        font-size: {{ element.font_size }}px;
+                                                        transform: rotate({{ element.rotation }}deg) scale({{ element.scale|default:1 }});
+                                                        width: 100%;
+                                                        text-align: center;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: center;">
+                                                {{ element.text_content }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="lg:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
+                    <div id="product-controls">
+                        <h3 class="text-lg font-semibold mb-4">Детали заказа</h3>
+
+                        <div class="mb-4">
+                            <label class="block mb-1">Товар:</label>
+                            <p class="font-medium">{{ design.template.name }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block mb-1">Цвет:</label>
+                            <p class="font-medium">
+                                {% if design.selected_color %}
+                                    {{ design.selected_color.name }}
+                                    <span class="inline-block w-4 h-4 rounded-full ml-2"
+                                          style="background-color: {{ design.selected_color.hex_code }};"></span>
+                                {% else %}
+                                    Не выбран
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block mb-1">Размер:</label>
+                            <p class="font-medium">{{ design.order.size }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block mb-1">Количество:</label>
+                            <p class="font-medium">{{ design.order.quantity }}</p>
+                        </div>
+
+                        <div class="flex justify-between mt-6">
+                            <a href="{% url 'designer:custom_designer_edit' design.id %}"
+                               class="btn btn-outline">
+                                Редактировать
+                            </a>
+                            <a href="{% url 'designer:save_custom_design_order' %}"
+                               class="btn btn-primary">
+                                Добавить в корзину
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+.btn-outline {
+    background-color: white;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+}
+.container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.absolute {
+    position: absolute;
+}
+.relative {
+    position: relative;
+}
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+.w-full {
+    width: 100%;
+}
+.h-full {
+    height: 100%;
+}
+.object-contain {
+    object-fit: contain;
+}
+.bg-gray-200 {
+    background-color: #e5e7eb;
+}
+.flex {
+    display: flex;
+}
+.items-center {
+    align-items: center;
+}
+.justify-center {
+    justify-content: center;
+}
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+.mt-6 {
+    margin-top: 1.5rem;
+}
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.p-4 {
+    padding: 1rem;
+}
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+.font-bold {
+    font-weight: 700;
+}
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+.font-semibold {
+    font-weight: 600;
+}
+.font-medium {
+    font-weight: 500;
+}
+.max-w-full {
+    max-width: 100%;
+}
+.max-h-full {
+    max-height: 100%;
+}
+.design-area {
+    background-color: transparent;
+    border: none !important;
+    padding: 0 !important;
+    transform-origin: center center;
+}
+.area-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#color-overlay {
+    z-index: 5;
+    mask-image: inherit;
+    mask-size: inherit;
+    mask-repeat: inherit;
+    mask-position: inherit;
+    mask-mode: luminance;
+    -webkit-mask-image: inherit;
+    -webkit-mask-size: inherit;
+    -webkit-mask-repeat: inherit;
+    -webkit-mask-position: inherit;
+    -webkit-mask-mode: luminance;
+    mix-blend-mode: multiply;
+    opacity: 0.9;
+}
+.inline-block {
+    display: inline-block;
+}
+.rounded-full {
+    border-radius: 9999px;
+}
+.ml-2 {
+    margin-left: 0.5rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Front/back buttons toggle
+    const frontBtn = document.getElementById('front-btn');
+    const backBtn = document.getElementById('back-btn');
+    const frontContainer = document.getElementById('front-elements-container');
+    const backContainer = document.getElementById('back-elements-container');
+    const productImage = document.getElementById('product-image');
+    const colorOverlay = document.getElementById('color-overlay');
+    const designContainer = document.getElementById('design-container');
+
+    // Store original positions to avoid cumulative scaling errors
+    const originalPositions = {};
+
+    // Initialize original positions
+    function initOriginalPositions() {
+        document.querySelectorAll('.design-area').forEach(el => {
+            const areaId = el.dataset.areaId;
+            originalPositions[areaId] = {
+                left: parseFloat(el.style.left),
+                top: parseFloat(el.style.top),
+                width: parseFloat(el.style.width),
+                height: parseFloat(el.style.height)
+            };
+        });
+    }
+
+    // Calculate scale factor based on original template dimensions
+    function calculateScale() {
+        const containerWidth = designContainer.offsetWidth;
+        const containerHeight = designContainer.offsetHeight;
+        const img = productImage;
+
+        if (!img) return 1;
+
+        // Use natural dimensions of the product image
+        const imgWidth = img.naturalWidth;
+        const imgHeight = img.naturalHeight;
+
+        if (!imgWidth || !imgHeight) return 1;
+
+        // Calculate scale to fit container while maintaining aspect ratio
+        const scaleX = containerWidth / imgWidth;
+        const scaleY = containerHeight / imgHeight;
+        return Math.min(scaleX, scaleY);
+    }
+
+    // Apply scaling to all elements using original positions
+    function applyScaling() {
+        const scale = calculateScale();
+        const elements = document.querySelectorAll('.design-area');
+
+        elements.forEach(el => {
+            const areaId = el.dataset.areaId;
+            if (originalPositions[areaId]) {
+                const { left, top, width, height } = originalPositions[areaId];
+
+                // Always apply scaling based on original positions
+                el.style.left = `${left * scale}px`;
+                el.style.top = `${top * scale}px`;
+                el.style.width = `${width * scale}px`;
+                el.style.height = `${height * scale}px`;
+            }
+        });
+    }
+
+    if (frontBtn && backBtn) {
+        frontBtn.addEventListener('click', function() {
+            if (frontBtn.classList.contains('btn-primary')) return; // Already active
+
+            frontBtn.classList.remove('btn-outline');
+            frontBtn.classList.add('btn-primary');
+            backBtn.classList.remove('btn-primary');
+            backBtn.classList.add('btn-outline');
+
+            frontContainer.classList.remove('hidden');
+            if (backContainer) backContainer.classList.add('hidden');
+
+            if (productImage && '{{ front_image_url }}') {
+                productImage.src = '{{ front_image_url }}';
+                productImage.onload = function() {
+                    initOriginalPositions(); // Reinitialize positions when image changes
+                    applyScaling();
+                    // Reapply color overlay
+                    if (colorOverlay && '{{ design.template.silhouette.front_mask_image.url }}') {
+                        colorOverlay.style.maskImage = 'url({{ design.template.silhouette.front_mask_image.url }})';
+                        colorOverlay.style.webkitMaskImage = 'url({{ design.template.silhouette.front_mask_image.url }})';
+                    }
+                };
+            }
+        });
+
+        backBtn.addEventListener('click', function() {
+            if (backBtn.classList.contains('btn-primary')) return; // Already active
+
+            backBtn.classList.remove('btn-outline');
+            backBtn.classList.add('btn-primary');
+            frontBtn.classList.remove('btn-primary');
+            frontBtn.classList.add('btn-outline');
+
+            frontContainer.classList.add('hidden');
+            if (backContainer) backContainer.classList.remove('hidden');
+
+            if (productImage && '{{ back_image_url }}') {
+                productImage.src = '{{ back_image_url }}';
+                productImage.onload = function() {
+                    initOriginalPositions(); // Reinitialize positions when image changes
+                    applyScaling();
+                    // Reapply color overlay
+                    if (colorOverlay && '{{ design.template.silhouette.back_mask_image.url }}') {
+                        colorOverlay.style.maskImage = 'url({{ design.template.silhouette.back_mask_image.url }})';
+                        colorOverlay.style.webkitMaskImage = 'url({{ design.template.silhouette.back_mask_image.url }})';
+                    }
+                };
+            }
+        });
+    }
+
+    // Initialize scaling when image loads
+    if (productImage) {
+        if (productImage.complete) {
+            initOriginalPositions();
+            applyScaling();
+        } else {
+            productImage.onload = function() {
+                initOriginalPositions();
+                applyScaling();
+            };
+        }
+    }
+
+    // Recalculate on window resize
+    window.addEventListener('resize', function() {
+        // Add debounce to prevent excessive recalculations
+        clearTimeout(this.resizeTimer);
+        this.resizeTimer = setTimeout(applyScaling, 100);
+    });
+});
+</script>
+{% endblock %}

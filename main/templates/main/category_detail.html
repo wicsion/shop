@@ -35,33 +35,36 @@
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Боковая панель с фильтрами -->
+
         <aside class="w-full lg:w-64 flex-shrink-0">
             <div class="bg-white rounded-lg shadow p-6 sticky-column">
-                <!-- Фильтр по цене -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="min_price" class="sr-only">Минимальная цена</label>
-                        <input type="number" id="min_price" placeholder="{% trans 'От' %}"
-                               value="{{ request.GET.min_price|default:'' }}"
-                               class="w-24 border rounded px-3 py-2 text-sm"
-                               onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()"
-                               aria-label="Минимальная цена">
-                        <span class="mx-2" aria-hidden="true">-</span>
-                        <label for="max_price" class="sr-only">Максимальная цена</label>
-                        <input type="number" id="max_price" placeholder="{% trans 'До' %}"
-                               value="{{ request.GET.max_price|default:'' }}"
-                               class="w-24 border rounded px-3 py-2 text-sm"
-                               onchange="applyFilters()" onkeypress="if(event.keyCode==13) applyFilters()"
-                               aria-label="Максимальная цена">
-                    </div>
-                    <button id="apply_price_filter"
-                            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                            aria-label="Применить фильтр по цене">
-                        {% trans "Применить" %}
-                    </button>
-                </div>
+
+<div class="mb-6">
+    <h3 class="font-semibold text-lg mb-4">{% trans "Цена" %}</h3>
+    <form method="get" class="price-filter-form">
+        <div class="flex items-center justify-between mb-2">
+            <input type="number" name="min_price" placeholder="{% trans 'От' %}"
+                   value="{{ request.GET.min_price|default:'' }}"
+                   class="w-24 border rounded px-3 py-2 text-sm"
+                   aria-label="Минимальная цена">
+            <span class="mx-2" aria-hidden="true">-</span>
+            <input type="number" name="max_price" placeholder="{% trans 'До' %}"
+                   value="{{ request.GET.max_price|default:'' }}"
+                   class="w-24 border rounded px-3 py-2 text-sm"
+                   aria-label="Максимальная цена">
+        </div>
+        <!-- Скрытые поля для сохранения других параметров фильтрации -->
+        {% for key, value in request.GET.items %}
+            {% if key != 'min_price' and key != 'max_price' and key != 'page' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+            {% trans "Применить" %}
+        </button>
+    </form>
+</div>
 
                 <!-- Фильтр по наличию -->
                 <div class="mb-6">
@@ -165,24 +168,7 @@
 {% endif %}
 
 
-                <!-- Фильтр по стране производства -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Страна производства" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="made_in_russia" class="country-filter mr-2" value="true"
-                                   {% if request.GET.made_in_russia == 'true' %}checked{% endif %}
-                                   aria-labelledby="made_in_russia_label">
-                            <label for="made_in_russia" id="made_in_russia_label">{% trans "Сделано в России" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="is_eco" class="country-filter mr-2" value="true"
-                                   {% if request.GET.is_eco == 'true' %}checked{% endif %}
-                                   aria-labelledby="is_eco_label">
-                            <label for="is_eco" id="is_eco_label">{% trans "Эко-продукция" %}</label>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Фильтр по полу -->
                 <div class="mb-6">
@@ -210,47 +196,26 @@
                 </div>
 
                 <!-- Фильтр по типу нанесения -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип нанесения" %}</h3>
-                    <div class="space-y-2 max-h-60 overflow-y-auto">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_uv_print" class="app-type-filter mr-2" value="uv_print"
-                                   {% if 'uv_print' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_uv_print_label">
-                            <label for="app_uv_print" id="app_uv_print_label">{% trans "УФ-печать" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_laser_engraving" class="app-type-filter mr-2" value="laser_engraving"
-                                   {% if 'laser_engraving' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_laser_engraving_label">
-                            <label for="app_laser_engraving" id="app_laser_engraving_label">{% trans "Лазерная гравировка" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_embroidery" class="app-type-filter mr-2" value="embroidery"
-                                   {% if 'embroidery' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_embroidery_label">
-                            <label for="app_embroidery" id="app_embroidery_label">{% trans "Вышивка" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_silk_print" class="app-type-filter mr-2" value="silk_print"
-                                   {% if 'silk_print' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_silk_print_label">
-                            <label for="app_silk_print" id="app_silk_print_label">{% trans "Шелкография" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_tampo_print" class="app-type-filter mr-2" value="tampo_print"
-                                   {% if 'tampo_print' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_tampo_print_label">
-                            <label for="app_tampo_print" id="app_tampo_print_label">{% trans "Тамопечать" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="app_thermal_print" class="app-type-filter mr-2" value="thermal_print"
-                                   {% if 'thermal_print' in selected_application_types %}checked{% endif %}
-                                   aria-labelledby="app_thermal_print_label">
-                            <label for="app_thermal_print" id="app_thermal_print_label">{% trans "Термопечать" %}</label>
-                        </div>
-                    </div>
-                </div>
+              <!-- Фильтр по типу нанесения -->
+<!-- Фильтр по типу нанесения -->
+<!-- Фильтр по типу нанесения -->
+<!-- Фильтр по типу нанесения -->
+{% if application_types %}
+<div class="mb-6">
+    <h3 class="font-semibold text-lg mb-4">{% trans "Тип нанесения" %}</h3>
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+        {% for app_type in application_types %}
+        <div class="flex items-center">
+            <input type="checkbox" id="app_{{ forloop.counter }}"
+                   class="app-type-filter mr-2" value="{{ app_type }}"
+                   {% if app_type in selected_application_types %}checked{% endif %}
+                   aria-labelledby="app_{{ forloop.counter }}_label">
+            <label for="app_{{ forloop.counter }}" id="app_{{ forloop.counter }}_label">{{ app_type }}</label>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
                 <!-- Фильтр по типу упаковки -->
                 <div class="mb-6">
@@ -278,23 +243,7 @@
                 </div>
 
                 <!-- Фильтр по типу маркировки -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип маркировки" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="mark_textile" class="marking-type-filter mr-2" value="textile"
-                                   {% if 'textile' in selected_marking_types %}checked{% endif %}
-                                   aria-labelledby="mark_textile_label">
-                            <label for="mark_textile" id="mark_textile_label">{% trans "Текстиль" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="mark_other" class="marking-type-filter mr-2" value="other"
-                                   {% if 'other' in selected_marking_types %}checked{% endif %}
-                                   aria-labelledby="mark_other_label">
-                            <label for="mark_other" id="mark_other_label">{% trans "Другое" %}</label>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Фильтр по механизму -->
                 {% if mechanism_types %}
@@ -333,23 +282,7 @@
                 {% endif %}
 
                 <!-- Фильтр по маркировке -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Маркировка" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="requires_marking" class="marking-filter mr-2" value="true"
-                                   {% if request.GET.requires_marking == 'true' %}checked{% endif %}
-                                   aria-labelledby="requires_marking_label">
-                            <label for="requires_marking" id="requires_marking_label">{% trans "Подлежит маркировке" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="individual_packaging" class="marking-filter mr-2" value="true"
-                                   {% if request.GET.individual_packaging == 'true' %}checked{% endif %}
-                                   aria-labelledby="individual_packaging_label">
-                            <label for="individual_packaging" id="individual_packaging_label">{% trans "Индивидуальная упаковка" %}</label>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Фильтр по типу зонта -->
                 {% if umbrella_types %}
@@ -369,30 +302,7 @@
                 </div>
                 {% endif %}
 
-                <!-- Фильтр по типу товара -->
-                <div class="mb-6">
-                    <h3 class="font-semibold text-lg mb-4">{% trans "Тип товара" %}</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="is_featured" class="type-filter mr-2" value="true"
-                                   {% if request.GET.is_featured == 'true' %}checked{% endif %}
-                                   aria-labelledby="is_featured_label">
-                            <label for="is_featured" id="is_featured_label">{% trans "Рекомендуемые" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="is_bestseller" class="type-filter mr-2" value="true"
-                                   {% if request.GET.is_bestseller == 'true' %}checked{% endif %}
-                                   aria-labelledby="is_bestseller_label">
-                            <label for="is_bestseller" id="is_bestseller_label">{% trans "Хиты продаж" %}</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="has_discount" class="type-filter mr-2" value="true"
-                                   {% if request.GET.has_discount == 'true' %}checked{% endif %}
-                                   aria-labelledby="has_discount_label">
-                            <label for="has_discount" id="has_discount_label">{% trans "Со скидкой" %}</label>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Подкатегории -->
                 {% if subcategories %}
@@ -664,18 +574,13 @@ function updateUrlParams(params) {
 }
 
 // Функция для применения фильтров
+// Функция для применения фильтров
 function applyFilters() {
     currentPage = 1;
     localStorage.setItem('currentPage', 1);
     hasMore = true;
 
     const params = new URLSearchParams(window.location.search);
-
-    // Фильтр по цене
-    const minPrice = document.getElementById('min_price')?.value;
-    const maxPrice = document.getElementById('max_price')?.value;
-    if (minPrice) params.set('min_price', minPrice); else params.delete('min_price');
-    if (maxPrice) params.set('max_price', maxPrice); else params.delete('max_price');
 
     // Собираем все фильтры
     const filters = {
@@ -720,6 +625,12 @@ function applyFilters() {
             params.delete(key);
         }
     });
+
+    // Добавляем цену из формы
+    const minPrice = document.querySelector('input[name="min_price"]')?.value;
+    const maxPrice = document.querySelector('input[name="max_price"]')?.value;
+    if (minPrice) params.set('min_price', minPrice);
+    if (maxPrice) params.set('max_price', maxPrice);
 
     // Сортировка и количество на странице
     const sortBy = document.getElementById('sort_by')?.value;

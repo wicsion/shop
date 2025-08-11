@@ -22,7 +22,7 @@ from PIL import Image
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 
-
+from designer.models import CustomProductOrder
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm, SelectSizesForm
 from .models import DeliveryAddress
@@ -223,9 +223,28 @@ class CategoryDetailView(DetailView):
             categories__in=subcategories
         ).distinct()
 
-        # Фильтрация по параметрам
+        # Фильтрация по цене
         min_price = self.request.GET.get('min_price')
         max_price = self.request.GET.get('max_price')
+        has_price_filter = False
+
+        if min_price:
+            try:
+                min_price = float(min_price)
+                products = products.filter(price__gte=min_price)
+                has_price_filter = True
+            except (ValueError, TypeError):
+                pass
+
+        if max_price:
+            try:
+                max_price = float(max_price)
+                products = products.filter(price__lte=max_price)
+                has_price_filter = True
+            except (ValueError, TypeError):
+                pass
+
+        # Остальная фильтрация (сохраняем существующую логику)
         status = self.request.GET.get('status')
         brands = self.request.GET.get('brands', '').split(',') if self.request.GET.get('brands') else []
         materials = self.request.GET.get('materials', '').split(',') if self.request.GET.get('materials') else []
@@ -253,10 +272,7 @@ class CategoryDetailView(DetailView):
         requires_marking = self.request.GET.get('requires_marking') == 'true'
         individual_packaging = self.request.GET.get('individual_packaging') == 'true'
 
-        if min_price:
-            products = products.filter(price__gte=float(min_price))
-        if max_price:
-            products = products.filter(price__lte=float(max_price))
+        # Применяем остальные фильтры (сохраняем существующую логику)
         if status:
             products = products.filter(status=status)
         if brands:
@@ -276,12 +292,21 @@ class CategoryDetailView(DetailView):
             for gender in genders:
                 gender_query |= Q(gender__icontains=gender)
             products = products.filter(gender_query)
+        # В методе get_context_data класса CategoryDetailView
+        # В методе get_context_data класса CategoryDetailView
         if application_types:
-            app_query = Q()
-            for app_type in application_types:
-                app_query |= Q(
-                    application_type=app_type)  # ← Используем точное сравнение (application_type - это CharField)
-            products = products.filter(app_query)
+            # Получаем все товары и фильтруем их в Python
+            all_products = list(products)
+            filtered_products = [
+                p for p in all_products
+                if any(
+                    app_type.lower() in (p.application_type or '').lower() or
+                    any(app_type.lower() in (m or '').lower() for m in p.get_printing_info()['methods'] or [])
+                    for app_type in application_types
+                )
+            ]
+            # Создаем новый queryset с отфильтрованными товарами
+            products = products.filter(id__in=[p.id for p in filtered_products])
         if is_featured:
             products = products.filter(is_featured=True)
         if is_bestseller:
@@ -318,6 +343,11 @@ class CategoryDetailView(DetailView):
 
         # Сортировка
         sort_by = self.request.GET.get('sort', 'default')
+
+        # Если есть фильтр по цене и не указана другая сортировка - сортируем по возрастанию цены
+        if has_price_filter and sort_by == 'default':
+            sort_by = 'price_asc'
+
         if sort_by == 'price_asc':
             products = products.order_by('price')
         elif sort_by == 'price_desc':
@@ -371,6 +401,7 @@ class CategoryDetailView(DetailView):
             'is_eco_checked': is_eco,
             'requires_marking_checked': requires_marking,
             'individual_packaging_checked': individual_packaging,
+            'has_price_filter': has_price_filter,  # Добавляем флаг наличия фильтра по цене
         })
         return context
 
@@ -435,6 +466,47 @@ class CategoryDetailView(DetailView):
             x
         ))
 
+    def _get_available_application_types(self, products):
+        """Возвращает уникальные типы нанесения для товаров категории"""
+        application_types = set()
+
+        for product in products:
+            printing_info = product.get_printing_info()
+            if printing_info['methods']:
+                for method in printing_info['methods']:
+                    # Нормализуем названия методов для группировки
+                    method_lower = method.lower()
+                    if 'шелкография' in method_lower:
+                        application_types.add('Шелкография')
+                    elif 'вышивка' in method_lower:
+                        application_types.add('Вышивка')
+                    elif 'флекс' in method_lower:
+                        application_types.add('Флекс')
+                    elif 'трансфер' in method_lower:
+                        application_types.add('Трансфер')
+                    elif 'лазер' in method_lower:
+                        application_types.add('Лазерная гравировка')
+                    elif 'наклейка' in method_lower:
+                        application_types.add('Наклейка')
+                    elif 'водными чернилами' in method_lower:
+                        application_types.add('Полноцвет водными чернилами')
+                    elif 'сублимация' in method_lower:
+                        application_types.add('Сублимация')
+                    elif 'тампопечать' in method_lower:
+                        application_types.add('Тампопечать')
+                    elif 'тиснение' in method_lower:
+                        application_types.add('Тиснение')
+                    elif 'уф-dtf' in method_lower:
+                        application_types.add('УФ-DTF-печать')
+                    elif 'уф-печать' in method_lower:
+                        application_types.add('УФ-печать')
+                    elif 'офсет' in method_lower:
+                        application_types.add('Цифровой офсет')
+                    else:
+                        application_types.add(method)
+
+        return sorted(application_types)
+
 
 
 class BrandListView(ListView):
@@ -481,9 +553,8 @@ class BrandDetailView(DetailView):
         return context
 
 
-import logging
 
-logger = logging.getLogger(__name__)
+
 
 
 def add_to_cart(request, product_id):
@@ -640,37 +711,72 @@ def cart_view(request):
     cart = get_cart(request)
     order_form = OrderForm()
 
-    # Подготовка cart_items с информацией о товарах
+    # Обычные товары
     cart_items = []
+    regular_total = 0
     has_missing_sizes = False
 
     for item in cart.items.all():
         if item.xml_product:
+            total_price = item.quantity * item.xml_product.price
+            regular_total += total_price
             cart_item_data = {
                 'item': item,
                 'product': item.xml_product,
                 'image': item.xml_product.main_image,
-                'total_price': item.quantity * item.xml_product.price,
+                'total_price': total_price,
                 'size': item.size,
                 'selected_sizes': item.selected_sizes
             }
             cart_items.append(cart_item_data)
 
-            # Проверяем, нужно ли выбирать размеры
             if item.xml_product.has_variants:
-                # Если есть selected_sizes и там есть хотя бы один размер с количеством > 0
                 has_selected_sizes = bool(item.selected_sizes) and any(
                     qty > 0 for qty in item.selected_sizes.values()
                 )
-
                 if not item.size and not has_selected_sizes:
                     has_missing_sizes = True
+
+    # Кастомные товары
+    custom_items = []
+    custom_total = 0
+    cart_data = request.session.get('cart', {})
+
+    for key, item_data in cart_data.items():
+        if item_data.get('type') == 'custom':
+            try:
+                custom_order = CustomProductOrder.objects.get(id=item_data['id'], in_cart=True)
+
+                # Добавляем информацию об оригинальном товаре, если он есть
+                if custom_order.original_product:
+                    custom_order.original_product_info = {
+                        'name': custom_order.original_product.name,
+                        'price': custom_order.original_product.price,
+                        'image': custom_order.original_product.main_image,
+                        'product_id': custom_order.original_product.product_id,
+                        'url': custom_order.original_product.get_absolute_url()
+                    }
+                else:
+                    # Если оригинального товара нет, создаем пустую информацию
+                    custom_order.original_product_info = None
+
+                custom_items.append(custom_order)
+                custom_total += custom_order.price
+            except CustomProductOrder.DoesNotExist:
+                del cart_data[key]
+
+    request.session['cart'] = cart_data
+    request.session.modified = True
+
+    total_price = regular_total + custom_total
 
     context = {
         'cart': cart,
         'cart_items': cart_items,
+        'custom_items': custom_items,
         'order_form': order_form,
         'has_missing_sizes': has_missing_sizes,
+        'total_price': total_price,
     }
     return render(request, 'main/cart.html', context)
 
@@ -996,6 +1102,7 @@ class XMLProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['designer_url'] = reverse('designer:custom_designer_start') + f'?product_id={self.object.product_id}'
         product = self.object
 
         # Получаем отфильтрованные размеры

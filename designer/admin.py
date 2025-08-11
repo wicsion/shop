@@ -162,8 +162,15 @@ class CustomDesignElementAdmin(admin.ModelAdmin):
 
 @admin.register(CustomProductOrder)
 class CustomProductOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'design', 'selected_color', 'quantity', 'price', 'created_at')
+    list_display = ('id', 'design', 'selected_color', 'quantity', 'price', 'created_at', 'preview_link')
     list_filter = ('created_at', 'selected_color', 'design__template')
     search_fields = ('design__id',)
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'preview_link')
     date_hierarchy = 'created_at'
+
+    def preview_link(self, obj):
+        return mark_safe(f'<a href="{reverse("designer:custom_designer_edit", args=[obj.design.id])}" target="_blank">Просмотреть дизайн</a>')
+    preview_link.short_description = 'Ссылка на дизайн'
+
+
+

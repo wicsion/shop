@@ -4,11 +4,11 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">{% trans "Корзина" %}</h1>
-<!-- Добавьте этот блок перед основным содержимым корзины -->
 
-    {% if cart_items %}
+    {% if cart_items or custom_items %}
     <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
         <div class="divide-y divide-gray-200">
+            <!-- Регулярные товары -->
             {% for cart_item in cart_items %}
             <div class="p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
                 <!-- Изображение товара -->
@@ -100,12 +100,84 @@
                 </div>
             </div>
             {% endfor %}
+
+            <!-- Кастомные товары -->
+            {% for custom_item in custom_items %}
+            <div class="p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div class="w-48 h-48 flex-shrink-0 relative overflow-hidden rounded-lg shadow-sm border border-gray-200">
+                    <div class="image-placeholder absolute inset-0"></div>
+                    <img
+                        src="{% static 'images/placeholder.jpg' %}"
+                        data-src="{% if custom_item.original_product_info %}{% url 'main:resize_image' %}?url={{ custom_item.original_product_info.image|urlencode }}&width=200&height=200{% else %}{% url 'main:resize_image' %}?url={{ custom_item.design.template.images.first.image.url|urlencode }}&width=200&height=200{% endif %}"
+                        alt="{% if custom_item.original_product_info %}{{ custom_item.original_product_info.name }}{% else %}Кастомный товар{% endif %}"
+                        class="lazy-load absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="flex-1 flex flex-col md:flex-row md:items-center gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg">
+                            {% if custom_item.original_product_info %}
+                                <a href="{{ custom_item.original_product_info.url }}" class="hover:text-blue-600 transition-colors">
+                                    {{ custom_item.original_product_info.name }} + Кастомный дизайн
+                                </a>
+                            {% else %}
+                                Кастомный {{ custom_item.design.template.name }}
+                            {% endif %}
+                        </h3>
+                        <p class="text-gray-600">Ваш уникальный дизайн</p>
+
+                        <!-- Размер -->
+                        {% if custom_item.size %}
+                        <div class="mt-2">
+                            <span class="font-medium text-gray-700">Размер:</span>
+                            <span class="ml-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                                {{ custom_item.size }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end gap-4">
+                        <div class="flex items-center">
+                            <form action="{% url 'designer:update_custom_item' custom_item.id %}" method="post" class="flex items-center">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ custom_item.quantity }}" min="1"
+                                       class="border rounded px-3 py-1 w-20 text-center">
+                                <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                    <!-- В блоке кастомных товаров, рядом с кнопкой удаления добавьте: -->
+<!-- В блоке кастомных товаров, рядом с кнопкой удаления -->
+<div class="text-right">
+    <p class="font-bold">{{ custom_item.price }} ₽</p>
+    <div class="flex gap-2 mt-1">
+        <form action="{% url 'designer:remove_custom_item' custom_item.id %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                {% trans "Удалить" %}
+            </button>
+        </form>
+<a href="{% url 'designer:custom_designer_edit' custom_item.design.id %}?from_cart=true{% if custom_item.original_product %}&product_id={{ custom_item.original_product.product_id }}{% endif %}"
+   class="text-blue-600 hover:text-blue-800 text-sm">
+    {% trans "Редактировать дизайн" %}
+</a>
+    </div>
+</div>
+                        </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
 
         <div class="p-4 bg-gray-50 border-t border-gray-200">
             <div class="flex justify-between items-center">
                 <h3 class="font-semibold text-lg">{% trans "Итого" %}</h3>
-                <p class="font-bold text-xl">{{ cart.total_price }} ₽</p>
+                <p class="font-bold text-xl">{{ total_price }} ₽</p>
             </div>
         </div>
     </div>
