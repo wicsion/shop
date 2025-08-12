@@ -69,34 +69,39 @@
     </div>
 
     <table>
-        <thead>
-            <tr>
-                <th>№</th>
-                <th>Наименование</th>
-                <th>Кол-во</th>
-                <th class="nowrap">Цена за ед.</th>
-                <th class="nowrap">Сумма</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in order.items.all %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>
-                    {% if item.xml_product %}
-                        {{ item.xml_product.name }}
-                    {% else %}
-                        {{ item.product.name }}
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Наименование</th>
+            <th>Кол-во</th>
+            <th class="nowrap">Цена за ед.</th>
+            <th class="nowrap">Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order.items.all %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                {% if item.xml_product %}
+                    {{ item.xml_product.name }}
+                {% elif item.custom_product %}
+                    Кастомный дизайн: {{ item.custom_product.design.template.name }}
+                    {% if item.custom_product.original_product %}
+                        (основа: {{ item.custom_product.original_product.name }})
                     {% endif %}
-                    {% if item.size %}<br><small>Размер: {{ item.size }}</small>{% endif %}
-                </td>
-                <td>{{ item.quantity }}</td>
-                <td class="nowrap">{{ item.price|floatformat:2 }} ₽</td>
-                <td class="nowrap">{{ item.total_price|floatformat:2 }} ₽</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% else %}
+                    {{ item.product.name }}
+                {% endif %}
+                {% if item.size %}<br><small>Размер: {{ item.size }}</small>{% endif %}
+            </td>
+            <td>{{ item.quantity }}</td>
+            <td class="nowrap">{{ item.price|floatformat:2 }} ₽</td>
+            <td class="nowrap">{{ item.total_price|floatformat:2 }} ₽</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
     <div class="total">
         <p>Итого к оплате: {{ order.total_price|floatformat:2 }} ₽</p>

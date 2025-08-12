@@ -1,5 +1,5 @@
 from django.contrib.sites import requests
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
+from django.http import JsonResponse
 from django.utils.translation import gettext as _
 from django.views.generic import ListView, DetailView, TemplateView
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,16 +9,11 @@ from django.db.models import Q, F, Case, When, Value, IntegerField
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_GET
 from django.conf import settings
-from django.views import View
-from django.core.cache import cache
+
 from django.utils.cache import patch_response_headers
-import logging
-import re
-import requests
-from requests.auth import HTTPBasicAuth
+
 from urllib.parse import unquote, quote
-from io import BytesIO
-from PIL import Image
+
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 
@@ -27,17 +22,34 @@ from designer.views import get_custom_items_in_cart
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm, SelectSizesForm
 from .models import DeliveryAddress
-
-
+import time
+from django.core.cache import cache
+from django.views import View
+from django.http import HttpResponse
+import requests
+from requests.auth import HTTPBasicAuth
+from io import BytesIO
+from PIL import Image
+import logging
+import re
 
 logger = logging.getLogger(__name__)
 
 
-
-
-
 class ResizeImageView(View):
+    # Храним время последнего запроса
+    last_request_time = 0
+    # Минимальный интервал между запросами (0.2 секунды = 5 запросов в секунду)
+    REQUEST_INTERVAL = 0.2
+
     def get(self, request):
+        # Ожидаем, если с последнего запроса прошло меньше интервала
+        time_since_last = time.time() - self.last_request_time
+        if time_since_last < self.REQUEST_INTERVAL:
+            time.sleep(self.REQUEST_INTERVAL - time_since_last)
+
+        self.last_request_time = time.time()
+
         image_url = unquote(request.GET.get('url', ''))
         width = int(request.GET.get('width', 400))
         height = int(request.GET.get('height', 400))
@@ -48,9 +60,8 @@ class ResizeImageView(View):
 
         if cached:
             response = HttpResponse(cached, content_type=f'image/{format}')
-            # Кэшировать в браузере на 7 дней
-            patch_response_headers(response, cache_timeout=60*60*24*7)
-            response['Cache-Control'] = 'public, max-age=604800'  # 7 дней
+            patch_response_headers(response, cache_timeout=60 * 60 * 24 * 7)
+            response['Cache-Control'] = 'public, max-age=604800'
             return response
 
         try:
@@ -59,34 +70,28 @@ class ResizeImageView(View):
                 clean_url,
                 auth=HTTPBasicAuth('87358_xmlexport', 'MGzXXSgD'),
                 stream=True,
-                timeout=5  # Уменьшенный таймаут
+                timeout=5
             )
             response.raise_for_status()
 
             img = Image.open(BytesIO(response.content))
-
-            # Оптимизированное изменение размера
             img.thumbnail((width, height), Image.Resampling.LANCZOS)
 
             output = BytesIO()
             img.save(output, format=format, quality=85, optimize=True)
             output.seek(0)
 
-            # Кэшируем результат
-            cache.set(cache_key, output.getvalue(), 60 * 60 * 24 * 7)  # 1 неделя
+            cache.set(cache_key, output.getvalue(), 60 * 60 * 24 * 7)
 
             response = HttpResponse(output.getvalue(), content_type=f'image/{format}')
-            # Кэшировать в браузере на 7 дней
-            patch_response_headers(response, cache_timeout=60*60*24*7)
-            response['Cache-Control'] = 'public, max-age=604800'  # 7 дней
+            patch_response_headers(response, cache_timeout=60 * 60 * 24 * 7)
+            response['Cache-Control'] = 'public, max-age=604800'
             return response
 
         except Exception as e:
             logger.error(f"Error resizing image: {e}")
-            # Возвращаем прозрачный 1x1 пиксель вместо редиректа
             transparent_pixel = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x04\x00\x09\xfb\x03\xfd\x00\x00\x00\x00IEND\xaeB`\x82'
             response = HttpResponse(transparent_pixel, content_type='image/png')
-            # Для ошибок кэшируем на 5 минут
             patch_response_headers(response, cache_timeout=300)
             response['Cache-Control'] = 'public, max-age=300'
             return response
@@ -212,11 +217,9 @@ class CategoryDetailView(DetailView):
     context_object_name = 'category'
     slug_url_kwarg = 'slug'
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         category = self.object
-
 
         # Получаем все подкатегории (включая вложенные)
         subcategories = category.get_descendants(include_self=True)
@@ -406,7 +409,7 @@ class CategoryDetailView(DetailView):
         context['available_genders'] = sorted(available_genders)
 
         # Пагинация
-        per_page = int(self.request.GET.get('per_page', 12))
+        per_page = int(self.request.GET.get('per_page', 8))  # Изменено с 12 на 8
         paginator = Paginator(products, per_page)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -625,6 +628,30 @@ class CategoryDetailView(DetailView):
 
         return sorted(gender_set, key=lambda x: {'male': 0, 'female': 1, 'unisex': 2}[x])
 
+    def _get_available_materials(self, products):
+        materials = set()
+
+        # Получаем материалы из поля material
+        material_values = products.exclude(material='').values_list('material', flat=True)
+        for material_str in material_values:
+            if material_str:
+                # Разделяем строку материалов на отдельные компоненты
+                for mat in material_str.split(','):
+                    mat = mat.strip().lower()  # Приводим к нижнему регистру
+                    if mat:
+                        materials.add(mat)
+
+        # Получаем материалы из XML фильтров
+        for product in products:
+            if product.xml_data and 'filters' in product.xml_data:
+                for f in product.xml_data['filters']:
+                    if str(f.get('type_id')) in ['5', '73']:  # Типы фильтров для материалов
+                        mat = f.get('filter_name', '').strip().lower()
+                        if mat:
+                            materials.add(mat)
+
+        # Сортируем и возвращаем в правильном регистре (первая буква заглавная)
+        return sorted({m.capitalize() for m in materials if m})
 
 
 
@@ -673,12 +700,15 @@ class BrandDetailView(DetailView):
         return context
 
 
-
-
-
-
 def add_to_cart(request, product_id):
     logger.info(f"Add to cart request for product_id: {product_id}")
+
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Метод не разрешен',
+            'errors': {'__all__': 'Используйте POST запрос для добавления в корзину'}
+        }, status=405)
 
     try:
         product = get_object_or_404(XMLProduct, product_id=product_id)
@@ -687,52 +717,56 @@ def add_to_cart(request, product_id):
         cart = get_cart(request)
         logger.info(f"Cart obtained: {cart.id} (User: {cart.user}, Session: {cart.session_key})")
 
-        if request.method == 'POST':
-            logger.debug("POST data: %s", request.POST)
-            form = AddToCartForm(request.POST, product=product)
+        form = AddToCartForm(request.POST, product=product)
 
-            if form.is_valid():
-                logger.debug("Form is valid")
-                quantity = form.cleaned_data['quantity']
-                selected_size = form.cleaned_data.get('size') or form.cleaned_data.get('selected_size')
-                logger.info(f"Adding to cart: {product.name}, Qty: {quantity}, Size: {selected_size}")
+        if form.is_valid():
+            logger.debug("Form is valid")
+            quantity = form.cleaned_data['quantity']
+            selected_size = form.cleaned_data.get('size') or form.cleaned_data.get('selected_size')
+            logger.info(f"Adding to cart: {product.name}, Qty: {quantity}, Size: {selected_size}")
 
-                # Create cart item
-                cart_item, created = CartItem.objects.get_or_create(
-                    cart=cart,
-                    xml_product=product,
-                    size=selected_size,
-                    defaults={'quantity': quantity}
-                )
+            # Create cart item
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                xml_product=product,
+                size=selected_size,
+                defaults={'quantity': quantity}
+            )
 
-                if not created:
-                    cart_item.quantity += quantity
-                    cart_item.save()
+            if not created:
+                cart_item.quantity += quantity
+                cart_item.save()
 
-                logger.info(f"Cart item {'created' if created else 'updated'}: {cart_item.id}")
+            logger.info(f"Cart item {'created' if created else 'updated'}: {cart_item.id}")
 
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Товар добавлен в корзину',
-                        'cart_total': cart.total_quantity
-                    })
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Товар добавлен в корзину',
+                    'cart_total': cart.total_quantity
+                })
 
-                messages.success(request, 'Товар добавлен в корзину')
-                return redirect('main:cart_view')
-            else:
-                logger.error("Form errors: %s", form.errors.as_json())
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'errors': form.errors.as_json()
-                    }, status=400)
+            messages.success(request, 'Товар добавлен в корзину')
+            return redirect('main:cart_view')
+        else:
+            logger.error("Form errors: %s", form.errors.as_json())
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors.as_json()
+                }, status=400)
 
-                messages.error(request, 'Ошибка при добавлении в корзину')
-                return redirect(product.get_absolute_url())
+            messages.error(request, 'Ошибка при добавлении в корзину')
+            return redirect(product.get_absolute_url())
 
     except Exception as e:
         logger.exception("Error in add_to_cart view")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Произошла ошибка',
+                'errors': {'__all__': str(e)}
+            }, status=500)
         raise
 
 
@@ -862,6 +896,10 @@ def cart_view(request):
     custom_total = 0
     cart_data = request.session.get('cart', {})
 
+    # Сначала собираем ключи для удаления
+    keys_to_delete = []
+
+    # Затем обрабатываем элементы
     for key, item_data in cart_data.items():
         if item_data.get('type') == 'custom':
             try:
@@ -883,7 +921,11 @@ def cart_view(request):
                 custom_items.append(custom_order)
                 custom_total += custom_order.price
             except CustomProductOrder.DoesNotExist:
-                del cart_data[key]
+                keys_to_delete.append(key)
+
+    # Удаляем несуществующие элементы
+    for key in keys_to_delete:
+        del cart_data[key]
 
     request.session['cart'] = cart_data
     request.session.modified = True
@@ -920,7 +962,16 @@ def send_order_confirmation_email(request, order):
     """
 
     for item in order.items.all():
-        product_name = item.xml_product.name if item.xml_product else item.product.name
+        # Безопасное получение названия товара
+        if item.xml_product:
+            product_name = item.xml_product.name
+        elif item.custom_product:
+            product_name = f"Кастомный товар ({item.custom_product.design.template.name})"
+        elif item.product:
+            product_name = item.product.name
+        else:
+            product_name = "Неизвестный товар"
+
         text_content += f"\n- {product_name}: {item.quantity} × {item.price} ₽ = {item.total_price} ₽"
 
     text_content += f"\n\nИтого: {order.total_price} ₽"
@@ -941,8 +992,6 @@ def send_order_confirmation_email(request, order):
         email.send()
     except Exception as e:
         # Логируем ошибку, но не прерываем выполнение
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error(f"Ошибка при отправке письма: {str(e)}")
 
 

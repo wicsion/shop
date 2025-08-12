@@ -1,5 +1,5 @@
 {% extends "main/base.html" %}
-{% load static i18n %}
+{% load static i18n custom_filters %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -12,29 +12,79 @@
                 <h2 class="text-xl font-semibold mb-4">{% trans "Ваш заказ" %}</h2>
 
                 <div class="divide-y divide-gray-200">
-                    {% for item in cart_items %}
+                    <!-- Обычные товары -->
+                  <!-- Обычные товары -->
+<!-- Обычные товары -->
+{% for item in cart_items %}
+<div class="py-4 flex items-start">
+    <div class="w-20 h-20 flex-shrink-0 rounded overflow-hidden mr-4">
+        <img src="{% if item.xml_product.main_image %}{% url 'main:resize_image' %}?url={{ item.xml_product.main_image|urlencode }}&width=80&height=80{% else %}{% static 'images/no-image.jpg' %}{% endif %}"
+             alt="{{ item.xml_product.name }}"
+             class="w-full h-full object-cover">
+    </div>
+    <div class="flex-1">
+        <h3 class="font-medium">{{ item.xml_product.name }}</h3>
+
+
+
+        <!-- Бренд товара -->
+        {% if item.xml_product.brand %}
+        <p class="text-sm text-gray-600 mt-1">
+            {% trans "Бренд" %}: {{ item.xml_product.brand }}
+        </p>
+        {% endif %}
+
+        <!-- Размеры -->
+        {% if item.size %}
+        <p class="text-sm text-gray-600 mt-1">
+            {% trans "Размер" %}: {{ item.size }}
+        </p>
+        {% elif item.selected_sizes %}
+        <p class="text-sm text-gray-600 mt-1">
+            {% trans "Размеры" %}:
+            {% for size, quantity in item.selected_sizes.items %}
+                {{ size }} × {{ quantity }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+
+        <!-- Цена и количество -->
+       <p class="text-gray-800 font-medium mt-1">
+    {{ item.quantity }} × {{ item.xml_product.price }} ₽ = {{ item.xml_product.price|multiply:item.quantity }} ₽
+</p>
+
+        <!-- Артикул -->
+        {% if item.xml_product.code %}
+        <p class="text-xs text-gray-500 mt-1">
+            {% trans "Артикул" %}: {{ item.xml_product.code }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+                    <!-- Кастомные товары -->
+                    {% for item in custom_items %}
                     <div class="py-4 flex items-start">
                         <div class="w-20 h-20 flex-shrink-0 rounded overflow-hidden mr-4">
-                            <img src="{% url 'main:resize_image' %}?url={{ item.image|urlencode }}&width=80&height=80"
-                                 alt="{{ item.product.name }}"
+                            <img src="{% if item.original_product_info %}{% url 'main:resize_image' %}?url={{ item.original_product_info.image|urlencode }}&width=80&height=80{% else %}{% url 'main:resize_image' %}?url={{ item.design.template.images.first.image.url|urlencode }}&width=80&height=80{% endif %}"
+                                 alt="{% if item.original_product_info %}{{ item.original_product_info.name }}{% else %}Кастомный товар{% endif %}"
                                  class="w-full h-full object-cover">
                         </div>
                         <div class="flex-1">
-                            <h3 class="font-medium">{{ item.product.name }}</h3>
+                            <h3 class="font-medium">
+                                {% if item.original_product_info %}
+                                    {{ item.original_product_info.name }} + Кастомный дизайн
+                                {% else %}
+                                    Кастомный {{ item.design.template.name }}
+                                {% endif %}
+                            </h3>
                             {% if item.size %}
                             <p class="text-sm text-gray-600 mt-1">
                                 {% trans "Размер" %}: {{ item.size }}
                             </p>
-                            {% elif item.selected_sizes %}
-                            <p class="text-sm text-gray-600 mt-1">
-                                {% trans "Размеры" %}:
-                                {% for size, quantity in item.selected_sizes.items %}
-                                    {{ size }} × {{ quantity }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </p>
                             {% endif %}
                             <p class="text-gray-800 font-medium mt-1">
-                                {{ item.item.quantity }} × {{ item.product.price }} ₽ = {{ item.total_price }} ₽
+                                {{ item.quantity }} × {{ item.price }} ₽ = {{ item.total_price }} ₽
                             </p>
                         </div>
                     </div>

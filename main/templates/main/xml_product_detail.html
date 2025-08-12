@@ -685,31 +685,30 @@
                                 <input type="hidden" name="product_type" value="xml">
 
                                 <!-- Блок выбора размера -->
-                                {% if size_data.sizes_with_quantities %}
-    {% with valid_sizes=size_data.sizes_with_quantities|exclude_sizes_list %}
-        {% if valid_sizes %}
-        <div class="size-selector mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
-            <div class="size-options flex flex-wrap gap-2">
-                {% for size_info in size_data.sizes_with_quantities %}
-                    {% if size_info.size|exclude_sizes %}
-                    <button type="button"
-                            class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
-                            data-size="{{ size_info.size }}"
-                            data-quantity="{{ size_info.quantity }}">
-                        {{ size_info.size }}
-                        <span class="quantity-indicator">
-                            {% if size_info.quantity > 0 %}({{ size_info.quantity }} шт.){% else %}(нет в наличии){% endif %}
-                        </span>
-                    </button>
-                    {% endif %}
-                {% endfor %}
-                <input type="hidden" name="selected_size" id="selected-size"
-                       value="{% if size_data.sizes_with_quantities %}{{ size_data.sizes_with_quantities.0.size }}{% endif %}">
-            </div>
-        </div>
-        {% endif %}
-    {% endwith %}
+<!-- Блок выбора размера -->
+        <!-- Блок выбора размера -->
+<!-- Блок выбора размера -->
+<!-- Блок выбора размера -->
+{% if size_data.sizes_with_quantities %}
+<div class="size-selector mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Выберите размер</label>
+    <div class="size-options flex flex-wrap gap-2">
+       {% for size_info in size_data.sizes_with_quantities %}
+    <button type="button"
+            class="size-option {% if forloop.first %}selected{% endif %} px-3 py-2 border rounded-md"
+            data-size="{{ size_info.size }}"
+            data-quantity="{{ size_info.quantity }}"
+            {% if size_info.description %}title="{{ size_info.description }}"{% endif %}>
+        {{ size_info.size }}
+        <span class="quantity-indicator">
+            {% if size_info.quantity > 0 %}({{ size_info.quantity }} шт.){% else %}(нет в наличии){% endif %}
+        </span>
+    </button>
+{% endfor %}
+        <input type="hidden" name="selected_size" id="selected-size"
+               value="{% if size_data.sizes_with_quantities %}{{ size_data.sizes_with_quantities.0.size }}{% endif %}">
+    </div>
+</div>
 {% endif %}
 
                                 <!-- Поле для выбора количества -->
@@ -1080,6 +1079,8 @@ function setupTabs() {
 }
 
 // Обновленная функция для обработки выбора размера
+// Обработка выбора размера
+// Обработка выбора размера
 function setupSizeSelection() {
     const sizeOptions = document.querySelectorAll('.size-option');
     const sizeInput = document.getElementById('selected-size');

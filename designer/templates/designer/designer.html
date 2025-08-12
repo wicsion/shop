@@ -351,12 +351,11 @@
     </div>
 </div>
 
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let currentElement = null;
     let currentSide = 'front';
-    let currentColor = null; // Добавляем переменную для хранения текущего цвета
+    let currentColor = null;
     const designId = {{ design.id }};
     const designContainer = document.getElementById('design-container');
     const frontElementsContainer = document.getElementById('front-elements-container');
@@ -369,13 +368,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const existingOverlay = document.getElementById('color-overlay');
         if (existingOverlay) existingOverlay.remove();
 
-        // Если есть текущий цвет - применяем его
+        // If we have a current color, apply it
         if (currentColor) {
             applyColorToProduct(currentColor.value, currentColor.type);
             return;
         }
 
-        // Иначе применяем цвет по умолчанию
+        // Otherwise apply the default color
         const defaultColor = document.querySelector('.color-option[data-color-id="{{ selected_color.id }}"]');
         if (defaultColor) {
             currentColor = {
@@ -383,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: defaultColor.dataset.colorType,
                 value: defaultColor.dataset.colorValue
             };
-            defaultColor.click();
+            applyColorToProduct(currentColor.value, currentColor.type);
         } else {
             // If no color is selected, use the first available
             const firstColor = document.querySelector('.color-option');
@@ -393,12 +392,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     type: firstColor.dataset.colorType,
                     value: firstColor.dataset.colorValue
                 };
-                firstColor.click();
+                applyColorToProduct(currentColor.value, currentColor.type);
             }
         }
     }
 
-      // Front/back buttons
+    // Front/back buttons
     document.getElementById('front-btn')?.addEventListener('click', function() {
         {% if front_image %}
         document.getElementById('product-image').src = '{{ front_image.image.url }}';
@@ -411,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('back-btn')?.classList.add('btn-outline');
         currentSide = 'front';
 
-        // Применяем текущий цвет без перезагрузки
+        // Apply current color without reload
         if (currentColor) {
             applyColorToProduct(currentColor.value, currentColor.type);
         }
@@ -428,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('front-btn')?.classList.add('btn-outline');
         currentSide = 'back';
 
-        // Применяем текущий цвет без перезагрузки
+        // Apply current color without reload
         if (currentColor) {
             applyColorToProduct(currentColor.value, currentColor.type);
         }
@@ -844,7 +843,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        window.location.reload(); // Перезагружаем страницу для обновления элементов
+                        // После успешного сохранения элемента, сохраняем текущий цвет в сессии
+                        if (currentColor) {
+                            fetch('{% url "designer:save_selected_color" %}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-CSRFToken': csrfToken
+                                },
+                                body: `color_id=${currentColor.id}`
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
                         throw new Error(data.message || 'Ошибка сервера');
                     }
@@ -1027,56 +1040,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Color selection
-     // Color selection - обновляем обработчик
-   // Color selection - обновляем обработчик
-document.querySelectorAll('.color-option').forEach(option => {
-    option.addEventListener('click', function() {
-        document.querySelectorAll('.color-option').forEach(opt => {
-            opt.classList.remove('border-blue-500', 'ring-2', 'ring-blue-200');
-            opt.classList.add('border-transparent');
-        });
-        this.classList.add('border-blue-500', 'ring-2', 'ring-blue-200');
-        this.classList.remove('border-transparent');
-
-        // Сохраняем текущий цвет в переменной
-        currentColor = {
-            id: this.dataset.colorId,
-            type: this.dataset.colorType,
-            value: this.dataset.colorValue
-        };
-
-        // Update preview
-        const preview = document.getElementById('color-preview');
-        if (currentColor.type === 'solid') {
-            preview.style.background = currentColor.value;
-            preview.style.backgroundImage = 'none';
-            preview.querySelector('span').textContent = `Цвет ${currentColor.value}`;
-        } else if (currentColor.type === 'gradient') {
-            preview.style.background = currentColor.value;
-            preview.querySelector('span').textContent = 'Градиент';
-        } else if (currentColor.type === 'pattern') {
-            preview.style.backgroundImage = currentColor.value;
-            preview.style.backgroundSize = 'cover';
-            preview.querySelector('span').textContent = 'Текстура';
-        }
-
-        // Save selected color
-        if (!previewMode) {
-            fetch('{% url "designer:save_selected_color" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: `color_id=${currentColor.id}`
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('border-blue-500', 'ring-2', 'ring-blue-200');
+                opt.classList.add('border-transparent');
             });
-        }
+            this.classList.add('border-blue-500', 'ring-2', 'ring-blue-200');
+            this.classList.remove('border-transparent');
 
-        // Apply color to product immediately
-        applyColorToProduct(currentColor.value, currentColor.type);
+            // Сохраняем текущий цвет в переменной
+            currentColor = {
+                id: this.dataset.colorId,
+                type: this.dataset.colorType,
+                value: this.dataset.colorValue
+            };
+
+            // Update preview
+            const preview = document.getElementById('color-preview');
+            if (currentColor.type === 'solid') {
+                preview.style.background = currentColor.value;
+                preview.style.backgroundImage = 'none';
+                preview.querySelector('span').textContent = `Цвет ${currentColor.value}`;
+            } else if (currentColor.type === 'gradient') {
+                preview.style.background = currentColor.value;
+                preview.querySelector('span').textContent = 'Градиент';
+            } else if (currentColor.type === 'pattern') {
+                preview.style.backgroundImage = currentColor.value;
+                preview.style.backgroundSize = 'cover';
+                preview.querySelector('span').textContent = 'Текстура';
+            }
+
+            // Apply color to product immediately
+            applyColorToProduct(currentColor.value, currentColor.type);
+
+            // Save selected color
+            if (!previewMode) {
+                fetch('{% url "designer:save_selected_color" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `color_id=${currentColor.id}`
+                });
+            }
+        });
     });
-});
-
 
     // Color type switching
     document.querySelectorAll('.color-type-btn').forEach(btn => {
@@ -1311,27 +1321,27 @@ document.querySelectorAll('.color-option').forEach(option => {
         document.getElementById('color-hex-value').textContent = this.value;
     });
     // Back to edit button - только в режиме предпросмотра
-if (previewMode) {
-    document.getElementById('back-to-edit-btn')?.addEventListener('click', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const sizesParam = urlParams.get('sizes');
-        const fromCart = urlParams.get('from_cart');
+    if (previewMode) {
+        document.getElementById('back-to-edit-btn')?.addEventListener('click', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sizesParam = urlParams.get('sizes');
+            const fromCart = urlParams.get('from_cart');
 
-        let editUrl = '{% url "designer:custom_designer_edit" design.id %}';
+            let editUrl = '{% url "designer:custom_designer_edit" design.id %}';
 
-        // Сохраняем параметры URL при переходе назад
-        if (sizesParam) {
-            editUrl += `?sizes=${encodeURIComponent(sizesParam)}`;
-            if (fromCart) {
-                editUrl += `&from_cart=${fromCart}`;
+            // Сохраняем параметры URL при переходе назад
+            if (sizesParam) {
+                editUrl += `?sizes=${encodeURIComponent(sizesParam)}`;
+                if (fromCart) {
+                    editUrl += `&from_cart=${fromCart}`;
+                }
+            } else if (fromCart) {
+                editUrl += `?from_cart=${fromCart}`;
             }
-        } else if (fromCart) {
-            editUrl += `?from_cart=${fromCart}`;
-        }
 
-        window.location.href = editUrl;
-    });
-}
+            window.location.href = editUrl;
+        });
+    }
 });
 
 </script>

@@ -491,27 +491,44 @@ class XMLProduct(models.Model):
                             'in_stock': self.in_stock
                         })
 
-        # 4. Специальная обработка для варежек и подобных товаров
-        if "варежки" in self.name.lower() or "варежки" in self.description.lower():
-            # Ищем размеры в описании
-            import re
-            size_matches = re.findall(r'Размер (\S+): ширина (\d+) см, длина (\d+) см, манжета (\d+) см',
-                                      self.description)
-            if size_matches:
-                for match in size_matches:
-                    size_code = match[0]
-                    size_desc = f"{size_code}: ширина {match[1]} см, длина {match[2]} см, манжета {match[3]} см"
-                    size_info['available_sizes'].append(size_desc)
+        # 4. Специальная обработка для перчаток и варежек - парсим размеры из описания
+        description = self.description or ""
+
+        # Улучшенный паттерн для перчаток и варежек
+        # Заменить текущее регулярное выражение на более универсальное:
+        glove_matches = re.findall(
+            r'[РP]азмер\s+([A-Za-z/]+):\s*ширина\s+([\d,]+)\s*см,\s*длина\s+([\d,]+)\s*см,\s*манжета\s+([\d,]+)\s*см',
+            description,
+            re.IGNORECASE
+        )
+
+        if glove_matches:
+            for match in glove_matches:
+                size_code = match[0]  # S/M или L/XL
+                width = match[1].replace(',', '.')
+                length = match[2].replace(',', '.')
+                cuff = match[3].replace(',', '.')
+                size_desc = f"{size_code} (ширина {width} см, длина {length} см, манжета {cuff} см)"
+
+                # Проверяем, есть ли уже такой размер
+                existing_size = next(
+                    (s for s in size_info['sizes_with_quantities'] if s['size'].upper() == size_code.upper()), None)
+
+                if not existing_size:
+                    size_info['available_sizes'].append(size_code)
                     size_info['sizes_with_quantities'].append({
-                        'size': size_desc,
+                        'size': size_code,
                         'quantity': self.quantity,
-                        'in_stock': self.in_stock
+                        'in_stock': self.in_stock,
+                        'description': size_desc  # Добавляем описание для отображения
                     })
+                elif 'description' not in existing_size:
+                    existing_size['description'] = size_desc
 
         size_info['is_available'] = any(size['in_stock'] for size in size_info['sizes_with_quantities'])
 
         # Сортируем размеры по стандартному порядку
-        STANDARD_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
+        STANDARD_ORDER = ['XXS', 'XS', 'S', 'S/M', 'M', 'L', 'L/XL', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
         size_info['sizes_with_quantities'].sort(
             key=lambda x: (
                 STANDARD_ORDER.index(x['size']) if x['size'] in STANDARD_ORDER else len(STANDARD_ORDER),
@@ -860,6 +877,36 @@ class XMLProduct(models.Model):
         excluded_sizes = ['ЕДИНЫЙ РАЗМЕР', 'ONE SIZE', 'ONESIZE']
         return str(size).upper() not in excluded_sizes
 
+    def get_clean_materials(self):
+        """Возвращает очищенный список материалов без пустых значений"""
+        materials = set()
+
+        # Из поля material
+        if self.material:
+            for m in self.material.split(','):
+                m = m.strip()
+                if m:
+                    materials.add(m)
+
+        # Из XML фильтров
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) in ['5', '73']:  # Типы фильтров для материалов
+                    mat = f.get('filter_name', '').strip()
+                    if mat:
+                        materials.add(mat)
+
+        # Нормализация названий материалов
+        normalized_materials = set()
+        for mat in materials:
+            # Приводим к нижнему регистру и удаляем лишние пробелы
+            mat = ' '.join(mat.lower().split())
+            # Заменяем сокращения
+            mat = mat.replace('полиэстр', 'полиэстер')
+            normalized_materials.add(mat.capitalize())
+
+        return sorted(normalized_materials)
+
 
 
     def save(self, *args, **kwargs):
@@ -893,9 +940,7 @@ class ProductFilter(models.Model):
     def __str__(self):
         return f"{self.filter_type}: {self.filter_id}"
 class ProductVariantThrough(models.Model):
-    """
-    Промежуточная модель для связи товара с вариантами
-    """
+
     product = models.ForeignKey(
         XMLProduct,
         on_delete=models.CASCADE,
@@ -965,6 +1010,7 @@ class ApplicationType(models.Model):
 
     def __str__(self):
         return self.name
+
 class ProductAttachment(models.Model):
     ATTACHMENT_TYPES = [
         ('image', _('Изображение')),
@@ -1270,6 +1316,14 @@ class OrderItem(models.Model):
         null=True,
         blank=True
     )
+    custom_product = models.ForeignKey(
+        'designer.CustomProductOrder',  # Добавьте это поле
+        on_delete=models.PROTECT,
+        verbose_name=_('Кастомный товар'),
+        null=True,
+        blank=True
+    )
+
     xml_product = models.ForeignKey(
         XMLProduct,
         on_delete=models.PROTECT,

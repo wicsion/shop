@@ -2,8 +2,8 @@
 {% load static i18n %}
 
 {% block extra_head %}
-<!-- Предзагрузка первых 12 изображений с приоритетом -->
-{% for product in products|slice:":6" %}
+<!-- Предзагрузка первых 6 изображений с приоритетом -->
+{% for product in products|slice:":8" %}
 <link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400&format=webp" as="image" type="image/webp" fetchpriority="high">
 <link rel="preload" href="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400" as="image" fetchpriority="high">
 {% endfor %}
@@ -137,13 +137,14 @@
     <h3 class="font-semibold text-lg mb-4">{% trans "Материалы" %}</h3>
     <div class="space-y-2 max-h-60 overflow-y-auto">
         {% for material in materials %}
-            {% if material %}  <!-- Проверка на пустое значение -->
+            {% if material and material.strip %}
             <div class="flex items-center">
                 <input type="checkbox" id="material_{{ forloop.counter }}"
-                       class="material-filter mr-2" value="{{ material }}"
-                       {% if material in selected_materials %}checked{% endif %}
+                       class="material-filter mr-2" value="{{ material|escape }}"
                        aria-labelledby="material_{{ forloop.counter }}_label">
-                <label for="material_{{ forloop.counter }}" id="material_{{ forloop.counter }}_label">{{ material }}</label>
+                <label for="material_{{ forloop.counter }}" id="material_{{ forloop.counter }}_label">
+                    {{ material }}
+                </label>
             </div>
             {% endif %}
         {% endfor %}
@@ -371,30 +372,21 @@
             </div>
         </aside>
 
-        <!-- Основной контент -->
-        <div class="flex-1">
-            <!-- Сортировка и количество товаров -->
-            <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
-                <div class="mb-4 sm:mb-0">
-                    <label for="sort_by" class="sr-only">{% trans "Сортировать по:" %}</label>
-                    <select id="sort_by" class="ml-2 border rounded px-3 py-2" aria-label="Сортировка товаров">
-                        <option value="default" {% if request.GET.sort == 'default' or not request.GET.sort %}selected{% endif %}>{% trans "По умолчанию" %}</option>
-                        <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>{% trans "Цена по возрастанию" %}</option>
-                        <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>{% trans "Цена по убыванию" %}</option>
-                        <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>{% trans "Названию (А-Я)" %}</option>
-                        <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>{% trans "Названию (Я-А)" %}</option>
-                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>{% trans "Новинки" %}</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="per_page" class="sr-only">{% trans "Показывать по:" %}</label>
-                    <select id="per_page" class="ml-2 border rounded px-3 py-2" aria-label="Количество товаров на странице">
-                        <option value="12" {% if request.GET.per_page == '12' or not request.GET.per_page %}selected{% endif %}>12</option>
-                        <option value="24" {% if request.GET.per_page == '24' %}selected{% endif %}>24</option>
-                        <option value="48" {% if request.GET.per_page == '48' %}selected{% endif %}>48</option>
-                    </select>
-                </div>
-            </div>
+           <div class="flex-1">
+        <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
+    <div class="mb-4 sm:mb-0">
+        <label for="sort_by" class="sr-only">{% trans "Сортировать по:" %}</label>
+        <select id="sort_by" class="ml-2 border rounded px-3 py-2" aria-label="Сортировка товаров">
+            <option value="default" {% if request.GET.sort == 'default' or not request.GET.sort %}selected{% endif %}>{% trans "По умолчанию" %}</option>
+            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>{% trans "Цена по возрастанию" %}</option>
+            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>{% trans "Цена по убыванию" %}</option>
+            <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>{% trans "Названию (А-Я)" %}</option>
+            <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>{% trans "Названию (Я-А)" %}</option>
+            <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>{% trans "Новинки" %}</option>
+        </select>
+    </div>
+    <input type="hidden" id="per_page" value="4">
+</div>
 
             <!-- Список товаров -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="products-container">
@@ -402,18 +394,18 @@
                 <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition flex flex-col h-full">
                     <a href="{{ product.get_absolute_url }}" class="block flex-grow" aria-label="Подробнее о товаре {{ product.name }}">
                         <div class="image-container w-full h-64 relative">
-                            <img
-                                src="{% static 'images/placeholder.svg' %}"
-                                data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400&format=webp"
-                                data-src-fallback="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
-                                loading="lazy"
-                                class="lazy-load w-full h-full object-cover"
-                                alt="{{ product.name }}"
-                                width="400"
-                                height="400"
-                                decoding="async"
-                            >
-                        </div>
+    <img
+        src="{% static 'images/placeholder.svg' %}"
+        data-src="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400&format=webp"
+        data-src-fallback="{% url 'main:resize_image' %}?url={{ product.main_image|urlencode }}&width=400&height=400"
+        loading="lazy"
+        class="lazy-load w-full h-full object-cover"
+        alt="{{ product.name }}"
+        width="400"
+        height="400"
+        decoding="async"
+    >
+</div>
                         <div class="p-4 flex-grow">
                             <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
                             <div class="flex items-center justify-between mt-auto">
@@ -481,17 +473,19 @@
             </div>
 
             <!-- Кнопка загрузки дополнительных товаров -->
-            {% if products.has_next %}
-            <div id="load-more-container" class="mt-8 text-center">
-                <button id="load-more" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                    {% trans "Загрузить еще" %}
-                </button>
-                <div id="loading-indicator" class="hidden py-4">
-                    <div class="inline-block spinner"></div>
-                    <span class="ml-2">{% trans "Загрузка..." %}</span>
-                </div>
-            </div>
-            {% endif %}
+          <!-- В блоке с кнопкой загрузки дополнительных товаров -->
+<!-- Кнопка загрузки дополнительных товаров -->
+{% if products.has_next %}
+<div id="load-more-container" class="mt-8 text-center">
+    <button id="load-more" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        {% trans "Загрузить еще" %}
+    </button>
+    <div id="loading-indicator" class="hidden py-4">
+        <div class="inline-block spinner"></div>
+        <span class="ml-2">{% trans "Загрузка..." %}</span>
+    </div>
+</div>
+{% endif %}
         </div>
     </div>
 </div>
@@ -536,6 +530,7 @@ const scrollHandler = throttle(function() {
 }, 200);
 
 // Основная функция загрузки товаров
+// Основная функция загрузки товаров
 async function loadMoreProducts() {
     if (isLoading || !hasMore) return;
 
@@ -543,6 +538,7 @@ async function loadMoreProducts() {
     const nextPage = currentPage + 1;
     const params = new URLSearchParams(window.location.search);
     params.set('page', nextPage);
+    params.set('per_page', '8');  // Устанавливаем 8 товаров на страницу
 
     const loadingIndicator = document.getElementById('loading-indicator');
     const loadMoreButton = document.getElementById('load-more');
@@ -574,10 +570,11 @@ async function loadMoreProducts() {
             return;
         }
 
+        // Добавляем новые товары
         productsContainer.insertAdjacentHTML('beforeend', newProductsContainer.innerHTML);
         currentPage = nextPage;
 
-        // Проверяем есть ли еще кнопка "Загрузить еще"
+        // Проверяем есть ли еще кнопка "Загрузить еще" в новом контенте
         const newLoadMoreContainer = doc.getElementById('load-more-container');
         if (!newLoadMoreContainer) {
             hasMore = false;
@@ -586,8 +583,9 @@ async function loadMoreProducts() {
             loadMoreButton.classList.remove('hidden');
         }
 
+        // Инициализируем ленивую загрузку и контролы количества
+        setupLazyLoading();
         initQuantityControls();
-        loadImages();
 
     } catch (error) {
         console.error('Error loading products:', error);
@@ -634,6 +632,7 @@ function applyFilters() {
         // Бренды, материалы, размеры
         'brands': getCheckedValues('.brand-filter'),
         'materials': getCheckedValues('.material-filter'),
+
         'sizes': getCheckedValues('.size-filter'),
 
         // Остальные фильтры
@@ -653,6 +652,7 @@ function applyFilters() {
         'has_discount': document.getElementById('has_discount')?.checked
     };
 
+
     // Добавляем фильтры в URL
     Object.entries(filters).forEach(([key, value]) => {
         if (value) {
@@ -666,6 +666,7 @@ function applyFilters() {
         }
     });
 
+
     // Добавляем цену из формы
     const minPrice = document.querySelector('input[name="min_price"]')?.value;
     const maxPrice = document.querySelector('input[name="max_price"]')?.value;
@@ -677,7 +678,7 @@ function applyFilters() {
     const perPage = document.getElementById('per_page')?.value;
 
     if (sortBy && sortBy !== 'default') params.set('sort', sortBy); else params.delete('sort');
-    if (perPage && perPage !== '12') params.set('per_page', perPage); else params.delete('per_page');
+    if (perPage && perPage !== '4') params.set('per_page', perPage); else params.delete('per_page');
 
     params.set('page', 1);
     updateUrlParams(params);
@@ -739,37 +740,39 @@ function setCurrentFilters() {
 // ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==================
 
 // Оптимизированная загрузка изображений
+// Оптимизированная загрузка изображений с ограничением скорости
 function optimizedImageLoader() {
-    const lazyImages = document.querySelectorAll('.lazy-load:not(.loaded)');
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                const src = img.dataset.src;
-                const fallback = img.dataset.srcFallback;
+    const lazyImages = Array.from(document.querySelectorAll('.lazy-load:not(.loaded)'));
+    let currentIndex = 0;
+    const LOAD_DELAY = 200; // Задержка между загрузкой изображений (мс)
 
-                // Сначала пробуем загрузить WebP
-                const webpLoader = new Image();
-                webpLoader.onload = () => {
-                    img.src = src;
-                    img.classList.add('loaded');
-                };
-                webpLoader.onerror = () => {
-                    // Если WebP не поддерживается, загружаем fallback
-                    img.src = fallback;
-                    img.classList.add('loaded');
-                };
-                webpLoader.src = src;
+    function loadNextImage() {
+        if (currentIndex >= lazyImages.length) return;
 
-                observer.unobserve(img);
-            }
-        });
-    }, {
-        rootMargin: '200px',
-        threshold: 0.01
-    });
+        const img = lazyImages[currentIndex];
+        currentIndex++;
 
-    lazyImages.forEach(img => observer.observe(img));
+        const src = img.dataset.src;
+        const fallback = img.dataset.srcFallback;
+
+        const imageLoader = new Image();
+        imageLoader.onload = function() {
+            img.src = src;
+            img.classList.add('loaded');
+            setTimeout(loadNextImage, LOAD_DELAY);
+        };
+        imageLoader.onerror = function() {
+            img.src = fallback;
+            img.classList.add('loaded');
+            setTimeout(loadNextImage, LOAD_DELAY);
+        };
+        imageLoader.src = src;
+    }
+
+    // Начинаем загрузку первых 4 изображений сразу (по одному с задержкой)
+    for (let i = 0; i < Math.min(4, lazyImages.length); i++) {
+        setTimeout(loadNextImage, i * LOAD_DELAY);
+    }
 }
 
 function loadImages() {
@@ -782,6 +785,66 @@ function loadImages() {
             }
         }
     });
+}
+function setupLazyLoading() {
+    const lazyImages = Array.from(document.querySelectorAll('.lazy-load:not(.loaded)'));
+    let currentIndex = 0;
+    const LOAD_DELAY = 200; // Задержка между загрузкой изображений (мс)
+    const VISIBLE_IMAGES = 8; // Количество изображений, которые загружаются сразу (по одному с задержкой)
+
+    function loadNextImage() {
+        if (currentIndex >= lazyImages.length) return;
+
+        const img = lazyImages[currentIndex];
+        currentIndex++;
+
+        // Пропускаем уже загруженные изображения
+        if (img.classList.contains('loaded')) {
+            setTimeout(loadNextImage, 0);
+            return;
+        }
+
+        const src = img.dataset.src;
+        const fallback = img.dataset.srcFallback;
+
+        const imageLoader = new Image();
+        imageLoader.onload = function() {
+            img.src = src;
+            img.classList.add('loaded');
+
+            // Плавное появление изображения
+            img.style.opacity = '0';
+            setTimeout(() => {
+                img.style.transition = 'opacity 0.5s ease';
+                img.style.opacity = '1';
+            }, 50);
+
+            setTimeout(loadNextImage, LOAD_DELAY);
+        };
+        imageLoader.onerror = function() {
+            img.src = fallback;
+            img.classList.add('loaded');
+            setTimeout(loadNextImage, LOAD_DELAY);
+        };
+        imageLoader.src = src;
+    }
+
+    // Начинаем загрузку первых VISIBLE_IMAGES изображений с задержкой
+    for (let i = 0; i < Math.min(VISIBLE_IMAGES, lazyImages.length); i++) {
+        setTimeout(() => {
+            loadNextImage();
+        }, i * LOAD_DELAY);
+    }
+
+    // Обработчик для подгрузки изображений при скролле
+    const scrollHandler = throttle(() => {
+        if (currentIndex < lazyImages.length) {
+            loadNextImage();
+        }
+    }, 200);
+
+    window.addEventListener('scroll', scrollHandler);
+    window.addEventListener('resize', scrollHandler);
 }
 
 // Инициализация счетчиков количества
@@ -804,17 +867,51 @@ function initQuantityControls() {
         });
     });
 
-    // Обработчик для кнопки "Добавить"
-    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const control = this.closest('.quantity-control');
-            const productId = control.dataset.productId;
-            const quantity = parseInt(control.querySelector('.quantity-value').textContent);
+  // В блоке extra_js в category_detail.html обновите обработчик клика:
+document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const control = this.closest('.quantity-control');
+        const productId = control.dataset.productId;
+        const quantity = parseInt(control.querySelector('.quantity-value').textContent);
 
-            addToCart(productId, quantity);
+        // Получаем выбранный размер, если есть
+        const sizeSelect = control.querySelector('select[name="size"]');
+        const selectedSize = sizeSelect ? sizeSelect.value : '';
+
+        // Собираем все данные для отправки
+        const formData = new FormData();
+        formData.append('quantity', quantity);
+        if (selectedSize) {
+            formData.append('size', selectedSize);
+        }
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        // Отправляем POST запрос
+        fetch(`{% url 'main:add_to_cart' product_id='0' %}`.replace('0', productId), {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                updateCartCounter(data.cart_total);
+            } else {
+                showNotification(data.message || 'Ошибка при добавлении в корзину', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Произошла ошибка при добавлении в корзину', 'error');
         });
     });
+});
+
 }
 
 // Функция для добавления товара в корзину
@@ -903,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hasMore = true;
     }
 
-    optimizedImageLoader();
+    setupLazyLoading();
     setCurrentFilters();
     initQuantityControls();
 
@@ -914,14 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Добавляем обработчик скролла
-    window.addEventListener('scroll', throttle(function() {
-        if (isLoading || !hasMore || !document.getElementById('load-more')) return;
 
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-        if (scrollTop + clientHeight >= scrollHeight - 100) {
-            loadMoreProducts();
-        }
-    }, 200));
 
     // Первая проверка при загрузке
     if (document.documentElement.scrollHeight <= window.innerHeight && hasMore) {
@@ -972,11 +1062,13 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+
 :root {
     --top-navbar-height: 40px;
     --main-header-height: 20px;
     --total-header-height: calc(var(--top-navbar-height) + var(--main-header-height));
 }
+
 
 /* Оптимизированные стили для изображений */
 .image-container {
@@ -1003,7 +1095,6 @@ document.addEventListener('DOMContentLoaded', function() {
     opacity: 1;
 }
 
-/* Placeholder стили */
 .image-container::before {
     content: "";
     position: absolute;
@@ -1021,7 +1112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         background-position-x: -200%;
     }
 }
-
 .sticky-column {
     top: calc(var(--total-header-height) + 4.0rem);
     position: sticky;
@@ -1046,20 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow: hidden;
 }
 
-.lazy-load {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
 
-.lazy-load.loaded {
-    opacity: 1;
-}
 
 /* Стили для статусных меток */
 .product-badge {

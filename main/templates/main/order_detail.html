@@ -66,8 +66,6 @@
                     <p><strong>{% trans "Статус:" %}</strong> {{ order.get_status_display }}</p>
                     <p><strong>{% trans "Сумма:" %}</strong> {{ order.total_price }} ₽</p>
                 </div>
-            <!-- Добавьте эту строку в раздел "Информация о заказе" -->
-
 
                 <div>
                     <h2 class="text-lg font-semibold mb-3">{% trans "Контактная информация" %}</h2>
@@ -97,6 +95,10 @@
                         <img src="{% url 'main:resize_image' %}?url={{ item.xml_product.main_image|urlencode }}&width=80&height=80"
                              alt="{{ item.xml_product.name }}"
                              class="w-full h-full object-cover">
+                        {% elif item.custom_product %}
+                        <img src="{% url 'main:resize_image' %}?url={{ item.custom_product.design.product.main_image|urlencode }}&width=80&height=80"
+                             alt="{{ item.custom_product.design.product.name }}"
+                             class="w-full h-full object-cover">
                         {% else %}
                         <img src="{% static 'images/no-image.jpg' %}"
                              alt="No image"
@@ -107,10 +109,20 @@
                         <h3 class="font-medium">
                             {% if item.xml_product %}
                                 {{ item.xml_product.name }}
+                            {% elif item.custom_product %}
+                                {{ item.custom_product.design.product.name }} (Кастомный дизайн)
                             {% else %}
                                 {{ item.product.name }}
                             {% endif %}
                         </h3>
+                        {% if item.custom_product %}
+                        <p class="text-sm text-gray-600">
+                            Цвет: {{ item.custom_product.selected_color.name|default:"Не указан" }}<br>
+                            Размер: {{ item.custom_product.size|default:"Не указан" }}
+                        </p>
+                        {% elif item.size %}
+                        <p class="text-sm text-gray-600">Размер: {{ item.size }}</p>
+                        {% endif %}
                         <p class="text-gray-800 font-medium mt-1">
                             {{ item.quantity }} × {{ item.price }} ₽ = {{ item.total_price }} ₽
                         </p>

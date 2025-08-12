@@ -175,3 +175,23 @@ def filter_is_silhouette(queryset, value):
 @register.filter
 def file_exists(filepath):
     return os.path.exists(filepath)
+
+@register.filter(name='multiply')
+def multiply(value, arg):
+    """Умножает значение на аргумент"""
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return ''
+
+@register.filter
+def extract_sizes(description):
+    import re
+    sizes = []
+    matches = re.findall(
+        r'Размер (\S+): ширина ([\d,]+) см, длина ([\d,]+) см, манжета ([\d,]+) см',
+        description
+    )
+    for match in matches:
+        sizes.append(f"{match[0]}: ширина {match[1]} см, длина {match[2]} см, манжета {match[3]} см")
+    return sizes

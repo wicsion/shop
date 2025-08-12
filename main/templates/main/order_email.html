@@ -71,10 +71,20 @@
                     <h3>
                         {% if item.xml_product %}
                             {{ item.xml_product.name }}
+                        {% elif item.custom_product %}
+                            {{ item.custom_product.design.product.name }} (Кастомный дизайн)
                         {% else %}
                             {{ item.product.name }}
                         {% endif %}
                     </h3>
+                    {% if item.custom_product %}
+                    <p>
+                        Цвет: {{ item.custom_product.selected_color.name|default:"Не указан" }}<br>
+                        Размер: {{ item.custom_product.size|default:"Не указан" }}
+                    </p>
+                    {% elif item.size %}
+                    <p>Размер: {{ item.size }}</p>
+                    {% endif %}
                     <p>{{ item.quantity }} × {{ item.price }} ₽ = {{ item.total_price }} ₽</p>
                 </div>
             </div>

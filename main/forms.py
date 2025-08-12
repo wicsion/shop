@@ -58,7 +58,7 @@ class AddToCartForm(forms.ModelForm):
                 max_quantity = self.product.quantity
             self.fields['quantity'].widget.attrs['max'] = max_quantity
 
-            # Добавляем варианты размеров
+            # Добавляем варианты размеров, если они есть
             if self.product.variants.exists() or self.product.sizes_available:
                 size_choices = []
                 if self.product.variants.exists():
@@ -69,7 +69,7 @@ class AddToCartForm(forms.ModelForm):
                     size_choices = [(s, s) for s in sizes]
 
                 if size_choices:
-                    self.fields['size'].choices = [('', 'Выберите размер')] + size_choices
+                    self.fields['size'].choices = [('', 'Выберите размер (опционально)')] + size_choices
                 else:
                     self.fields['size'].widget = forms.HiddenInput()
             else:
@@ -81,15 +81,6 @@ class AddToCartForm(forms.ModelForm):
         selected_size = cleaned_data.get('selected_size')
         quantity = cleaned_data.get('quantity')
 
-        # Если есть варианты размеров, но размер не выбран
-        if (self.product.variants.exists() or self.product.sizes_available) and not size and not selected_size:
-            raise forms.ValidationError("Пожалуйста, выберите размер")
-
-        # Если размер выбран, проверяем его доступность
-        if size and self.product.variants.exists():
-            if not self.product.variants.filter(size__iexact=size).exists():
-                raise forms.ValidationError("Выбранный размер недоступен")
-
         if self.product:
             if size and self.product.variants.exists():
                 variant = self.product.variants.filter(size=size).first()
@@ -99,7 +90,6 @@ class AddToCartForm(forms.ModelForm):
                 raise forms.ValidationError("Недостаточно товара в наличии")
 
         return cleaned_data
-
 
 class OrderForm(forms.ModelForm):
     delivery_address = forms.ChoiceField(
