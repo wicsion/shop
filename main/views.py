@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 
 from designer.models import CustomProductOrder
+from designer.views import get_custom_items_in_cart
 from .models import Category, Cart, CartItem, Order, Brand, Slider, Partner, OrderItem, XMLProduct
 from .forms import AddToCartForm, OrderForm, SearchForm, SelectSizesForm
 from .models import DeliveryAddress
@@ -498,7 +499,6 @@ class CategoryDetailView(DetailView):
 
         return None
 
-
     def _get_available_sizes(self, products):
         size_set = set()
         STANDARD_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
@@ -513,16 +513,19 @@ class CategoryDetailView(DetailView):
             'Брюки и шорты', 'Детская одежда', 'Аксессуары',
             'Худи под нанесение логотипа', 'Футболки с логотипом',
             'Толстовки с логотипом', 'Свитшоты под нанесение логотипа',
-            'Брюки и шорты с логотипом'
+            'Брюки и шорты с логотипом', 'Корпоративная одежда с логотипом'
         ]
 
         # Проверяем, относится ли текущая категория к одежде
-        is_clothing = self.object.name in CLOTHING_CATEGORIES or \
-                      any(parent.name in CLOTHING_CATEGORIES for parent in self.object.get_ancestors())
+        is_clothing = (
+                self.object.name in CLOTHING_CATEGORIES or
+                any(parent.name in CLOTHING_CATEGORIES for parent in self.object.get_ancestors())
+        )
 
         if not is_clothing:
             return []
 
+        # Собираем размеры из всех возможных источников
         for product in products:
             # 1. Проверяем варианты размеров
             if product.variants.exists():
@@ -945,28 +948,25 @@ def send_order_confirmation_email(request, order):
 
 def checkout(request):
     cart = get_cart(request)
+    custom_items = get_custom_items_in_cart(request)  # Получаем кастомные товары из сессии
 
-    if cart.items.count() == 0:
+    # Проверка, что в корзине есть товары
+    if cart.items.count() == 0 and not custom_items:
         messages.warning(request, 'Ваша корзина пуста')
         return redirect('main:cart_view')
 
+    # Проверка размеров для обычных товаров
     for item in cart.items.all():
         if item.xml_product and item.xml_product.has_variants:
             if not item.size and not item.selected_sizes:
                 messages.error(request, f'Для товара "{item.xml_product.name}" необходимо выбрать размеры')
                 return redirect('main:cart_view')
 
-    # Подготовка cart_items
-    cart_items = []
-    for item in cart.items.all():
-        if item.xml_product:
-            cart_items.append({
-                'item': item,
-                'product': item.xml_product,
-                'image': item.xml_product.main_image,
-                'total_price': item.quantity * item.xml_product.price,
-                'size': item.size
-            })
+    # Проверка размеров для кастомных товаров
+    for custom_item in custom_items:
+        if not custom_item.size:
+            messages.error(request, f'Для кастомного товара необходимо выбрать размер')
+            return redirect('main:cart_view')
 
     if request.method == 'POST':
         form = OrderForm(request.POST, user=request.user)
@@ -992,7 +992,7 @@ def checkout(request):
 
             order.save()
 
-            # Создаем элементы заказа
+            # Создаем элементы заказа для обычных товаров
             for cart_item in cart.items.all():
                 if cart_item.xml_product:
                     OrderItem.objects.create(
@@ -1003,8 +1003,27 @@ def checkout(request):
                         size=cart_item.size
                     )
 
+            # Создаем элементы заказа для кастомных товаров
+            for custom_item in custom_items:
+                OrderItem.objects.create(
+                    order=order,
+                    custom_product=custom_item,  # Предполагается, что в OrderItem есть такое поле
+                    quantity=custom_item.quantity,
+                    price=custom_item.price,
+                    size=custom_item.size
+                )
+
             # Очищаем корзину
             cart.items.all().delete()
+
+            # Удаляем кастомные товары из сессии
+            request.session['cart'] = {}
+            request.session.modified = True
+
+            # Помечаем кастомные заказы как оформленные
+            for custom_item in custom_items:
+                custom_item.in_cart = False
+                custom_item.save()
 
             # Отправляем письмо с подтверждением
             send_order_confirmation_email(request, order)
@@ -1026,11 +1045,11 @@ def checkout(request):
 
     return render(request, 'main/checkout.html', {
         'cart': cart,
-        'cart_items': cart_items,
+        'cart_items': cart.items.all(),
+        'custom_items': custom_items,
         'form': form,
         'search_form': SearchForm(),
     })
-
 
 
 def order_success(request, order_id):

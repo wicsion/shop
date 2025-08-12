@@ -512,7 +512,7 @@ def get_custom_items_in_cart(request):
             try:
                 custom_order = CustomProductOrder.objects.get(id=item['id'], in_cart=True)
 
-                # Добавляем информацию об оригинальном товаре, если он есть
+                # Add information about the original product if it exists
                 if custom_order.original_product:
                     custom_order.original_product_info = {
                         'name': custom_order.original_product.name,
@@ -522,14 +522,8 @@ def get_custom_items_in_cart(request):
                         'url': custom_order.original_product.get_absolute_url()
                     }
                 else:
-                    # Если оригинального товара нет, создаем пустую информацию
+                    # If there's no original product, create empty info
                     custom_order.original_product_info = None
-
-                # Добавляем информацию о дизайне
-                custom_order.design_info = {
-                    'id': custom_order.design.id,
-                    'template_name': custom_order.design.template.name
-                }
 
                 custom_items.append(custom_order)
             except CustomProductOrder.DoesNotExist:

@@ -12,6 +12,8 @@ import uuid
 from django.conf import settings
 from model_utils import FieldTracker
 
+
+
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -539,11 +541,14 @@ class XMLProduct(models.Model):
 
     @property
     def has_variants(self):
-        """Есть ли варианты у товара"""
-        return bool(self.get_available_sizes()) or bool(self.variants.exists())
+        """Returns True if product has size variants"""
+        return bool(self.variants.exists()) or bool(self.get_available_sizes())
 
     def get_available_sizes(self):
-        """Возвращает список доступных размеров"""
+        size_set = set()
+        STANDARD_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
+
+        # Define clothing categories
         CLOTHING_CATEGORIES = [
             'Одежда', 'Футболки', 'Кепки и бейсболки', 'Панамы', 'Футболки поло',
             'Футболки с длинным рукавом', 'Промо футболки', 'Ветровки', 'Толстовки',
@@ -553,49 +558,54 @@ class XMLProduct(models.Model):
             'Брюки и шорты', 'Детская одежда', 'Аксессуары',
             'Худи под нанесение логотипа', 'Футболки с логотипом',
             'Толстовки с логотипом', 'Свитшоты под нанесение логотипа',
-            'Брюки и шорты с логотипом'
+            'Брюки и шорты с логотипом', 'Корпоративная одежда с логотипом'
         ]
 
-        # Проверяем, относится ли товар к категориям одежды
+        # Check if this product belongs to clothing categories
         is_clothing = False
         for category in self.categories.all():
             if (category.name in CLOTHING_CATEGORIES or
-                    (category.parent and category.parent.name in CLOTHING_CATEGORIES)):
+                    any(parent.name in CLOTHING_CATEGORIES for parent in category.get_ancestors())):
                 is_clothing = True
                 break
 
         if not is_clothing:
             return []
-        sizes = []
 
-        # 1. Проверяем варианты размеров
+        # Get sizes from all possible sources
+        # 1. Check variants
         if self.variants.exists():
-            return list(self.variants.values_list('size', flat=True))
+            for variant in self.variants.all():
+                size = str(variant.size).strip().upper()
+                if size in STANDARD_SIZES:
+                    size_set.add(size)
 
-        # 2. Проверяем поле sizes_available
+        # 2. Check sizes_available field
         if self.sizes_available:
-            return [s.strip() for s in self.sizes_available.split(',') if s.strip()]
+            for size in self.sizes_available.split(','):
+                size = str(size).strip().upper()
+                if size in STANDARD_SIZES:
+                    size_set.add(size)
 
-        # 3. Проверяем фильтры из XML (type_id=1 - размеры одежды)
-        if self.xml_data and 'filters' in self.xml_data:
-            for f in self.xml_data['filters']:
-                if str(f.get('type_id')) == '1' and f.get('filter_name'):
-                    sizes.append(f['filter_name'])
-
-        # 4. Проверяем таблицу размеров из XML
+        # 3. Check size table in XML
         if self.xml_data and 'attributes' in self.xml_data and 'size_table' in self.xml_data['attributes']:
             size_table = self.xml_data['attributes']['size_table']
             if 'headers' in size_table and len(size_table['headers']) > 1:
                 for size in size_table['headers'][1:]:
-                    if size and size not in sizes:
-                        sizes.append(size)
+                    size = str(size).strip().upper()
+                    if size in STANDARD_SIZES:
+                        size_set.add(size)
 
-        # Удаляем дубликаты и сортируем
-        STANDARD_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL', '5XL']
-        unique_sizes = list(set(sizes))
+        # 4. Check XML filters (type_id=1 - clothing sizes)
+        if self.xml_data and 'filters' in self.xml_data:
+            for f in self.xml_data['filters']:
+                if str(f.get('type_id')) == '1' and f.get('filter_name'):
+                    size = str(f['filter_name']).strip().upper()
+                    if size in STANDARD_SIZES:
+                        size_set.add(size)
 
-        return sorted(unique_sizes, key=lambda x: (
-            STANDARD_ORDER.index(x) if x in STANDARD_ORDER else len(STANDARD_ORDER),
+        return sorted(size_set, key=lambda x: (
+            STANDARD_SIZES.index(x) if x in STANDARD_SIZES else len(STANDARD_SIZES),
             x
         ))
 
