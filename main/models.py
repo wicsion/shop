@@ -1317,8 +1317,8 @@ class OrderItem(models.Model):
         blank=True
     )
     custom_product = models.ForeignKey(
-        'designer.CustomProductOrder',  # Добавьте это поле
-        on_delete=models.PROTECT,
+        'designer.CustomProductOrder',
+        on_delete=models.CASCADE,  # Удалит OrderItem при удалении кастомного заказа
         verbose_name=_('Кастомный товар'),
         null=True,
         blank=True

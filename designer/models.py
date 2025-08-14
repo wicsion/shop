@@ -154,7 +154,12 @@ class CustomProductColor(models.Model):
 
 class CustomProductOrder(models.Model):
     design = models.ForeignKey(UserCustomDesign, on_delete=models.CASCADE)
-    selected_color = models.ForeignKey(CustomProductColor, on_delete=models.CASCADE, null=True, blank=True)
+    selected_color = models.ForeignKey(
+        CustomProductColor,
+        on_delete=models.SET_NULL,  # Измените это
+        null=True,
+        blank=True
+    )
     quantity = models.IntegerField(default=1)
     size = models.CharField(max_length=10, blank=True, null=True)
     in_cart = models.BooleanField(default=True)

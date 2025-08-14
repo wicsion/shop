@@ -9,6 +9,7 @@ from .models import (
     CustomProductOrder, CustomProductSize,
     ProductSilhouette
 )
+from django.contrib import messages
 from .views import SilhouetteEditView
 from .forms import SilhouetteEditForm
 
@@ -126,11 +127,26 @@ class CustomProductColorAdmin(admin.ModelAdmin):
     list_editable = ('active',)
     list_filter = ('active',)
     search_fields = ('name', 'hex_code')
+    actions = ['delete_selected']
 
     def preview_color(self, obj):
-        return mark_safe(f'<div style="width: 20px; height: 20px; background-color: {obj.hex_code};"></div>')
+        if obj.hex_code:
+            return mark_safe(f'<div style="width: 20px; height: 20px; background-color: {obj.hex_code}; border: 1px solid #ccc;"></div>')
+        elif obj.pattern_image:
+            return mark_safe(f'<div style="width: 20px; height: 20px; background-image: url(\'{obj.pattern_image.url}\'); background-size: cover; border: 1px solid #ccc;"></div>')
+        elif obj.gradient_css:
+            return mark_safe(f'<div style="width: 20px; height: 20px; background: {obj.gradient_css}; border: 1px solid #ccc;"></div>')
+        return '-'
     preview_color.short_description = 'Preview'
     preview_color.allow_tags = True
+
+    def delete_selected(self, request, queryset):
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(request, f"Успешно удалено {count} цветов.", messages.SUCCESS)
+    delete_selected.short_description = "Удалить выбранные цвета"
+
+
 
 @admin.register(CustomProductSize)
 class CustomProductSizeAdmin(admin.ModelAdmin):
@@ -160,17 +176,36 @@ class CustomDesignElementAdmin(admin.ModelAdmin):
         return 'Text'
     element_type.short_description = 'Type'
 
+
 @admin.register(CustomProductOrder)
 class CustomProductOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'design', 'selected_color', 'quantity', 'price', 'created_at', 'preview_link')
+    list_display = ('id', 'design', 'color_preview', 'quantity', 'price', 'created_at', 'preview_link')
     list_filter = ('created_at', 'selected_color', 'design__template')
     search_fields = ('design__id',)
-    readonly_fields = ('created_at', 'preview_link')
+    readonly_fields = ('created_at', 'preview_link', 'color_preview')
     date_hierarchy = 'created_at'
+    actions = ['delete_selected']
+
+    def color_preview(self, obj):
+        if obj.selected_color:
+            if obj.selected_color.hex_code:
+                return mark_safe(f'<div style="width: 20px; height: 20px; background-color: {obj.selected_color.hex_code}; border: 1px solid #ccc;"></div>')
+            elif obj.selected_color.pattern_image:
+                return mark_safe(f'<div style="width: 20px; height: 20px; background-image: url(\'{obj.selected_color.pattern_image.url}\'); background-size: cover; border: 1px solid #ccc;"></div>')
+            elif obj.selected_color.gradient_css:
+                return mark_safe(f'<div style="width: 20px; height: 20px; background: {obj.selected_color.gradient_css}; border: 1px solid #ccc;"></div>')
+        return '-'
+    color_preview.short_description = 'Цвет'
+    color_preview.allow_tags = True
 
     def preview_link(self, obj):
-        return mark_safe(f'<a href="{reverse("designer:custom_designer_edit", args=[obj.design.id])}" target="_blank">Просмотреть дизайн</a>')
+        url = reverse("designer:custom_designer_edit", args=[obj.design.id])
+        color_id = obj.selected_color.id if obj.selected_color else ''
+        return mark_safe(f'<a href="{url}?color_id={color_id}&from_admin=1" target="_blank">Просмотреть дизайн</a>')
     preview_link.short_description = 'Ссылка на дизайн'
 
-
-
+    def delete_selected(self, request, queryset):
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(request, f"Успешно удалено {count} заказов.", messages.SUCCESS)
+    delete_selected.short_description = "Удалить выбранные заказы"

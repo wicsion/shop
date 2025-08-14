@@ -116,28 +116,37 @@
                 </div>
 
                 <div class="flex-1 flex flex-col md:flex-row md:items-center gap-4">
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-lg">
-                            {% if custom_item.original_product_info %}
-                                <a href="{{ custom_item.original_product_info.url }}" class="hover:text-blue-600 transition-colors">
-                                    {{ custom_item.original_product_info.name }} + Кастомный дизайн
-                                </a>
-                            {% else %}
-                                Кастомный {{ custom_item.design.template.name }}
-                            {% endif %}
-                        </h3>
-                        <p class="text-gray-600">Ваш уникальный дизайн</p>
+                   <!-- В блоке кастомных товаров, замените текущий блок с названием товара и кнопкой редактирования на этот: -->
+<div class="flex-1">
+    <div class="flex items-start justify-between">
+        <div>
+            <h3 class="font-semibold text-lg">
+                {% if custom_item.original_product_info %}
+                    <a href="{{ custom_item.original_product_info.url }}" class="hover:text-blue-600 transition-colors">
+                        {{ custom_item.original_product_info.name }} + Кастомный дизайн
+                    </a>
+                {% else %}
+                    Кастомный {{ custom_item.design.template.name }}
+                {% endif %}
+            </h3>
+            <p class="text-gray-600">Ваш уникальный дизайн</p>
+        </div>
+<a href="{% url 'designer:custom_designer_edit' custom_item.design.id %}?from_cart=true{% if custom_item.original_product %}&product_id={{ custom_item.original_product.product_id }}{% endif %}{% if custom_item.size %}&sizes={{ custom_item.size }}{% endif %}"
+   class="ml-4 flex-shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+    {% trans "Редактировать дизайн" %}
+</a>
+    </div>
 
-                        <!-- Размер -->
-                        {% if custom_item.size %}
-                        <div class="mt-2">
-                            <span class="font-medium text-gray-700">Размер:</span>
-                            <span class="ml-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
-                                {{ custom_item.size }}
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
+    <!-- Размер -->
+    {% if custom_item.size %}
+    <div class="mt-2">
+        <span class="font-medium text-gray-700">Размер:</span>
+        <span class="ml-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+            {{ custom_item.size }}
+        </span>
+    </div>
+    {% endif %}
+</div>
 
                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end gap-4">
                         <div class="flex items-center">
@@ -162,10 +171,7 @@
                 {% trans "Удалить" %}
             </button>
         </form>
-<a href="{% url 'designer:custom_designer_edit' custom_item.design.id %}?from_cart=true{% if custom_item.original_product %}&product_id={{ custom_item.original_product.product_id }}{% endif %}"
-   class="text-blue-600 hover:text-blue-800 text-sm">
-    {% trans "Редактировать дизайн" %}
-</a>
+
     </div>
 </div>
                         </div>

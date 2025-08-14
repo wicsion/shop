@@ -48,9 +48,19 @@ def custom_designer_start(request):
         defaults={'template': template}
     )
 
-    colors = CustomProductColor.objects.filter(active=True)
+
     selected_color_id = request.session.get('selected_color_id')
-    selected_color = colors.get(id=selected_color_id) if selected_color_id else colors.first()
+    colors = CustomProductColor.objects.filter(active=True)
+    selected_color = None
+
+    if selected_color_id:
+        try:
+            selected_color = colors.get(id=selected_color_id)
+        except CustomProductColor.DoesNotExist:
+            pass
+
+    if not selected_color and colors.exists():
+        selected_color = colors.first()
 
     # Получаем размеры из параметров GET
     product_sizes = request.GET.get('sizes', '')
@@ -83,25 +93,33 @@ def custom_designer_start(request):
 def custom_designer_edit(request, design_id):
     design = get_object_or_404(UserCustomDesign, id=design_id)
     template = design.template
-    product = design.product  # Получаем привязанный товар
+    product = design.product
 
     areas = template.design_areas.all()
     colors = CustomProductColor.objects.filter(active=True)
 
-    # Получаем размеры из сессии (если они были сохранены)
-    product_sizes = request.session.get('original_product_sizes', '')
+    # Получаем размеры из параметров GET или сессии
+    product_sizes = request.GET.get('sizes', '')
     if product_sizes:
         sizes = [size.strip() for size in product_sizes.split(',') if size.strip()]
+        request.session['original_product_sizes'] = product_sizes
     else:
-        # Если нет в сессии, используем размеры товара или шаблона
-        sizes = template.get_available_sizes()
+        product_sizes = request.session.get('original_product_sizes', '')
+        if product_sizes:
+            sizes = [size.strip() for size in product_sizes.split(',') if size.strip()]
+        else:
+            sizes = template.get_available_sizes()
 
     front_image = template.images.filter(is_front=True).first()
     back_image = template.images.filter(is_back=True).first()
 
-    # Получаем выбранный цвет из заказа
-    custom_order = CustomProductOrder.objects.filter(design=design, in_cart=True).first()
+    # Получаем выбранный цвет из заказа (даже для админки)
+    custom_order = CustomProductOrder.objects.filter(design=design).first()
     selected_color = custom_order.selected_color if custom_order else colors.first()
+
+    # Если это запрос от админки, используем цвет из заказа
+    if request.user.is_staff and custom_order:
+        selected_color = custom_order.selected_color
 
     if selected_color:
         request.session['selected_color_id'] = selected_color.id
@@ -110,7 +128,7 @@ def custom_designer_edit(request, design_id):
 
     context = {
         'design': design,
-        'product': product,  # Передаем товар в контекст
+        'product': product,
         'template': template,
         'areas': areas,
         'colors': colors,
@@ -184,18 +202,15 @@ def save_custom_design_image(request):
 def preview_custom_design(request, design_id):
     design = get_object_or_404(UserCustomDesign, id=design_id)
     template = design.template
-    product = design.product  # Получаем привязанный товар
+    product = design.product
     areas = template.design_areas.all()
     colors = CustomProductColor.objects.filter(active=True)
 
-    # Получаем размеры из параметров GET (если переход из карточки товара)
     product_sizes = request.GET.get('sizes', '')
     if product_sizes:
         sizes = [size.strip() for size in product_sizes.split(',') if size.strip()]
-        # Сохраняем в сессию
         request.session['original_product_sizes'] = product_sizes
     else:
-        # Если нет в GET, проверяем сессию
         product_sizes = request.session.get('original_product_sizes', '')
         if product_sizes:
             sizes = [size.strip() for size in product_sizes.split(',') if size.strip()]
@@ -205,7 +220,6 @@ def preview_custom_design(request, design_id):
     front_image = template.images.filter(is_front=True).first()
     back_image = template.images.filter(is_back=True).first()
 
-    # Получаем выбранный цвет из сессии
     selected_color_id = request.session.get('selected_color_id')
     if selected_color_id:
         try:
@@ -218,7 +232,7 @@ def preview_custom_design(request, design_id):
     context = {
         'design': design,
         'template': template,
-        'product': product,  # Добавляем товар в контекст
+        'product': product,
         'areas': areas,
         'colors': colors,
         'sizes': sizes,
@@ -230,6 +244,7 @@ def preview_custom_design(request, design_id):
     return render(request, 'designer/designer.html', context)
 
 
+
 # views.py
 @csrf_exempt
 def save_custom_design_order(request):
@@ -239,19 +254,18 @@ def save_custom_design_order(request):
             color_id = request.POST.get('color_id')
             size = request.POST.get('size')
             quantity = int(request.POST.get('quantity', 1))
+            original_product_id = request.POST.get('original_product_id')
 
             design = get_object_or_404(UserCustomDesign, id=design_id)
             color = get_object_or_404(CustomProductColor, id=color_id) if color_id else None
+            original_product = get_object_or_404(XMLProduct, product_id=original_product_id) if original_product_id else None
 
-            # Сохраняем выбранный цвет в сессии
             request.session['selected_color_id'] = color_id
 
-            # Рассчитываем цену с учетом цены оригинального товара
             price = design.template.base_price * quantity
             if design.product:
                 price += design.product.price * quantity
 
-            # Создаем или обновляем заказ
             order, created = CustomProductOrder.objects.update_or_create(
                 design=design,
                 in_cart=True,
@@ -260,11 +274,10 @@ def save_custom_design_order(request):
                     'quantity': quantity,
                     'size': size,
                     'price': price,
-                    'original_product': design.product  # Используем привязанный товар
+                    'original_product': original_product or design.product
                 }
             )
 
-            # Обновляем сессию корзины
             cart = request.session.get('cart', {})
             cart[f'custom_{order.id}'] = {
                 'type': 'custom',
@@ -365,7 +378,11 @@ def save_custom_element(request):
                 'element_id': element.id,
                 'area_id': area.id,
                 'image_url': element.image.url if element.image else '',
+                'text_content': element.text_content if element.text_content else '',
+                'color': element.color if element.color else '',
+                'font_size': element.font_size if element.font_size else '',
                 'rotation': element.rotation,
+                'side': element.side,
                 'width': area.width,
                 'height': area.height
             })

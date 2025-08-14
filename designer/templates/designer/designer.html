@@ -8,7 +8,7 @@
             {% if preview_mode %}
                 Предпросмотр товара
             {% else %}
-                Конструктор товара
+                Конструктор товара:
             {% endif %}
         </h1>
         <div class="ml-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -21,26 +21,26 @@
         <div class="lg:w-2/3">
             <div class="bg-white rounded-lg shadow-md p-4">
                 {% if not preview_mode %}
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
-                    <div class="flex space-x-2 mb-2 sm:mb-0">
-                        <button id="front-btn" class="btn btn-primary flex-1 sm:flex-none">
-                            <i class="fas fa-tshirt mr-2"></i>Лицевая сторона
-                        </button>
-                        {% if back_image %}
-                        <button id="back-btn" class="btn btn-outline flex-1 sm:flex-none">
-                            <i class="fas fa-tshirt mr-2"></i>Тыльная сторона
-                        </button>
-                        {% endif %}
-                    </div>
-                    <div class="flex space-x-2">
-                        <button id="add-text-btn" class="btn btn-outline flex-1 sm:flex-none">
-                            <i class="fas fa-font mr-2"></i>Добавить текст
-                        </button>
-                        <button id="add-image-btn" class="btn btn-outline flex-1 sm:flex-none">
-                            <i class="fas fa-image mr-2"></i>Добавить изображение
-                        </button>
-                    </div>
-                </div>
+<div class="flex flex-col sm:flex-row justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
+    <div class="flex space-x-2 mb-2 sm:mb-0 w-full sm:w-auto">
+        <button id="front-btn" class="btn btn-primary flex-1 sm:flex-none">
+            <i class="fas fa-tshirt mr-2"></i>Лицевая сторона
+        </button>
+        {% if back_image %}
+        <button id="back-btn" class="btn btn-outline flex-1 sm:flex-none">
+            <i class="fas fa-tshirt mr-2"></i>Тыльная сторона
+        </button>
+        {% endif %}
+    </div>
+    <div class="flex space-x-2 w-full sm:w-auto -mt-2 -sm:mt-0">
+        <button id="add-text-btn" class="btn btn-outline flex-1 sm:flex-none">
+            <i class="fas fa-font mr-2"></i>Добавить текст
+        </button>
+        <button id="add-image-btn" class="btn btn-outline flex-1 sm:flex-none">
+            <i class="fas fa-image mr-2"></i>Добавить изображение
+        </button>
+    </div>
+</div>
                 {% endif %}
 
                 <div class="relative" id="design-container" style="background-color: #f0f0f0;">
@@ -52,33 +52,34 @@
                     <!-- Color overlay will be inserted here by JavaScript -->
 
                     <!-- Front side elements container -->
-                    <div id="front-elements-container" class="absolute inset-0">
-                        {% for element in design.elements.all %}
-                            {% if element.side == 'front' %}
-                            <div class="design-area absolute p-0"
-                                 style="left: {{ element.area.x_position }}px; top: {{ element.area.y_position }}px;
-                                        width: {{ element.area.width }}px; height: {{ element.area.height }}px;"
-                                 data-area-id="{{ element.area.id }}" data-element-id="{{ element.id }}">
-                                <div class="area-content h-full flex items-center justify-center">
-                                    {% if element.has_image %}
-                                        <img src="{{ element.get_image_url }}" class="max-w-full max-h-full element-display"
-                                             style="transform: rotate({{ element.rotation }}deg);"
-                                             data-element-id="{{ element.id }}" data-area-id="{{ element.area.id }}">
-                                    {% elif element.text_content %}
-                                        <span class="element-display"
-                                              style="color: {{ element.color }}; font-size: {{ element.font_size }}px;
-                                                     transform: rotate({{ element.rotation }}deg); width: 100%;
-                                                     text-align: center; display: flex; align-items: center;
-                                                     justify-content: center;"
-                                              data-element-id="{{ element.id }}" data-area-id="{{ element.area.id }}">
-                                            {{ element.text_content }}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
+                  <!-- Front side elements container -->
+<div id="front-elements-container" class="absolute inset-0" style="z-index: 10;">
+    {% for element in design.elements.all %}
+        {% if element.side == 'front' %}
+        <div class="design-area absolute p-0"
+             style="left: {{ element.area.x_position }}px; top: {{ element.area.y_position }}px;
+                    width: {{ element.area.width }}px; height: {{ element.area.height }}px;"
+             data-area-id="{{ element.area.id }}" data-element-id="{{ element.id }}">
+            <div class="area-content h-full flex items-center justify-center">
+                {% if element.has_image %}
+                    <img src="{{ element.get_image_url }}" class="max-w-full max-h-full element-display"
+                         style="transform: rotate({{ element.rotation }}deg); mix-blend-mode: normal;"
+                         data-element-id="{{ element.id }}" data-area-id="{{ element.area.id }}">
+                {% elif element.text_content %}
+                    <span class="element-display"
+                          style="color: {{ element.color }}; font-size: {{ element.font_size }}px;
+                                 transform: rotate({{ element.rotation }}deg); width: 100%;
+                                 text-align: center; display: flex; align-items: center;
+                                 justify-content: center;"
+                          data-element-id="{{ element.id }}" data-area-id="{{ element.area.id }}">
+                        {{ element.text_content }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
 
                     <!-- Back side elements container (hidden by default) -->
                     {% if back_image %}
@@ -362,40 +363,67 @@ document.addEventListener('DOMContentLoaded', function() {
     const backElementsContainer = document.getElementById('back-elements-container');
     const previewMode = {% if preview_mode %}true{% else %}false{% endif %};
 
-    // Initialize color overlay
-    function initColorOverlay() {
-        // Remove any existing overlay
-        const existingOverlay = document.getElementById('color-overlay');
-        if (existingOverlay) existingOverlay.remove();
+        initColorOverlay();
 
-        // If we have a current color, apply it
-        if (currentColor) {
-            applyColorToProduct(currentColor.value, currentColor.type);
-            return;
-        }
+        // ВСТАВЬТЕ КОД ЗДЕСЬ (начало)
+    // Проверяем, есть ли сохраненный цвет в localStorage
+    const savedColor = localStorage.getItem('lastSelectedColor');
+    if (savedColor) {
+        currentColor = JSON.parse(savedColor);
 
-        // Otherwise apply the default color
-        const defaultColor = document.querySelector('.color-option[data-color-id="{{ selected_color.id }}"]');
-        if (defaultColor) {
-            currentColor = {
-                id: defaultColor.dataset.colorId,
-                type: defaultColor.dataset.colorType,
-                value: defaultColor.dataset.colorValue
-            };
-            applyColorToProduct(currentColor.value, currentColor.type);
-        } else {
-            // If no color is selected, use the first available
-            const firstColor = document.querySelector('.color-option');
-            if (firstColor) {
-                currentColor = {
-                    id: firstColor.dataset.colorId,
-                    type: firstColor.dataset.colorType,
-                    value: firstColor.dataset.colorValue
-                };
-                applyColorToProduct(currentColor.value, currentColor.type);
-            }
+        // Находим соответствующий элемент цвета и применяем его
+        const colorOption = document.querySelector(`.color-option[data-color-id="${currentColor.id}"]`);
+        if (colorOption) {
+            colorOption.click(); // Имитируем клик для применения цвета
         }
     }
+
+    // Initialize color overlay
+   function initColorOverlay() {
+    // Remove any existing overlay
+    const existingOverlay = document.getElementById('color-overlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    // Check if we have a selected color from the backend
+    const selectedColor = {% if selected_color %}{
+        id: '{{ selected_color.id }}',
+        type: '{% if selected_color.gradient_css %}gradient{% elif selected_color.pattern_image %}pattern{% else %}solid{% endif %}',
+        value: '{% if selected_color.gradient_css %}{{ selected_color.gradient_css }}{% elif selected_color.pattern_image %}url(\'{{ selected_color.pattern_image.url }}\'){% else %}{{ selected_color.hex_code }}{% endif %}'
+    }{% else %}null{% endif %};
+
+    // Apply the color immediately
+    if (selectedColor) {
+        currentColor = selectedColor;
+        applyColorToProduct(selectedColor.value, selectedColor.type);
+
+        // Mark the color as selected in the UI
+        const colorOption = document.querySelector(`.color-option[data-color-id="${selectedColor.id}"]`);
+        if (colorOption) {
+            colorOption.classList.add('border-blue-500', 'ring-2', 'ring-blue-200');
+            colorOption.classList.remove('border-transparent');
+
+            // Switch to the correct color type tab
+            const colorType = selectedColor.type;
+            document.querySelectorAll('.color-type-btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+            });
+            document.querySelector(`.color-type-btn[data-type="${colorType}"]`).classList.remove('btn-outline');
+            document.querySelector(`.color-type-btn[data-type="${colorType}"]`).classList.add('btn-primary');
+
+            document.querySelectorAll('.color-options').forEach(opt => {
+                opt.classList.add('hidden');
+            });
+            document.getElementById(`${colorType}-colors`).classList.remove('hidden');
+        }
+    } else {
+        // If no color is selected, use the first available
+        const firstColor = document.querySelector('.color-option');
+        if (firstColor) {
+            firstColor.click(); // Trigger click to apply the color
+        }
+    }
+}
 
     // Front/back buttons
     document.getElementById('front-btn')?.addEventListener('click', function() {
@@ -435,54 +463,56 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 
     // Apply color to product with mask for current side
-    function applyColorToProduct(colorValue, colorType) {
-        const existingOverlay = document.getElementById('color-overlay');
-        if (existingOverlay) existingOverlay.remove();
+// Функция applyColorToProduct должна корректно обрабатывать все типы цветов
+function applyColorToProduct(colorValue, colorType) {
+    const existingOverlay = document.getElementById('color-overlay');
+    if (existingOverlay) existingOverlay.remove();
 
-        const overlay = document.createElement('div');
-        overlay.id = 'color-overlay';
-        overlay.style.position = 'absolute';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.pointerEvents = 'none';
-        overlay.style.mixBlendMode = 'multiply';
-        overlay.style.zIndex = '1';
+    const overlay = document.createElement('div');
+    overlay.id = 'color-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.pointerEvents = 'none';
+    overlay.style.mixBlendMode = 'multiply';
+    overlay.style.zIndex = '5';
 
-        {% if template.silhouette %}
-            if (currentSide === 'front' && '{{ template.silhouette.front_mask_image.url }}') {
-                overlay.style.maskImage = 'url({{ template.silhouette.front_mask_image.url }})';
-                overlay.style.webkitMaskImage = 'url({{ template.silhouette.front_mask_image.url }})';
-            } else if (currentSide === 'back' && '{{ template.silhouette.back_mask_image.url }}') {
-                overlay.style.maskImage = 'url({{ template.silhouette.back_mask_image.url }})';
-                overlay.style.webkitMaskImage = 'url({{ template.silhouette.back_mask_image.url }})';
-            }
-            overlay.style.maskSize = '100% 100%';
-            overlay.style.maskRepeat = 'no-repeat';
-            overlay.style.maskMode = 'luminance';
-            overlay.style.webkitMaskSize = '100% 100%';
-            overlay.style.webkitMaskRepeat = 'no-repeat';
-            overlay.style.webkitMaskMode = 'luminance';
-        {% endif %}
-
-        if (colorType === 'solid') {
-            overlay.style.backgroundColor = colorValue;
-            overlay.style.backgroundImage = 'none';
-        } else if (colorType === 'gradient') {
-            overlay.style.background = colorValue;
-        } else if (colorType === 'pattern') {
-            overlay.style.backgroundImage = colorValue;
-            overlay.style.backgroundSize = 'cover';
+    {% if template.silhouette %}
+        if (currentSide === 'front' && '{{ template.silhouette.front_mask_image.url }}') {
+            overlay.style.maskImage = 'url({{ template.silhouette.front_mask_image.url }})';
+            overlay.style.webkitMaskImage = 'url({{ template.silhouette.front_mask_image.url }})';
+        } else if (currentSide === 'back' && '{{ template.silhouette.back_mask_image.url }}') {
+            overlay.style.maskImage = 'url({{ template.silhouette.back_mask_image.url }})';
+            overlay.style.webkitMaskImage = 'url({{ template.silhouette.back_mask_image.url }})';
         }
+        overlay.style.maskSize = '100% 100%';
+        overlay.style.maskRepeat = 'no-repeat';
+        overlay.style.maskMode = 'luminance';
+        overlay.style.webkitMaskSize = '100% 100%';
+        overlay.style.webkitMaskRepeat = 'no-repeat';
+        overlay.style.webkitMaskMode = 'luminance';
+    {% endif %}
 
-        const productImage = document.getElementById('product-image');
-        if (productImage) {
-            productImage.parentNode.insertBefore(overlay, productImage.nextSibling);
-        } else {
-            designContainer.insertBefore(overlay, designContainer.firstChild);
-        }
+    if (colorType === 'solid') {
+        overlay.style.backgroundColor = colorValue;
+        overlay.style.backgroundImage = 'none';
+    } else if (colorType === 'gradient') {
+        overlay.style.background = colorValue;
+    } else if (colorType === 'pattern') {
+        overlay.style.backgroundImage = colorValue;
+        overlay.style.backgroundSize = 'cover';
     }
+
+    const productImage = document.getElementById('product-image');
+    if (productImage) {
+        productImage.style.zIndex = '1';
+        productImage.parentNode.insertBefore(overlay, productImage.nextSibling);
+    } else {
+        designContainer.insertBefore(overlay, designContainer.firstChild);
+    }
+}
 
     // Initialize color overlay on page load
     initColorOverlay();
@@ -504,6 +534,7 @@ document.addEventListener('DOMContentLoaded', function() {
             newElement.style.height = '50px';
             newElement.style.left = '100px';
             newElement.style.top = '100px';
+             newElement.style.transformOrigin = 'center center';
             newElement.dataset.side = currentSide;
             newElement.innerHTML = `
                 <div class="element-content h-full w-full flex items-center justify-center">
@@ -584,369 +615,426 @@ document.addEventListener('DOMContentLoaded', function() {
             fileInput.click();
         });
 
-        // Select element function
-        function selectElement(element) {
-            if (currentElement) {
-                currentElement.classList.remove('border-blue-500');
-                currentElement.classList.add('border-transparent');
-            }
+// В функции selectElement обновим обработку вращения
+function selectElement(element) {
+    if (currentElement) {
+        currentElement.classList.remove('border-blue-500');
+        currentElement.classList.add('border-transparent');
+    }
 
-            currentElement = element;
-            currentElement.classList.remove('border-transparent');
-            currentElement.classList.add('border-blue-500');
+    currentElement = element;
+    currentElement.classList.remove('border-transparent');
+    currentElement.classList.add('border-blue-500');
 
-            document.getElementById('element-controls').classList.remove('hidden');
-            document.getElementById('product-controls').classList.add('hidden');
+    document.getElementById('element-controls').classList.remove('hidden');
+    document.getElementById('product-controls').classList.add('hidden');
 
-            const content = element.querySelector('.element-content');
-            if (content.querySelector('img')) {
-                document.getElementById('element-text').closest('.mb-4').classList.add('hidden');
-                document.getElementById('element-color').closest('.mb-4').classList.add('hidden');
-                document.getElementById('element-font-size').closest('.mb-4').classList.add('hidden');
+    const content = element.querySelector('.element-content');
 
-                const img = content.querySelector('img');
-                let rotation = 0;
-                if (img.style.transform) {
-                    const match = img.style.transform.match(/rotate\((\d+)deg\)/);
-                    if (match) rotation = parseInt(match[1]);
-                }
-                document.getElementById('element-rotation').value = rotation;
-                document.getElementById('rotation-value').textContent = rotation + '°';
-            } else if (content.querySelector('span')) {
-                document.getElementById('element-text').closest('.mb-4').classList.remove('hidden');
-                document.getElementById('element-color').closest('.mb-4').classList.remove('hidden');
-                document.getElementById('element-font-size').closest('.mb-4').classList.remove('hidden');
-
-                const span = content.querySelector('span');
-                document.getElementById('element-text').value = span.textContent;
-                document.getElementById('element-color').value = span.style.color || '#000000';
-
-                let fontSize = span.style.fontSize || '14px';
-                fontSize = parseInt(fontSize.replace('px', ''));
-                document.getElementById('element-font-size').value = fontSize;
-                document.getElementById('font-size-value').textContent = fontSize + 'px';
-
-                let rotation = 0;
-                if (span.style.transform) {
-                    const match = span.style.transform.match(/rotate\((\d+)deg\)/);
-                    if (match) rotation = parseInt(match[1]);
-                }
-                document.getElementById('element-rotation').value = rotation;
-                document.getElementById('rotation-value').textContent = rotation + '°';
-            }
+      // Сохраняем оригинальные размеры при первом выборе элемента
+    if (!element.dataset.originalWidth) {
+        element.dataset.originalWidth = element.style.width;
+        element.dataset.originalHeight = element.style.height;
+        const span = content.querySelector('span');
+        if (span) {
+            span.dataset.originalFontSize = span.style.fontSize || '14px';
         }
+    }
+
+    // Получаем угол поворота контейнера
+    let containerRotation = 0;
+    if (element.style.transform) {
+        const match = element.style.transform.match(/rotate\((\d+)deg\)/);
+        if (match) containerRotation = parseInt(match[1]);
+    }
+
+    document.getElementById('element-rotation').value = containerRotation;
+    document.getElementById('rotation-value').textContent = containerRotation + '°';
+
+    if (content.querySelector('img')) {
+        document.getElementById('element-text').closest('.mb-4').classList.add('hidden');
+        document.getElementById('element-color').closest('.mb-4').classList.add('hidden');
+        document.getElementById('element-font-size').closest('.mb-4').classList.add('hidden');
+    } else if (content.querySelector('span')) {
+        document.getElementById('element-text').closest('.mb-4').classList.remove('hidden');
+        document.getElementById('element-color').closest('.mb-4').classList.remove('hidden');
+        document.getElementById('element-font-size').closest('.mb-4').classList.remove('hidden');
+
+        const span = content.querySelector('span');
+        document.getElementById('element-text').value = span.textContent;
+        document.getElementById('element-color').value = span.style.color || '#000000';
+
+        let fontSize = span.style.fontSize || '14px';
+        fontSize = parseInt(fontSize.replace('px', ''));
+        document.getElementById('element-font-size').value = fontSize;
+        document.getElementById('font-size-value').textContent = fontSize + 'px';
+    }
+}
+
 
         // Make element draggable
-        function makeElementDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+function makeElementDraggable(element) {
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
 
-            element.onmousedown = function(e) {
-                if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotate-handle')) return;
-
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            };
-
-            function elementDrag(e) {
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-
-                const containerRect = designContainer.getBoundingClientRect();
-                const elementRect = element.getBoundingClientRect();
-
-                let newTop = element.offsetTop - pos2;
-                let newLeft = element.offsetLeft - pos1;
-
-                newTop = Math.max(0, Math.min(newTop, containerRect.height - elementRect.height));
-                newLeft = Math.max(0, Math.min(newLeft, containerRect.width - elementRect.width));
-
-                element.style.top = newTop + 'px';
-                element.style.left = newLeft + 'px';
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
+    element.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('resize-handle') ||
+            e.target.classList.contains('rotate-handle')) {
+            return;
         }
 
-        // Make element resizable
-        function makeElementResizable(element) {
-            const resizeHandle = element.querySelector('.resize-handle');
-            let startX, startY, startWidth, startHeight;
+        e.preventDefault();
+        isDragging = true;
 
-            resizeHandle.onmousedown = function(e) {
-                e.preventDefault();
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
-                startHeight = parseInt(document.defaultView.getComputedStyle(element).height, 10);
-                document.onmousemove = resizeElement;
-                document.onmouseup = stopResize;
-            };
+        // Получаем текущие координаты элемента с учетом трансформаций
+        const rect = element.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseInt(element.style.left) || 0;
+        startTop = parseInt(element.style.top) || 0;
 
-            function resizeElement(e) {
-                const width = startWidth + (e.clientX - startX);
-                const height = startHeight + (e.clientY - startY);
+        // Добавляем класс для визуальной обратной связи
+        element.classList.add('dragging');
 
-                if (width > 50) element.style.width = width + 'px';
-                if (height > 20) element.style.height = height + 'px';
+        // Улучшаем курсор при перетаскивании
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+    });
 
-                const content = element.querySelector('.element-content');
-                if (content && content.querySelector('span')) {
-                    const span = content.querySelector('span');
-                    const containerWidth = parseInt(element.style.width);
-                    const containerHeight = parseInt(element.style.height);
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
 
-                    let fontSize = Math.min(containerHeight, containerWidth / span.textContent.length * 1.5);
-                    fontSize = Math.max(8, Math.min(72, fontSize));
+        e.preventDefault();
 
-                    span.style.fontSize = fontSize + 'px';
-                    span.style.lineHeight = containerHeight + 'px';
-                    span.style.width = '100%';
-                    span.style.textAlign = 'center';
-                    span.style.display = 'flex';
-                    span.style.alignItems = 'center';
-                    span.style.justifyContent = 'center';
-                    span.dataset.originalFontSize = fontSize;
-                }
-            }
+        // Рассчитываем новые координаты
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
 
-            function stopResize() {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            }
+        let newLeft = startLeft + dx;
+        let newTop = startTop + dy;
+
+        // Ограничиваем перемещение границами контейнера
+        const containerRect = designContainer.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+
+        newLeft = Math.max(0, Math.min(newLeft, containerRect.width - elementRect.width));
+        newTop = Math.max(0, Math.min(newTop, containerRect.height - elementRect.height));
+
+        // Применяем новые координаты
+        element.style.left = newLeft + 'px';
+        element.style.top = newTop + 'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            element.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
+      // В функции makeElementResizable добавим проверку на тип элемента
+function makeElementResizable(element) {
+    const resizeHandle = element.querySelector('.resize-handle');
+    // Если это текстовый элемент - скрываем handle
+    if (element.querySelector('.element-content span')) {
+        resizeHandle.style.display = 'none';
+        return;
+    }
+
+    let startX, startY, startWidth, startHeight;
+
+    resizeHandle.onmousedown = function(e) {
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+        startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
+        startHeight = parseInt(document.defaultView.getComputedStyle(element).height, 10);
+        document.onmousemove = resizeElement;
+        document.onmouseup = stopResize;
+    };
+
+    function resizeElement(e) {
+        const width = startWidth + (e.clientX - startX);
+        const height = startHeight + (e.clientY - startY);
+
+        if (width > 50) element.style.width = width + 'px';
+        if (height > 20) element.style.height = height + 'px';
+
+        const content = element.querySelector('.element-content');
+        if (content && content.querySelector('img')) {
+            const img = content.querySelector('img');
+            // Для изображений сохраняем пропорции
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+        }
+    }
+
+    function stopResize() {
+        document.onmousemove = null;
+        document.onmouseup = null;
+    }
+}
+
+// В функции makeElementRotatable аналогично добавим проверку
+function makeElementRotatable(element) {
+    const rotateHandle = element.querySelector('.rotate-handle');
+    // Если это текстовый элемент - скрываем handle
+    if (element.querySelector('.element-content span')) {
+        rotateHandle.style.display = 'none';
+        return;
+    }
+
+    let startAngle = 0;
+    let initialAngle = 0;
+    let centerX, centerY;
+
+    rotateHandle.onmousedown = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rect = element.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+
+        if (element.style.transform) {
+            const match = element.style.transform.match(/rotate\((\d+)deg\)/);
+            if (match) initialAngle = parseInt(match[1]);
         }
 
-        // Make element rotatable
-        function makeElementRotatable(element) {
-            const rotateHandle = element.querySelector('.rotate-handle');
-            let startAngle = 0;
-            let initialAngle = 0;
-            let centerX, centerY;
+        startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
 
-            rotateHandle.onmousedown = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+        document.onmousemove = rotateElement;
+        document.onmouseup = stopRotate;
+    };
 
-                const rect = element.getBoundingClientRect();
-                centerX = rect.left + rect.width / 2;
-                centerY = rect.top + rect.height / 2;
+    function rotateElement(e) {
+        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+        const rotation = (initialAngle + angle - startAngle) % 360;
+        element.style.transform = `rotate(${rotation}deg)`;
+        document.getElementById('element-rotation').value = rotation;
+        document.getElementById('rotation-value').textContent = rotation + '°';
+    }
 
-                const content = element.querySelector('.element-content');
-                if (content) {
-                    const child = content.querySelector('img') || content.querySelector('span');
-                    if (child && child.style.transform) {
-                        const match = child.style.transform.match(/rotate\((\d+)deg\)/);
-                        if (match) initialAngle = parseInt(match[1]);
-                    }
-                }
+    function stopRotate() {
+        document.onmousemove = null;
+        document.onmouseup = null;
+    }
+}
 
-                startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
 
-                document.onmousemove = rotateElement;
-                document.onmouseup = stopRotate;
-            };
-
-            function rotateElement(e) {
-                const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
-                const rotation = (initialAngle + angle - startAngle) % 360;
-
-                const content = element.querySelector('.element-content');
-                if (content) {
-                    const child = content.querySelector('img') || content.querySelector('span');
-                    if (child) {
-                        child.style.transform = `rotate(${rotation}deg)`;
-                        document.getElementById('element-rotation').value = rotation;
-                        document.getElementById('rotation-value').textContent = rotation + '°';
-                    }
-                }
-            }
-
-            function stopRotate() {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            }
-        }
 
         // Save element - improved version with all properties
-        document.getElementById('save-element-btn').addEventListener('click', function() {
-            if (!currentElement) return;
+        // Save element - improved version with all properties
+// Save element - improved version with all properties
+document.getElementById('save-element-btn').addEventListener('click', function() {
+    if (!currentElement) return;
 
-            const content = currentElement.querySelector('.element-content');
-            const textContent = document.getElementById('element-text').value;
-            const color = document.getElementById('element-color').value;
-            const fontSize = document.getElementById('element-font-size').value;
-            const rotation = parseInt(document.getElementById('element-rotation').value);
-            const imageInput = document.getElementById('element-image');
-            const side = currentSide;
-            const areaId = currentElement.dataset.areaId || null;
-            const elementId = currentElement.dataset.elementId || null;
-            const tempImageUrl = currentElement.dataset.tempImage;
-            const xPosition = parseInt(currentElement.style.left) || 0;
-            const yPosition = parseInt(currentElement.style.top) || 0;
-            const width = parseInt(currentElement.style.width) || 150;
-            const height = parseInt(currentElement.style.height) || 50;
+    const content = currentElement.querySelector('.element-content');
+    const textContent = document.getElementById('element-text').value;
+    const color = document.getElementById('element-color').value;
+    const fontSize = document.getElementById('element-font-size').value;
+    const rotation = parseInt(document.getElementById('element-rotation').value);
+    const imageInput = document.getElementById('element-image');
+    const side = currentSide;
+    const areaId = currentElement.dataset.areaId || null;
+    const elementId = currentElement.dataset.elementId || null;
+    const tempImageUrl = currentElement.dataset.tempImage;
+    const xPosition = parseInt(currentElement.style.left) || 0;
+    const yPosition = parseInt(currentElement.style.top) || 0;
+    const width = parseInt(currentElement.style.width) || 150;
+    const height = parseInt(currentElement.style.height) || 50;
 
-            const formData = new FormData();
-            formData.append('design_id', designId);
-            formData.append('x_position', xPosition);
-            formData.append('y_position', yPosition);
-            formData.append('width', width);
-            formData.append('height', height);
-            formData.append('rotation', rotation);
-            formData.append('side', side);
+    const formData = new FormData();
+    formData.append('design_id', designId);
+    formData.append('x_position', xPosition);
+    formData.append('y_position', yPosition);
+    formData.append('width', width);
+    formData.append('height', height);
+    formData.append('rotation', rotation);
+    formData.append('side', side);
 
-            if (elementId) formData.append('element_id', elementId);
-            if (areaId) formData.append('area_id', areaId);
+    if (elementId) formData.append('element_id', elementId);
+    if (areaId) formData.append('area_id', areaId);
 
-            if (tempImageUrl || (imageInput && imageInput.files.length > 0) || content.querySelector('img')) {
-                if (tempImageUrl) {
-                    fetch(tempImageUrl)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            const file = new File([blob], 'uploaded_image.png', { type: blob.type });
-                            formData.append('image', file);
-                            sendFormData(formData);
-                        });
-                } else if (imageInput.files.length > 0) {
-                    formData.append('image', imageInput.files[0]);
-                    sendFormData(formData);
-                } else {
-                    formData.append('update_existing', 'true');
-                    sendFormData(formData);
-                }
-            } else if (textContent) {
-                formData.append('text_content', textContent);
-                formData.append('color', color);
-                formData.append('font_size', fontSize);
+    // Сохраняем текущий цвет в сессии перед отправкой формы
+    if (currentColor) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch('{% url "designer:save_selected_color" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `color_id=${currentColor.id}`
+        }).then(() => {
+            // После сохранения цвета продолжаем сохранение элемента
+            continueSavingElement();
+        });
+    } else {
+        continueSavingElement();
+    }
+
+    function continueSavingElement() {
+        if (tempImageUrl || (imageInput && imageInput.files.length > 0) || content.querySelector('img')) {
+            if (tempImageUrl) {
+                fetch(tempImageUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const file = new File([blob], 'uploaded_image.png', { type: blob.type });
+                        formData.append('image', file);
+                        sendFormData(formData);
+                    });
+            } else if (imageInput.files.length > 0) {
+                formData.append('image', imageInput.files[0]);
+                sendFormData(formData);
+            } else {
+                formData.append('update_existing', 'true');
                 sendFormData(formData);
             }
+        } else if (textContent) {
+            formData.append('text_content', textContent);
+            formData.append('color', color);
+            formData.append('font_size', fontSize);
+            sendFormData(formData);
+        }
+    }
 
-            function sendFormData(formData) {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                formData.append('csrfmiddlewaretoken', csrfToken);
+    function sendFormData(formData) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        formData.append('csrfmiddlewaretoken', csrfToken);
 
-                fetch('{% url "designer:save_custom_element" %}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // После успешного сохранения элемента, сохраняем текущий цвет в сессии
-                        if (currentColor) {
-                            fetch('{% url "designer:save_selected_color" %}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                    'X-CSRFToken': csrfToken
-                                },
-                                body: `color_id=${currentColor.id}`
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            window.location.reload();
-                        }
-                    } else {
-                        throw new Error(data.message || 'Ошибка сервера');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Ошибка при сохранении: ' + error.message);
-                });
+        fetch('{% url "designer:save_custom_element" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // После успешного сохранения элемента обновляем страницу
+                // и сохраняем текущий цвет в localStorage
+                if (currentColor) {
+                    localStorage.setItem('lastSelectedColor', JSON.stringify(currentColor));
+                }
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Ошибка сервера');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при сохранении: ' + error.message);
         });
+    }
+});
+
+// При загрузке страницы восстанавливаем последний выбранный цвет
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем, есть ли сохраненный цвет в localStorage
+    const savedColor = localStorage.getItem('lastSelectedColor');
+    if (savedColor) {
+        currentColor = JSON.parse(savedColor);
+
+        // Находим соответствующий элемент цвета и применяем его
+        const colorOption = document.querySelector(`.color-option[data-color-id="${currentColor.id}"]`);
+        if (colorOption) {
+            colorOption.click(); // Имитируем клик для применения цвета
+        }
+    }
+});
 
         // Handle click on saved element or empty area
-        function handleElementClick(e) {
-            const elementDisplay = e.currentTarget;
-            const elementId = elementDisplay.dataset.elementId;
-            const areaId = elementDisplay.dataset.areaId || elementDisplay.closest('.design-area').dataset.areaId;
-            const side = elementDisplay.closest('#front-elements-container') ? 'front' : 'back';
-            const rotation = elementDisplay.style.transform ? elementDisplay.style.transform.match(/rotate\((\d+)deg\)/)[1] : 0;
+// В функции handleElementClick сохраняем угол поворота при создании временного элемента
+function handleElementClick(e) {
+    const elementDisplay = e.currentTarget;
+    const elementId = elementDisplay.dataset.elementId;
+    const areaId = elementDisplay.dataset.areaId || elementDisplay.closest('.design-area').dataset.areaId;
+    const side = elementDisplay.closest('#front-elements-container') ? 'front' : 'back';
 
-            const areaElement = elementDisplay.closest('.design-area');
-            if (areaElement) {
-                areaElement.remove();
+    // Получаем угол поворота из элемента
+    let rotation = 0;
+    if (elementDisplay.style.transform) {
+        const match = elementDisplay.style.transform.match(/rotate\((\d+)deg\)/);
+        if (match) rotation = parseInt(match[1]);
+    }
 
-                const tempElement = document.createElement('div');
-                tempElement.className = 'user-element absolute border-2 border-blue-500 p-2 cursor-move';
-                tempElement.style.left = areaElement.style.left;
-                tempElement.style.top = areaElement.style.top;
-                tempElement.style.width = areaElement.style.width;
-                tempElement.style.height = areaElement.style.height;
-                tempElement.dataset.elementId = elementId || '';
-                tempElement.dataset.areaId = areaId;
-                tempElement.dataset.side = side;
+    const areaElement = elementDisplay.closest('.design-area');
+    if (areaElement) {
+        areaElement.remove();
 
-                if (!elementId) {
-                    tempElement.innerHTML = `
-                        <div class="element-content h-full w-full flex items-center justify-center">
-                            <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
-                        </div>
-                        <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
-                                <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
-                            </button>
-                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
-                                <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
-                            </button>
-                        </div>
-                    `;
-                } else if (elementDisplay.tagName === 'IMG') {
-                    tempElement.innerHTML = `
-                        <div class="element-content h-full w-full flex items-center justify-center">
-                            <img src="${elementDisplay.src}" class="max-w-full max-h-full" style="transform: rotate(${rotation}deg);">
-                        </div>
-                        <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
-                                <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
-                            </button>
-                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
-                                <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    const style = elementDisplay.getAttribute('style') || '';
-                    tempElement.innerHTML = `
-                        <div class="element-content h-full w-full flex items-center justify-center">
-                            <span style="${style}">${elementDisplay.textContent}</span>
-                        </div>
-                        <div class="element-controls absolute -top-3 -right-3 flex gap-1">
-                            <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
-                                <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
-                            </button>
-                            <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
-                                <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
-                            </button>
-                        </div>
-                    `;
-                }
+        const tempElement = document.createElement('div');
+        tempElement.className = 'user-element absolute border-2 border-blue-500 p-2 cursor-move';
+        tempElement.style.left = areaElement.style.left;
+        tempElement.style.top = areaElement.style.top;
+        tempElement.style.width = areaElement.style.width;
+        tempElement.style.height = areaElement.style.height;
+        tempElement.style.transform = `rotate(${rotation}deg)`;
+        tempElement.dataset.elementId = elementId || '';
+        tempElement.dataset.areaId = areaId;
+        tempElement.dataset.side = side;
 
-                const container = side === 'front' ? frontElementsContainer : backElementsContainer;
-                container.appendChild(tempElement);
-
-                makeElementDraggable(tempElement);
-                makeElementResizable(tempElement);
-                makeElementRotatable(tempElement);
-                selectElement(tempElement);
-
-                currentElement = tempElement;
-            }
+        if (!elementId) {
+            tempElement.innerHTML = `
+                <div class="element-content h-full w-full flex items-center justify-center">
+                    <span style="color: #000000; font-size: 14px; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;">Новый текст</span>
+                </div>
+                <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                    <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                        <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                    </button>
+                    <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                        <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                    </button>
+                </div>
+            `;
+        } else if (elementDisplay.tagName === 'IMG') {
+            tempElement.innerHTML = `
+                <div class="element-content h-full w-full flex items-center justify-center">
+                    <img src="${elementDisplay.src}" class="max-w-full max-h-full" style="transform: none;">
+                </div>
+                <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                    <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                        <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                    </button>
+                    <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                        <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            const style = elementDisplay.getAttribute('style') || '';
+            tempElement.innerHTML = `
+                <div class="element-content h-full w-full flex items-center justify-center">
+                    <span style="${style.replace(/transform:[^;]*;?/g, '')}">${elementDisplay.textContent}</span>
+                </div>
+                <div class="element-controls absolute -top-3 -right-3 flex gap-1">
+                    <button class="resize-handle w-4 h-4 bg-blue-500 rounded-full cursor-nwse-resize flex items-center justify-center">
+                        <i class="fas fa-expand-alt text-white" style="font-size: 8px;"></i>
+                    </button>
+                    <button class="rotate-handle w-4 h-4 bg-green-500 rounded-full cursor-grab flex items-center justify-center">
+                        <i class="fas fa-redo text-white" style="font-size: 8px;"></i>
+                    </button>
+                </div>
+            `;
         }
+
+        const container = side === 'front' ? frontElementsContainer : backElementsContainer;
+        container.appendChild(tempElement);
+
+        makeElementDraggable(tempElement);
+        makeElementResizable(tempElement);
+        makeElementRotatable(tempElement);
+        selectElement(tempElement);
+
+        currentElement = tempElement;
+    }
+}
+
 
         // Delete element
         document.getElementById('delete-element-btn').addEventListener('click', function() {
@@ -1214,31 +1302,79 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Font size slider
-    document.getElementById('element-font-size')?.addEventListener('input', function() {
-        document.getElementById('font-size-value').textContent = this.value + 'px';
-        if (currentElement) {
-            const span = currentElement.querySelector('.element-content span');
-            if (span) {
-                span.style.fontSize = this.value + 'px';
-                span.dataset.originalFontSize = this.value;
+// Font size slider - модифицированная версия
+// Font size slider - модифицированная версия
+// Font size slider - исправленная версия
+document.getElementById('element-font-size')?.addEventListener('input', function() {
+    const fontSize = parseInt(this.value);
+    document.getElementById('font-size-value').textContent = fontSize + 'px';
+
+    if (currentElement) {
+        const span = currentElement.querySelector('.element-content span');
+        if (span) {
+            // Сохраняем оригинальные размеры при первом изменении
+            if (!currentElement.dataset.originalWidth) {
+                currentElement.dataset.originalWidth = currentElement.style.width || '200px';
+                currentElement.dataset.originalHeight = currentElement.style.height || '50px';
+                span.dataset.originalFontSize = span.style.fontSize || '14px';
             }
+
+            // Устанавливаем новый размер шрифта
+            span.style.fontSize = fontSize + 'px';
+
+            // Создаем временный элемент для измерения текста
+            const tempSpan = document.createElement('span');
+            tempSpan.style.fontSize = fontSize + 'px';
+            tempSpan.style.fontFamily = window.getComputedStyle(span).fontFamily;
+            tempSpan.style.whiteSpace = 'nowrap'; // Запрещаем перенос строк
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.left = '-9999px';
+            tempSpan.textContent = span.textContent;
+
+            document.body.appendChild(tempSpan);
+
+            // Получаем реальные размеры текста
+            const textWidth = Math.max(tempSpan.offsetWidth + 20, 50); // Минимальная ширина 50px
+            const textHeight = tempSpan.offsetHeight + 10;
+
+            document.body.removeChild(tempSpan);
+
+            // Устанавливаем размеры контейнера
+            currentElement.style.width = textWidth + 'px';
+            currentElement.style.height = textHeight + 'px';
+
+            // Гарантируем, что текст всегда виден
+            span.style.whiteSpace = 'nowrap';
+            span.style.overflow = 'visible';
+            span.style.display = 'flex';
+            span.style.alignItems = 'center';
+            span.style.justifyContent = 'center';
+            span.style.width = '100%';
+            span.style.height = '100%';
+            span.style.textAlign = 'center';
         }
-    });
+    }
+});
 
     // Rotation slider
-    document.getElementById('element-rotation')?.addEventListener('input', function() {
-        const intValue = parseInt(this.value);
-        document.getElementById('rotation-value').textContent = intValue + '°';
-        if (currentElement) {
-            const content = currentElement.querySelector('.element-content');
-            if (content) {
-                const child = content.querySelector('img') || content.querySelector('span');
-                if (child) {
-                    child.style.transform = `rotate(${intValue}deg)`;
-                }
+document.getElementById('element-rotation')?.addEventListener('input', function() {
+    const intValue = parseInt(this.value);
+    document.getElementById('rotation-value').textContent = intValue + '°';
+    if (currentElement) {
+        // Применяем вращение только к контейнеру
+        currentElement.style.transform = `rotate(${intValue}deg)`;
+
+        // Сбрасываем вращение внутреннего элемента
+        const content = currentElement.querySelector('.element-content');
+        if (content) {
+            const child = content.querySelector('img') || content.querySelector('span');
+            if (child) {
+                child.style.transform = 'none';
             }
         }
-    });
+    }
+});
 
     // Отображение имени загружаемого файла
     document.getElementById('element-image')?.addEventListener('change', function() {
@@ -1347,6 +1483,42 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+
+.design-area {
+    background-color: transparent;
+    cursor: pointer;
+    border: none !important;
+    padding: 0 !important;
+    z-index: 10; /* Элементы поверх цветного слоя */
+}
+
+.element-content img {
+    mix-blend-mode: normal !important; /* Отключаем наложение цвета для изображений */
+    position: relative;
+    z-index: 10;
+}
+
+#color-overlay {
+    z-index: 5; /* Цветной слой между изображением товара и элементами */
+    /* остальные свойства остаются без изменений */
+}
+
+#product-image {
+    z-index: 1; /* Изображение товара - самый нижний слой */
+    position: relative;
+}
+.user-element {
+    transform-origin: center center;
+    transition: transform 0.1s ease;
+}
+
+.element-content {
+    pointer-events: none;
+}
+
+.element-content span, .element-content img {
+    pointer-events: auto;
+}
 .btn {
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
@@ -1378,9 +1550,13 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 0 !important;
 }
 .user-element {
+        will-change: transform;
     background-color: transparent;
     z-index: 10;
     border: 2px dashed blue !important;
+        transition: all 0.2s ease;
+    box-sizing: border-box;
+
 }
 .user-element:hover {
     background-color: rgba(219, 234, 254, 0.3);
@@ -1420,9 +1596,10 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
-    word-break: break-word;
-    white-space: pre-wrap;
-    overflow: hidden;
+    word-break: keep-all; /* Запрещаем перенос слов */
+    white-space: nowrap; /* Запрещаем перенос строк */
+    overflow: visible; /* Гарантируем, что текст всегда виден */
+    transition: all 0.2s ease;
 }
 #color-overlay {
     z-index: 5;
