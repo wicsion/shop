@@ -1462,3 +1462,25 @@ def test_email(request, order_id):
     return HttpResponse("Order status changed, check if email was sent")
 
 
+def application_view(request):
+    services = [
+        "Шелкография",
+        "Тампопечать",
+        "Тиснение",
+        "Гравировка",
+        "Деколь",
+        "Вышивка",
+        "Цифровая печать",
+        "УФ-печать",
+        "Смоляная наклейка",
+        "Сублимация",
+        "Шеврон",
+        "Печать визиток шелкографией",
+        "Бейджи с печатью",
+        "Карманы для бейджей",
+        "Ленты для бейджей с полноцветной печатью",
+    ]
+    return render(request, "main/application.html", {"services": services})
+
+
+

@@ -2905,7 +2905,7 @@ var toIndexedObject = require('../internals/to-indexed-object');
 var toAbsoluteIndex = require('../internals/to-absolute-index');
 var lengthOfArrayLike = require('../internals/length-of-array-like');
 
-// `Array.prototype.{ indexOf, includes }` methods implementation
+// `Array.prototype.{ indexOf,includes }` methods implementation
 var createMethod = function (IS_INCLUDES) {
   return function ($this, el, fromIndex) {
     var O = toIndexedObject($this);

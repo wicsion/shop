@@ -534,6 +534,23 @@ body {
     padding-bottom: 0;
     margin-bottom: 0;
 }
+
+/* Стиль для кнопки SOS */
+.nav-link.text-danger {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    padding: 0.25rem 0.5rem !important; /* Уменьшил padding */
+    margin: 0.2rem 0; /* Добавил небольшой отступ */
+}
+
+.nav-link.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important; /* Уменьшил прозрачность при наведении */
+    transform: scale(1.03); /* Уменьшил эффект увеличения */
+}
+.nav-pills .nav-item:first-child {
+    margin-left: 40px; /* Или любое другое значение, которое вам нужно */
+}
 </style>
 </head>
 
@@ -541,45 +558,68 @@ body {
 
 
 <!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
+
+<!-- Верхнее меню с кнопками (будет скрываться при скролле) -->
 <nav class="top-navbar bg-white fixed-top" id="top-navbar" style="border-bottom: 3px solid var(--primary) !important;">
     <div class="container-fluid d-flex justify-content-between align-items-center px-4">
-        <!-- Контакты слева (прижаты к краю) -->
-        <div class="me-auto">
-            <ul class="nav">
+        <!-- Основные пункты меню -->
+        <div class="d-flex flex-grow-1 justify-content-between">
+            <ul class="nav nav-pills gap-24 me-auto">  <!-- Увеличил gap с 2 до 4 -->
                 <li class="nav-item">
-                   <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:home' %}#contacts">
-    <i class></i>{% trans "Контакты" %}
-</a>
+                    <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:home' %}#contacts">
+                        <i class></i>{% trans "Контакты" %}
+                    </a>
+
+
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 fw-bold text-primary">
+                        <i class=""></i>{% trans "Готовые решения" %}
+                    </a>
+                </li>
+                   <li class="nav-item">
+                    <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:home' %}#design">
+                        <i class></i>{% trans "Дизайн" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:home' %}#stands">
+                        <i class></i>{% trans "Стенды" %}
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 fw-bold text-primary" href="{% url 'main:application' %}">
+                        <i class></i>{% trans "Нанесение" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-1 py-0 fw-bold text-danger" href="tel:+79991234567" style="color: #dc3545 !important;">
+                        <i class="fas fa-exclamation-triangle me-1"></i> {% trans "SOS-вызов" %}
+                    </a>
                 </li>
             </ul>
-        </div>
 
-         <!-- Центральная группа -->
-        <div class="d-flex justify-content-center flex-grow-1">
-            <ul class="nav nav-pills gap-4">
-                <li class="nav-item">
-                   <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:application' %}">
-    <i class></i>{% trans "Нанесение" %}
-</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#design">
-    <i class></i>{% trans "Дизайн" %}
-</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link px-5 py-2 fw-bold text-primary" href="{% url 'main:home' %}#stands">
-    <i class></i>{% trans "Стенды" %}
-</a>
-                </li>
+            <!-- Контакты и язык -->
+            <div class="d-flex ms-4">  <!-- Добавил ms-4 для отступа -->
+                <ul class="nav gap-3">  <!-- Добавил gap-3 между контактами -->
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 fw-bold text-primary" href="tel:+79991234567">
+                            <i class="fas fa-phone-alt me-1"></i> +7 (999) 123-45-67
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link px-3 py-2 fw-bold text-primary">
+                            <i class="far fa-clock me-1"></i> {% trans "Пн-Пт: 9:00-18:00" %}
+                        </span>
+                    </li>
+                </ul>
 
-            </ul>
-        </div>
-
-        <!-- Язык справа (с отступом от края) -->
-        <div class="ps-3"> <!-- Заменил ms-auto на ps-3 (padding-start) -->
-            <div class="d-flex align-items-center gap-2"> <!-- Уменьшил gap с 3 до 2 -->
-                {% include 'includes/language_switcher.html' %}
+                <!-- Язык -->
+                <div class="ps-4">  <!-- Увеличил отступ с ps-3 до ps-4 -->
+                    <div class="d-flex align-items-center gap-2">
+                        {% include 'includes/language_switcher.html' %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

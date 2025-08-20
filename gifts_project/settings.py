@@ -183,44 +183,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'logs/debug.log',
-            'formatter': 'verbose'
-        },
-        'cart_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/cart.log',
-            'maxBytes': 1024*1024*5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-            'level': 'DEBUG',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'cart': {
-            'handlers': ['cart_file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-    },
-}
+
 # Настройки кеширования
 CACHES = {
     'default': {

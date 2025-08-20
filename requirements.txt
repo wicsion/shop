@@ -1,14 +1,57 @@
+# Основные зависимости Django
 Django==5.2
 djangorestframework==3.14.0
-urllib3==1.26.20
-chardet==5.2.0
-charset-normalizer==2.0.12
-Pillow==10.3.0
-gunicorn==23.0.0
-whitenoise==6.9.0
-django-mptt==0.17.0
-celery==5.3.6
-redis==6.2.0
-django_celery_results==2.6.0
+
+# Для работы с базами данных - ДЛЯ ПРОДАКШЕНА ИСПОЛЬЗУЙТЕ ОБЫЧНЫЙ psycopg2
 psycopg2==2.9.10
 
+# Для обработки изображений
+Pillow==10.3.0
+
+# Для веб-сервера и статических файлов
+gunicorn==23.0.0
+whitenoise==6.9.0
+
+# Для древовидных структур
+django-mptt==0.17.0
+
+# Для асинхронных задач
+celery==5.3.6
+redis==6.2.0
+django-celery-results==2.6.0
+
+# Утилиты для моделей
+django-model-utils==4.4.0
+
+# Для HTTP запросов
+requests==2.32.3
+urllib3==1.26.20
+
+# Для кодирования/декодирования
+chardet==5.2.0
+charset-normalizer==2.0.12
+
+# Для генерации PDF
+pdfkit==1.0.0
+
+# Для работы с Excel
+openpyxl==3.1.4
+
+# Для перевода (если нужно)
+django-modeltranslation==0.19.1
+
+# Для фильтрации в REST API
+django-filter==23.5
+
+# Для работы с XML
+defusedxml==0.7.1
+xmltodict==0.13.0
+
+# Для разметки
+markdown==3.6
+
+# Для определения типов файлов
+python-magic==0.4.27
+
+# Для шифрования полей (если нужно)
+django-encrypted-model-fields==0.7.0

@@ -1,2340 +1,2154 @@
 {% extends "main/base.html" %}
 {% load static i18n %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% block title %}{% trans "Нанесение логотипа" %}{% endblock %}
 
+{% block title %}Нанесение{% endblock %}
 
 {% block content %}
 <style>
+    /* Общая типографика */
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #1d4ed8, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+    }
 
-    .hover-effect {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.1);
-}
-.hover-effect:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    border-color: var(--bs-primary);
-}
-    </style>
+    p.lead {
+        font-size: 1.15rem;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    /* Левое меню */
+    .custom-menu {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--bg-dark);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .custom-menu a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text);
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .custom-menu a:hover, .custom-menu a.active {
+        background: linear-gradient(90deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08));
+        border-left: 4px solid var(--primary);
+        color: var(--primary);
+        transform: translateX(4px);
+    }
+
+    .custom-menu a i {
+        color: var(--primary);
+        opacity: 0.8;
+    }
+
+    /* Карточки услуг */
+    .service-card {
+        border-radius: 16px;
+        background: var(--bg);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+        transition: all 0.4s ease;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .service-card:hover {
+        transform: translateY(-8px) scale(1.03);
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.15);
+    }
+
+    .service-card .ratio {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    }
+
+    .service-card p {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text);
+        transition: color 0.3s ease;
+    }
+
+    .service-card:hover p {
+        color: var(--primary);
+    }
+
+    /* Детальная информация о услуге */
+    .service-detail {
+        display: none;
+        padding: 2rem;
+        background: var(--bg);
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .service-detail.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .service-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .service-icon {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .service-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    .service-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+    }
+
+    .service-content {
+        line-height: 1.7;
+    }
+
+    .service-content p {
+        margin-bottom: 1.2rem;
+        font-size: 1.05rem;
+    }
+
+    .service-content h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem 0;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 0.5rem;
+    }
+
+    .service-content h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.8rem 0;
+        color: var(--text-dark);
+    }
+
+    .service-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .feature-card {
+        background: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .product-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--bg-light);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    .product-item:hover {
+        background: var(--primary-light);
+        transform: translateY(-3px);
+        border-color: var(--primary);
+    }
+
+    .product-item a {
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .product-item:hover a {
+        color: var(--primary);
+    }
+
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        background: var(--bg-light);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .comparison-table th, .comparison-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .comparison-table th {
+        background: var(--primary-light);
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .timeline {
+        display: flex;
+        justify-content: space-between;
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary-light);
+        z-index: 1;
+    }
+
+    .timeline-step {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+    }
+
+    .timeline-dot {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .timeline-text {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        font-weight: 500;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid transparent;
+    }
+
+    .badge-primary {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        border-color: rgba(37, 99, 235, 0.2);
+    }
+
+    .badge-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    /* Списки с иконками */
+    .service-content ul {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .service-content ul li {
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .service-content ul li:before {
+        content: "•";
+        color: var(--primary);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Блоки преимуществ/недостатков */
+    .pros-cons-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .pros-box, .cons-box {
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 2px solid;
+    }
+
+    .pros-box {
+        background: rgba(16, 185, 129, 0.05);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .cons-box {
+        background: rgba(239, 68, 68, 0.05);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .pros-box h5, .cons-box h5 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .pros-box h5:before {
+        content: "✓";
+        color: #10b981;
+        font-weight: bold;
+    }
+
+    .cons-box h5:before {
+        content: "⚠";
+        color: #ef4444;
+        font-weight: bold;
+    }
+
+    /* Выделение ключевых моментов */
+    .key-point {
+        background: linear-gradient(120deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+        border-left: 4px solid var(--primary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+
+    .key-point p {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    /* Анимация появления */
+    [data-aos] {
+        transition: all 0.7s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Кнопка назад */
+    #back-to-services {
+        margin-bottom: 2rem;
+        display: none;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 992px) {
+        .service-features {
+            grid-template-columns: 1fr;
+        }
+
+        .timeline {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .timeline::before {
+            display: none;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timeline-dot {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .pros-cons-container {
+            grid-template-columns: 1fr;
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .service-title {
+            font-size: 1.5rem;
+        }
+
+        .service-subtitle {
+            font-size: 1rem;
+        }
+
+        .service-content p {
+            font-size: 0.95rem;
+        }
+    }
+</style>
 
 <div class="container py-5">
     <div class="row">
-        <!-- Левая колонка с навигацией -->
-        <div class="col-md-3 mb-4">
-            <div class="card sticky-top" style="top: 180px;">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{% trans "Навигация" %}</h5>
-                </div>
-                <div class="list-group list-group-flush">
-                    <!-- Основные разделы -->
-                    <div class="list-group-item bg-light">
-                        <strong>{% trans "Основные разделы" %}</strong>
-                    </div>
-                    <a href="#intro" class="list-group-item list-group-item-action">{% trans "Ознакомление" %}</a>
-                    <a href="#products" class="list-group-item list-group-item-action">{% trans "Товары для нанесения" %}</a>
-                    <a href="#process" class="list-group-item list-group-item-action">{% trans "Процесс заказа" %}</a>
-                    <a href="#pricing" class="list-group-item list-group-item-action">{% trans "Стоимость" %}</a>
-                    <a href="#advantages" class="list-group-item list-group-item-action">{% trans "Преимущества" %}</a>
-                    <!-- Методы нанесения с выпадающим меню -->
-                    <div class="list-group-item bg-light">
-                        <strong>{% trans "Методы нанесения" %}</strong>
-                    </div>
-                    <div class="dropdown">
-                        <button class="list-group-item list-group-item-action dropdown-toggle" type="button" id="methodsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            {% trans "Выберите метод" %}
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="methodsDropdown" style="max-height: 300px; overflow-y: auto;">
-                            <li><a class="dropdown-item" href="#silk-method">{% trans "Шелкография" %}</a></li>
-                            <li><a class="dropdown-item" href="#flex-method">{% trans "Флекс" %}</a></li>
-                            <li><a class="dropdown-item" href="#embroidery-method">{% trans "Вышивка" %}</a></li>
-                            <li><a class="dropdown-item" href="#tampo-method">{% trans "Тампопечать" %}</a></li>
-                            <li><a class="dropdown-item" href="#uv-method">{% trans "УФ-печать" %}</a></li>
-                            <li><a class="dropdown-item" href="#decal-method">{% trans "Надглазурная деколь" %}</a></li>
-                            <li><a class="dropdown-item" href="#laser-method">{% trans "Лазерная гравировка" %}</a></li>
-                            <li><a class="dropdown-item" href="#embossing-method">{% trans "Тиснение" %}</a></li>
-                            <li><a class="dropdown-item" href="#sublimation-method">{% trans "Сублимационная печать" %}</a></li>
-                            <li><a class="dropdown-item" href="#stickers-method">{% trans "Изготовление наклеек" %}</a></li>
-                            <li><a class="dropdown-item" href="#digital-method">{% trans "Цифровая печать" %}</a></li>
-                            <li><a class="dropdown-item" href="#direct-textile-method">{% trans "Прямая печать на ткани" %}</a></li>
-                            <li><a class="dropdown-item" href="#dtf-method">{% trans "Полноцветная печать с трансфером" %}</a></li>
-                            <li><a class="dropdown-item" href="#uv-dtf-method">{% trans "UV DTF печать" %}</a></li>
-                            <li><a class="dropdown-item" href="#customization-method">{% trans "Кастомизация" %}</a></li>
-                            <li><a class="dropdown-item" href="#ribbon-method">{% trans "Печать на лентах" %}</a></li>
-                            <li><a class="dropdown-item" href="#knitting-method">{% trans "Вязание с логотипом" %}</a></li>
-                        </ul>
-                    </div>
-                </div>
+        <!-- Левое меню -->
+        <div class="col-lg-3 mb-4">
+            <div class="custom-menu">
+                {% for item in services %}
+                    <a href="#" class="service-link" data-service="{{ forloop.counter0 }}">
+                        <i class="fas fa-check-circle"></i> {{ item }}
+                    </a>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Основное содержимое -->
-       <div class="col-md-9">
-    <section id="intro" class="mb-5">
-        <h1 class="mb-4 text-primary">{% trans "Нанесение логотипа" %}</h1>
-        <div class="card border-0 shadow-sm">
-            <div class="card-body bg-light rounded">
-                <div class="d-flex align-items-center mb-3">
+        <!-- Основной контент -->
+        <div class="col-lg-9">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h1>Нанесение логотипа на промо и бизнес подарки</h1>
+                <p class="lead">
+                    Предлагаем свои услуги по нанесению фирменной символики на текстильные изделия,
+                    товары из дерева, металла, стекла, пластмассы. Выполним печать логотипа УФ-красками,
+                    вышивку, сублимацию, тампопечать. Подбираем лучшие технологии и добиваемся
+                    идеального качества. Любой товар превратим в эксклюзивный: от униформы для персонала
+                    до прикольных сувениров.
+                </p>
+                <p>
+                    Наш менеджер поможет в поиске товара, подберет оптимальную технологию переноса
+                    изображения, при необходимости — предложит несколько вариантов, из которых вы
+                    выберете подходящий по цене, срокам и качеству.
+                </p>
+            </div>
 
-                    <p class="lead mb-0 fw-bold">{% trans "Превращаем обычные предметы в мощные рекламные инструменты и стильный мерч" %}</p>
+            <!-- Детальная информация о услугах -->
+            <div class="service-detail" id="service-0">
+                <div class="service-header">
+                    <div class="service-icon">
+                        <i class="fas fa-paint-roller"></i>
+                    </div>
+                    <h2 class="service-title">Шелкография</h2>
+                    <p class="service-subtitle">Универсальный способ нанесения логотипа и изображений</p>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="d-flex mb-3">
+                <div class="service-content">
+                    <div class="key-point">
+                        <p>Шелкография — один из самых универсальных способов нанесения логотипа и изображений. Подходит практически для любых материалов и форм, давая при этом отличный результат.</p>
+                    </div>
 
+                    <p><strong>Технология:</strong> Для изображения изготавливаются трафареты при помощи светоэмульсии и специальных ламп по числу цветов (до 6 без подложки или до 5 с белой подложкой). Через эти трафареты послойно наносится краска.</p>
 
+                    <p><strong>Применение:</strong> Логотип и шелкография созданы друг для друга. Вы можете забрендировать с помощью этого метода практически все, что угодно.</p>
+
+                    <h4>Примеры продукции</h4>
+                    <div class="products-grid">
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-tolstovki' %}">Толстовки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-pledy' %}">Пледы</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='sumki-sumki-dlya-pokupok' %}">Шопперы</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='bloknoty' %}">Блокноты</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-termokruzhki' %}">Термокружки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kepki' %}">Бейсболки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='nagrady' %}">Награды</a></div>
+                    </div>
+
+                    <h4>Ключевые характеристики</h4>
+                    <div class="service-features">
+                        <div class="feature-card">
+                            <div class="feature-title">Срок изготовления</div>
+                            <div>5-10 дней</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Долговечность эксплуатации</div>
+                            <div>3-5 лет</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Минимальная площадь нанесения</div>
+                            <div>2×2 см</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Максимальная площадь нанесения</div>
+                            <div>33×50 см</div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="d-flex mb-3">
 
-
+                    <div class="pros-cons-container">
+                        <div class="pros-box">
+                            <h5>Преимущества</h5>
+                            <ul>
+                                <li>Яркость картинки</li>
+                                <li>Получение многоцветных изображений</li>
+                                <li>Возможность рельефных и объемных картинок</li>
+                                <li>Нанесение на все виды промо- и бизнес-подарков</li>
+                                <li>Низкая стоимость печати</li>
+                                <li>Экологичность</li>
+                            </ul>
+                        </div>
+                        <div class="cons-box">
+                            <h5>Недостатки</h5>
+                            <ul>
+                                <li>Низкая скорость выполнения тиража</li>
+                                <li>Невозможность печати на металле</li>
+                                <li>Сложность передачи градиента</li>
+                                <li>Низкое разрешение изображения</li>
+                            </ul>
                         </div>
                     </div>
-                </div>
 
-                <div class="alert alert-primary mt-3">
-                    <i class="fas fa-print me-2"></i>
-                    {% trans "Печать на любых поверхностях: от канцелярии до премиальных подарков" %}
+                    <h4>Материалы для нанесения</h4>
+                    <div>
+                        <span class="badge badge-primary">хлопок</span>
+                        <span class="badge badge-primary">нейлон</span>
+                        <span class="badge badge-primary">полиэстр</span>
+                        <span class="badge badge-primary">пластик</span>
+                        <span class="badge badge-primary">стекло</span>
+                        <span class="badge badge-primary">искусственная кожа</span>
+                        <span class="badge badge-primary">дерево</span>
+                        <span class="badge badge-primary">бумага</span>
+                    </div>
+
+                    <h4>Процесс производства</h4>
+                    <div class="timeline">
+                        <div class="timeline-step">
+                            <div class="timeline-dot">1</div>
+                            <div class="timeline-text">1-2 дня создание трафарета</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">2</div>
+                            <div class="timeline-text">2-5 дня нанесение изображения</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">3</div>
+                            <div class="timeline-text">2-3 дня просушка изделия</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">=</div>
+                            <div class="timeline-text">от 5-10 дней итого</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-
-           <section id="products" class="mb-5 pt-4">
-    <h2 class="mb-4">{% trans "На какие товары мы наносим логотип" %}</h2>
-    <div class="row g-4">
-        <!-- Одежда -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='odejda' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-tshirt fa-2x text-primary"></i>
+            <div class="service-detail" id="service-1">
+                <div class="service-header">
+                    <div class="service-icon">
+                        <i class="fas fa-stamp"></i>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Одежда" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Футболки, толстовки, поло" %}</small>
+                    <h2 class="service-title">Тампопечать</h2>
+                    <p class="service-subtitle">Популярный способ нанесения на различные поверхности</p>
                 </div>
-            </a>
-        </div>
 
-        <!-- Посуда -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='posuda' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-mug-hot fa-2x text-primary"></i>
+                <div class="service-content">
+                    <div class="key-point">
+                        <p>Тампопечать бьёт все рекорды по популярности благодаря возможности нанесения на пластик, дерево, металл, кожу, стекло и другие материалы.</p>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Посуда" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Кружки, термосы, бокалы" %}</small>
-                </div>
-            </a>
-        </div>
 
-        <!-- Ручки -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='ruchki' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-pen fa-2x text-primary"></i>
-                    </div>
-                    <h5 class="card-title mb-0">{% trans "Ручки" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Шариковые, гелевые" %}</small>
-                </div>
-            </a>
-        </div>
+                    <p><strong>Технология:</strong> Краску переносят с печатной формы с помощью специального тампона на брендируемое изделие.</p>
 
-        <!-- Зонты -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='zonty' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-umbrella fa-2x text-primary"></i>
+                    <h4>Примеры продукции</h4>
+                    <div class="products-grid">
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-krujki' %}">Кружки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='brelki-s-logotipom' %}">Брелоки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='podarochnaya-upakovka' %}">Подарочная упаковка</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='promo-zajigalki' %}">Зажигалки</a></div>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Зонты" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Складные, автоматические" %}</small>
-                </div>
-            </a>
-        </div>
 
-        <!-- Сумки -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='sumki' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-bag-shopping fa-2x text-primary"></i>
+                    <h4>Ключевые характеристики</h4>
+                    <div class="service-features">
+                        <div class="feature-card">
+                            <div class="feature-title">Стойкость нанесения</div>
+                            <div>1-3 года</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Точность деталей</div>
+                            <div>Высокая</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Печать по Pantone</div>
+                            <div>Возможна</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Стоимость печати</div>
+                            <div>Низкая</div>
+                        </div>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Сумки" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Шоперы, рюкзаки" %}</small>
-                </div>
-            </a>
-        </div>
 
-        <!-- Электроника -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='elektronika' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-laptop fa-2x text-primary"></i>
+                    <div class="pros-cons-container">
+                        <div class="pros-box">
+                            <h5>Преимущества</h5>
+                            <ul>
+                                <li>Стойкое нанесение (от 1 до 3-х лет)</li>
+                                <li>Точное воспроизведение мелких элементов</li>
+                                <li>Возможность печати по криволинейным поверхностям</li>
+                                <li>Возможность печати по Pantone</li>
+                                <li>Низкая стоимость печати</li>
+                            </ul>
+                        </div>
+                        <div class="cons-box">
+                            <h5>Недостатки</h5>
+                            <ul>
+                                <li>Сложность передачи градиента</li>
+                                <li>Относительно небольшой максимальный размер нанесения</li>
+                                <li>Печать возможна только отдельными цветами</li>
+                            </ul>
+                        </div>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Электроника" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Флешки, powerbank" %}</small>
-                </div>
-            </a>
-        </div>
 
-        <!-- Ежедневники -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='ejednevniki' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-book fa-2x text-primary"></i>
+                    <h4>Продукция для нанесения</h4>
+                    <div>
+                        <span class="badge badge-primary">флешки</span>
+                        <span class="badge badge-primary">кружки</span>
+                        <span class="badge badge-primary">канцелярия</span>
+                        <span class="badge badge-primary">брелоки</span>
+                        <span class="badge badge-primary">зажигалки</span>
+                        <span class="badge badge-primary">упаковки</span>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Ежедневники" %}</h5>
-                    <small class="text-muted mt-1">{% trans "А5, А6, недатированные" %}</small>
-                </div>
-            </a>
-        </div>
 
-        <!-- Упаковка -->
-        <div class="col-md-4 col-6">
-            <a href="{% url 'main:category_detail' slug='upakovka' %}" class="card h-100 text-decoration-none hover-effect">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-3">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle mb-3">
-                        <i class="fas fa-box-open fa-2x text-primary"></i>
+                    <h4>Процесс производства</h4>
+                    <div class="timeline">
+                        <div class="timeline-step">
+                            <div class="timeline-dot">1</div>
+                            <div class="timeline-text">2-3 дня изготовление клише</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">2</div>
+                            <div class="timeline-text">2-5 дня перенос рисунка</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">3</div>
+                            <div class="timeline-text">2-3 дня просушка изделия</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">=</div>
+                            <div class="timeline-text">от 5-10 дней итого</div>
+                        </div>
                     </div>
-                    <h5 class="card-title mb-0">{% trans "Упаковка" %}</h5>
-                    <small class="text-muted mt-1">{% trans "Подарочная, фирменная" %}</small>
                 </div>
-            </a>
+            </div>
+
+            <div class="service-detail" id="service-2">
+                <div class="service-header">
+                    <div class="service-icon">
+                        <i class="fas fa-feather-alt"></i>
+                    </div>
+                    <h2 class="service-title">Тиснение</h2>
+                    <p class="service-subtitle">Элегантный способ брендирования</p>
+                </div>
+
+                <div class="service-content">
+                    <div class="key-point">
+                        <p>Тиснение — один из самых элегантных способов брендирования наряду с вышивкой. Достигается эффект с помощью металлического клише, которое оставляет отпечаток на изделии.</p>
+                    </div>
+
+                    <p><strong>Технология:</strong> Для блинтового тиснения изготавливается металлическое клише, которое под действием давления оставляет отпечаток на изделии. Тиснение золотом или фольгой происходит по тому же принципу.</p>
+
+                    <h4>Примеры продукции</h4>
+                    <div class="products-grid">
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='ejednevniki' %}">Ежедневники</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='sumki' %}">Сумки и рюкзаки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-pledy' %}">Пледы</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='personalnye-vizitnicy' %}">Визитницы</a></div>
+                        <div class="product-item"><a href="{% url 'main:category_detail' slug='korporativnye-papki-portfeli' %}">Папки</a></div>
+                    </div>
+
+                    <h4>Ключевые характеристики</h4>
+                    <div class="service-features">
+                        <div class="feature-card">
+                            <div class="feature-title">Долговечность</div>
+                            <div>5-15 лет</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Износостойкость</div>
+                            <div>Высокая</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Площадь нанесения</div>
+                            <div>Большая</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Экологичность</div>
+                            <div>Полная</div>
+                        </div>
+                    </div>
+
+                    <div class="pros-cons-container">
+                        <div class="pros-box">
+                            <h5>Преимущества</h5>
+                            <ul>
+                                <li>Долговечность (5-15 лет)</li>
+                                <li>Износостойкость</li>
+                                <li>Большая площадь нанесения</li>
+                                <li>Экологичность – изделие выполнено без чернил и красок</li>
+                                <li>Презентабельный внешний вид</li>
+                            </ul>
+                        </div>
+                        <div class="cons-box">
+                            <h5>Недостатки</h5>
+                            <ul>
+                                <li>Нанесение возможно только на ограниченное количество материалов</li>
+                                <li>Ограниченная цветовая гамма</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h4>Материалы для нанесения</h4>
+                    <div>
+                        <span class="badge badge-primary">кожа</span>
+                        <span class="badge badge-primary">искусственная кожа</span>
+                        <span class="badge badge-primary">картон</span>
+                        <span class="badge badge-primary">бумага</span>
+                    </div>
+
+                    <h4>Процесс производства</h4>
+                    <div class="timeline">
+                        <div class="timeline-step">
+                            <div class="timeline-dot">1</div>
+                            <div class="timeline-text">1-2 дня разработка клише</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">2</div>
+                            <div class="timeline-text">2-5 дня нанесение изображения</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">=</div>
+                            <div class="timeline-text">от 3-7 дней итого</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           <div class="service-detail" id="service-3">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-ethernet"></i>
         </div>
+        <h2 class="service-title">Гравировка</h2>
+        <p class="service-subtitle">Долговечный и износостойкий способ нанесения</p>
     </div>
-</section>
 
-    <section id="process" class="mb-5 pt-4">
-    <h2 class="mb-4">{% trans "Этапы изготовления заказа" %}</h2>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center position-relative pt-5">
-                    <div class="position-absolute top-0 start-50 translate-middle" style="margin-top: 30px;">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <h4 class="mb-0">1</h4>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h5 class="card-title">{% trans "Оформление заказа" %}</h5>
-                        <p class="card-text">{% trans "Вы оформляете заказ, рассчитав его стоимость в корзине. После оплаты мы резервируем товар и запускаем заказ в работу, а дизайнеры проверяют оригинал-макет." %}</p>
-                    </div>
-                </div>
+    <div class="service-content">
+        <div class="key-point">
+            <p>Лазерная гравировка — один из самых долговечных и износостойких способов нанесения логотипа или изображения на самые разные материалы: от дерева и металла до некоторых видов пластика.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Чтобы сделать гравировку, лазер, газовый или твердотельный, испаряет слой материала. Заказать гравировку можно не только на самом изделии: можно сделать ее на шильде, а также вырезать шильд по заданной форме.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='sumki' %}">Рюкзаки и сумки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='otdyh-igry' %}">Игры и развлечения</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='nagrady' %}">Награды</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='elektronika-aksessuary-dlya-mobilnyh-ustroystv' %}">Аксессуары</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>5-15 лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Износостойкость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Сроки нанесения</div>
+                <div>Короткие</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Экологичность</div>
+                <div>Полная</div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center position-relative pt-5">
-                    <div class="position-absolute top-0 start-50 translate-middle" style="margin-top: 30px;">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <h4 class="mb-0">2</h4>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h5 class="card-title">{% trans "Подготовка к печати" %}</h5>
-                        <p class="card-text">{% trans "Товар подбирают на складе и отправляют на производственные участки вместе с техническим заданием на печать." %}</p>
-                    </div>
-                </div>
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Долговечность (5-15 лет)</li>
+                    <li>Высокая износостойкость - нанесение невозможно стереть</li>
+                    <li>Короткие сроки нанесения</li>
+                    <li>Минимальное кол-во брака за счет автоматизированного процесса</li>
+                    <li>Высокая детализация изображения</li>
+                    <li>Один из самых экологичных видов нанесения</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Не все материалы переносят температурное воздействия лазера</li>
+                    <li>Небольшая глубина цвета и тонов</li>
+                    <li>Отсутствие цветных изображений</li>
+                    <li>Невозможно настроить точную глубину гравировки</li>
+                </ul>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center position-relative pt-5">
-                    <div class="position-absolute top-0 start-50 translate-middle" style="margin-top: 30px;">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <h4 class="mb-0">3</h4>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h5 class="card-title">{% trans "Отправка" %}</h5>
-                        <p class="card-text">{% trans "Напечатанный заказ при необходимости поступает на комплектацию, а затем готовится к отправке логистической службой." %}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-            <section id="methods" class="mb-5 pt-4">
-                <h2 class="mb-4">{% trans "Методы нанесения" %}</h2>
-
-                <!-- Шелкография -->
-                <div class="card mb-4" id="silk-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-print me-2"></i>{% trans "Шелкография (трафаретная печать)" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Универсальный метод для нанесения на текстиль, пластик, стекло и другие материалы. Подходит для футболок, сумок, зонтов и промопродукции." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <h5><i class="fas fa-tshirt me-2"></i>{% trans "Прямая шелкография на текстиль" %}</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item"><strong>B1-B4:</strong> {% trans "Нанесение на футболки, ветровки, толстовки с разной плотностью ткани" %}</li>
-                            </ul>
-
-                            <h5><i class="fas fa-exchange-alt me-2"></i>{% trans "Шелкография с трансфером" %}</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item"><strong>D1-D4:</strong> {% trans "Для сложных поверхностей - рукава, бейсболки, мячи" %}</li>
-                            </ul>
-
-                            <h5><i class="fas fa-circle-notch me-2"></i>{% trans "Круговая шелкография" %}</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>SHR:</strong> {% trans "Для бутылок и термокружек, одноцветная печать" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Флекс -->
-                <div class="card mb-4" id="flex-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-film me-2"></i>{% trans "Флекс" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Нанесение цветных пленок с различными эффектами на текстильные изделия." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>F1:</strong> {% trans "Тонкая пленка стандартных цветов" %}</li>
-                                <li class="list-group-item"><strong>F2:</strong> {% trans "Плотная, светоотражающая или декоративная пленка" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Вышивка -->
-                <div class="card mb-4" id="embroidery-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-thread me-2"></i>{% trans "Вышивка логотипа" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Создание стойких изображений на текстиле с возможностью 3D эффектов." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>I:</strong> {% trans "Для футболок, поло, толстовок, кепок" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Тампопечать -->
-                <div class="card mb-4" id="tampo-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-stamp me-2"></i>{% trans "Тампопечать" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Идеально для нанесения на ручки, брелки, флешки и другие небольшие предметы." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <h5><i class="fas fa-cube me-2"></i>{% trans "Стандартная тампопечать" %}</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item"><strong>A0-A4:</strong> {% trans "Для разных типов изделий - от ручек до сложных предметов" %}</li>
-                            </ul>
-
-                            <h5><i class="fas fa-tree me-2"></i>{% trans "На шарообразные предметы" %}</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>AR:</strong> {% trans "Для елочных шаров и подобных изделий" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- УФ-печать -->
-                <div class="card mb-4" id="uv-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-sun me-2"></i>{% trans "УФ-печать" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Полноцветная печать на пластике, металле и других материалах." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <h5><i class="fas fa-square me-2"></i>{% trans "Плоские поверхности" %}</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item"><strong>UV1-UV3:</strong> {% trans "Для ручек, флешек, ежедневников" %}</li>
-                            </ul>
-
-                            <h5><i class="fas fa-circle me-2"></i>{% trans "Цилиндрические поверхности" %}</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>UVR/UVRL:</strong> {% trans "Для термосов, кружек, бутылок" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Деколь -->
-                <div class="card mb-4" id="decal-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-mug-hot me-2"></i>{% trans "Надглазурная деколь" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Нанесение изображений на керамику и стекло с обжигом." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <h5><i class="fas fa-fire me-2"></i>{% trans "Горячая деколь" %}</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item"><strong>H1-H3:</strong> {% trans "Для кружек, бокалов, сложных предметов" %}</li>
-                            </ul>
-
-                            <h5><i class="fas fa-snowflake me-2"></i>{% trans "Холодная деколь" %}</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>HC1-HC2:</strong> {% trans "Для предметов, не выдерживающих высоких температур" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Лазерная гравировка -->
-                <div class="card mb-4" id="laser-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-burn me-2"></i>{% trans "Лазерная гравировка" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Точное нанесение на металл, дерево, кожу и пластик." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>LB/LC/LM/LUV:</strong> {% trans "Для ручек, брелков, термопосуды, аксессуаров" %}</li>
-                                <li class="list-group-item"><strong>LRC/LRM/LRUV:</strong> {% trans "Круговая гравировка" %}</li>
-                                <li class="list-group-item"><strong>LSC/LSM/LSP:</strong> {% trans "Шильды с гравировкой" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Тиснение -->
-                <div class="card mb-4" id="embossing-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-stamp me-2"></i>{% trans "Тиснение" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Создание рельефных изображений на кожаных изделиях." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>T1:</strong> {% trans "Бесцветное тиснение" %}</li>
-                                <li class="list-group-item"><strong>T2:</strong> {% trans "Тиснение фольгой" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Сублимация -->
-                <div class="card mb-4" id="sublimation-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-arrows-alt me-2"></i>{% trans "Сублимационная печать" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Полноцветная печать на посуде и синтетическом текстиле." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>SB1:</strong> {% trans "На посуду" %}</li>
-                                <li class="list-group-item"><strong>SB21-SB22:</strong> {% trans "На текстиль" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Наклейки -->
-                <div class="card mb-4" id="stickers-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-sticky-note me-2"></i>{% trans "Изготовление наклеек" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Различные виды наклеек для сложных поверхностей." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>SL1:</strong> {% trans "Бумажные наклейки" %}</li>
-                                <li class="list-group-item"><strong>PS1:</strong> {% trans "Объемные наклейки под смолой" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Цифровая печать -->
-                <div class="card mb-4" id="digital-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-print me-2"></i>{% trans "Цифровая печать" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Печать на бумажных вставках для беджей, часов и ежедневников." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>M/MW:</strong> {% trans "Одно- и двусторонняя печать" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Прямая печать на ткани -->
-                <div class="card mb-4" id="direct-textile-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-tshirt me-2"></i>{% trans "Прямая печать на ткани" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Полноцветная печать водными чернилами на текстиле." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>DTG1-DTG3:</strong> {% trans "Для футболок, толстовок, шоперов" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DTF печать -->
-                <div class="card mb-4" id="dtf-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-exchange-alt me-2"></i>{% trans "Полноцветная печать с трансфером" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Термоперенос полноцветных изображений на текстиль и аксессуары." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>DTF1-DTF4:</strong> {% trans "Для шоперов, футболок, курток, зонтов" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- UV DTF печать -->
-                <div class="card mb-4" id="uv-dtf-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-sun me-2"></i>{% trans "УФ-печать на пленке с трансфером" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Наклейки с УФ-печатью для любых твердых поверхностей." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>UV-DTF1-UV-DTF2:</strong> {% trans "Для пластика, металла, стекла, кожи" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Кастомизация -->
-                <div class="card mb-4" id="customization-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-cogs me-2"></i>{% trans "Кастомизация" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Индивидуальное изготовление изделий по вашему дизайну." %}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Печать на лентах -->
-                <div class="card mb-4" id="ribbon-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-ribbon me-2"></i>{% trans "Печать на лентах" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description mb-4 p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Нанесение логотипов на текстильные и силиконовые ленты." %}</p>
-                        </div>
-
-                        <div class="method-types">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>RP:</strong> {% trans "Для бирок и декоративных лент" %}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Вязание с логотипом -->
-                <div class="card mb-4" id="knitting-method">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-vest me-2"></i>{% trans "Вязание с логотипом" %}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="method-description p-3 bg-light rounded">
-                            <p class="mb-0"><strong>{% trans "Описание:" %}</strong> {% trans "Включение логотипа в процесс изготовления вязаных изделий." %}</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="pricing" class="mb-5 pt-4">
-                <h2 class="mb-4">{% trans "Стоимость нанесения логотипа" %}</h2>
-                <div class="card">
-                    <div class="card-body">
-                        <p>{% trans "Воспользуйтесь калькулятором, чтобы рассчитать стоимость печати логотипа. В выпадающем списке выберите вид и код нанесения. Сумма зависит от тиража, а также от цветности и площади печати." %}</p>
-                        <p>{% trans "Точный код нанесения на конкретное изделие указан в карточке товара." %}</p>
-
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5>{% trans "Расчет стоимости" %}</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">{% trans "Метод нанесения" %}</label>
-                                    <select class="form-select" id="method-category">
-                                        <option value="">{% trans "Выберите метод" %}</option>
-                                        <option value="silk">{% trans "Шелкография" %}</option>
-                                        <option value="flex">{% trans "Флекс" %}</option>
-                                        <option value="embroidery">{% trans "Вышивка" %}</option>
-                                        <option value="tampo">{% trans "Тампопечать" %}</option>
-                                        <option value="uv">{% trans "УФ-печать" %}</option>
-                                        <option value="decal">{% trans "Деколь" %}</option>
-                                        <option value="laser">{% trans "Лазерная гравировка" %}</option>
-                                        <option value="embossing">{% trans "Тиснение" %}</option>
-                                        <option value="sublimation">{% trans "Сублимация" %}</option>
-                                        <option value="stickers">{% trans "Наклейки" %}</option>
-                                        <option value="digital">{% trans "Цифровая печать" %}</option>
-                                        <option value="direct-textile">{% trans "Прямая печать на ткани" %}</option>
-                                        <option value="dtf">{% trans "DTF печать" %}</option>
-                                        <option value="uv-dtf">{% trans "UV DTF печать" %}</option>
-                                    </select>
-                                </div>
-
-<div class="mb-3" id="printing-method-container" style="display: none;">
-    <label class="form-label">{% trans "Вид нанесения" %}</label>
-    <select class="form-select" id="printing-method">
-        <!-- Опции будут заполняться динамически -->
-    </select>
-</div>
-                    <div class="mb-3" id="size-field" style="display: none;">
-                        <label class="form-label">{% trans "Площадь нанесения (см²)" %}</label>
-                        <input type="number" class="form-control" id="print-size" min="1" value="10">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">{% trans "Тираж" %}</label>
-                        <input type="number" class="form-control" id="quantity" min="1" value="100">
-                    </div>
-
-                    <div class="mb-3" id="colors-field" style="display: none;">
-                        <label class="form-label">{% trans "Количество цветов" %}</label>
-                        <input type="number" class="form-control" id="colors" min="1" value="1">
-                    </div>
-
-                    <div class="mb-3" id="extra-options" style="display: none;">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="metallic">
-                            <label class="form-check-label" for="metallic">{% trans "Металлизированные/специальные нити/краски (+40%)" %}</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="complex">
-                            <label class="form-check-label" for="complex">{% trans "Сложное расположение (+25%)" %}</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="3d">
-                            <label class="form-check-label" for="3d">{% trans "3D эффект (+40%)" %}</label>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <p>{% trans "Нач. расходы" %}<br><strong id="setup-cost">2 000,00 ₽</strong></p>
-                        </div>
-                        <div class="col-md-4">
-                            <p>{% trans "Цена за 1 шт." %}<br><strong id="unit-price">25,00 ₽</strong></p>
-                        </div>
-                        <div class="col-md-4">
-                            <p>{% trans "Итого" %}<br><strong id="total-cost">4 500,00 ₽</strong></p>
-                        </div>
-                    </div>
-
-
-<div class="table-responsive">
-                        <table class="table mt-3">
-                            <thead>
-                                <tr>
-                                    <th>{% trans "Тираж" %}</th>
-                                    <th>{% trans "Цена" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pricing-table">
-                                <tr>
-                                    <td>{% trans "от 100" %}</td>
-                                    <td>25,00 ₽</td>
-                                </tr>
-                                <tr>
-                                    <td>{% trans "от 300" %}</td>
-                                    <td>15,00 ₽</td>
-                                </tr>
-                                <tr>
-                                    <td>{% trans "от 1000" %}</td>
-                                    <td>10,00 ₽</td>
-                                </tr>
-                                <tr>
-                                    <td>{% trans "от 3000" %}</td>
-                                    <td>8,00 ₽</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <p class="text-muted">{% trans "В стоимость входит печать любой цветности, применимой к конкретному предмету (до 2 цветов в одном макете). Возможное количество цветов печати на предмете указано в карточке товара." %}</p>
-                    <p class="text-muted">{% trans "При печати на цветных изделиях (не белых) используется подложка. Печать без подложки возможна следующими цветами: черный, золото, серебро, бронза." %}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-            <section id="advantages" class="mb-5 pt-4">
-    <h2 class="mb-4">{% trans "Преимущества работы с нами" %}</h2>
-    <div class="row">
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-industry fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "Собственное производство" %}</h5>
-                    <p class="card-text">{% trans "Современное оборудование и полный цикл обработки заказа в Санкт-Петербурге." %}</p>
-                </div>
-            </div>
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">металл</span>
+            <span class="badge badge-primary">дерево</span>
+            <span class="badge badge-primary">фанера</span>
+            <span class="badge badge-primary">кожа</span>
+            <span class="badge badge-primary">стекло</span>
+            <span class="badge badge-primary">резина</span>
+            <span class="badge badge-primary">гранит</span>
+            <span class="badge badge-primary">камень</span>
+            <span class="badge badge-primary">бумага</span>
         </div>
 
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-calculator fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "Прозрачное ценообразование" %}</h5>
-                    <p class="card-text">{% trans "Точный расчет стоимости онлайн без ожидания обратной связи." %}</p>
-                </div>
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня перевод макета в программу</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">1-3 дня нанесение на изделия</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 2-5 дней итого</div>
             </div>
         </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-print fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "200+ методов нанесения" %}</h5>
-                    <p class="card-text">{% trans "Большинство товаров доступны с 2-3 методами печати." %}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-warehouse fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "Склад и производство" %}</h5>
-                    <p class="card-text">{% trans "Быстрая обработка заказов благодаря единой площадке." %}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-award fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "Гарантия качества" %}</h5>
-                    <p class="card-text">{% trans "Многоступенчатый контроль качества на всех этапах." %}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-primary">
-                        <i class="fas fa-gift fa-3x"></i>
-                    </div>
-                    <h5 class="card-title">{% trans "Образцы и упаковка" %}</h5>
-                    <p class="card-text">{% trans "Изготовление образцов и подарочная упаковка по запросу." %}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-                </section>
-        </div>
-            </div>
     </div>
 </div>
-{% endblock %}
-{% block extra_js %}
+
+<div class="service-detail" id="service-4">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-mug-hot"></i>
+        </div>
+        <h2 class="service-title">Деколь</h2>
+        <p class="service-subtitle">Долговечное нанесение на посуду</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Деколь на посуде широко используется при брендировании кружек, чашек и блюдец под нанесение логотипа. Деколирование позволяет получить долговечное изображение, а полученные изделия можно спокойно мыть в посудомоечной машине, не боясь повредить изображение.</p>
+        </div>
+
+        <p><strong>Технология:</strong> При нанесении деколью сначала делается заготовка: через трафареты (свой — для каждого цвета) продавливается краска на гуммированную бумагу, которая покрывается по итогу лаком и сохнет порядка 24 часов. Потом с помощью воды картинка переносится на изделие, а чтобы сделать деколь, его обжигают в муфельной печи.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='s-butylka-dlya-vody' %}">Бутылки для воды</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-krujki' %}">Кружки и чашки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-bokaly' %}">Бокалы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='s-chaynye-nabory' %}">Чайные пары</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='s-kofeynye-nabory' %}">Кофейные пары</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-kuhonnye-prisposobleniya' %}">Тарелки</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>5-15 лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Износостойкость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Площадь нанесения</div>
+                <div>Большая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Форма поверхности</div>
+                <div>Разнообразная</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Долговечность (5-15 лет)</li>
+                    <li>Высокая износостойкость нанесения за счет обжига</li>
+                    <li>Большая площадь нанесения</li>
+                    <li>Возможность нанесения на поверхности различной формы</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Отклонение от Pantone при обжиге</li>
+                    <li>Бледность изображений</li>
+                    <li>Рекомендуется использовать подглазурное нанесение</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">керамика</span>
+            <span class="badge badge-primary">фарфор</span>
+            <span class="badge badge-primary">стекло</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня изготовление трафарета</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">1-2 дня перенос на бумагу</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">1-2 дня сушка изображения</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">4</div>
+                <div class="timeline-text">2-3 дня нанесение изображения</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">5</div>
+                <div class="timeline-text">1-2 дня сушка изделия</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">6</div>
+                <div class="timeline-text">2-3 дня обжиг изделия</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 8-14 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-5">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-thread"></i>
+        </div>
+        <h2 class="service-title">Вышивка</h2>
+        <p class="service-subtitle">Элегантный и стойкий способ брендирования текстиля</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Вышивка логотипа на одежде — элегантный и чрезвычайно стойкий способ брендирования текстильных изделий: толстовок, футболок, рубашек-поло, бейсболок и других.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Процесс нанесения логотипа вышивкой автоматизирован, им руководит компьютером, поэтому главная часть работы, от которой зависит результат, — это корректный ввод параметров вышивки в компьютерную программу.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kepki' %}">Головные уборы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kurtki' %}">Куртки и ветровки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-tolstovki' %}">Толстовки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='sumki' %}">Сумки и рюкзаки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-pledy' %}">Пледы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-tekstil' %}">Текстиль для кухни</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>5-15 лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Износостойкость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Презентабельность</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Экологичность</div>
+                <div>Полная</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Долговечность (5-15 лет) и практичность</li>
+                    <li>Презентабельный аккуратный вид</li>
+                    <li>Можно сделать объёмную трёхмерную вышивку</li>
+                    <li>Экологичность — можно использовать в детской одежде</li>
+                    <li>Большой выбор цветов нитей для вышивки</li>
+                    <li>Разные виды нитей с необычной фактурой</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Обратите внимание</h5>
+                <ul>
+                    <li>Не получится сделать слишком мелкие или тонные детали</li>
+                    <li>Не все детали корпоративного текстиля доступны для вышивки</li>
+                    <li>Сложности с точным попаданием в Pantone</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">хлопок</span>
+            <span class="badge badge-primary">полиэстер</span>
+            <span class="badge badge-primary">нейлон</span>
+            <span class="badge badge-primary">кожзам</span>
+            <span class="badge badge-primary">шерсть</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-3 дня перевод макета в стежковый формат</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">2-5 дня нанесение вышивки</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">1-2 дня обрезка и обработка</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 3-7 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-6">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-print"></i>
+        </div>
+        <h2 class="service-title">Цифровая печать</h2>
+        <p class="service-subtitle">Быстрое и качественное брендирование</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Цифровая печать — технология прямого нанесения красок на поверхность без изготовления печатных форм. Это ускоряет процесс и делает его более рентабельным для малых и средних тиражей.</p>
+        </div>
+
+        <p><strong>Технология:</strong> В основе цветной цифровой печати лежит схема CMYK. Возможна и цифровая печать на футболках и другом текстиле с использованием специальных чернил.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='chasy' %}">Часы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-termokruzhki' %}">Термосы и термокружки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='zariadnye-ustroistva-i-adaptery' %}">Зарядные устройства</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='electronica-lampy-i-svetilniki-s-logotipom' %}">Лампы и светильники</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Скорость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Стоимость</div>
+                <div>Низкая при малых тиражах</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Цветопередача</div>
+                <div>Отличная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Фотореалистичность</div>
+                <div>Высокая</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Высокая скорость нанесения при небольших тиражах</li>
+                    <li>Низкая стоимость печати при малых и средних тиражах</li>
+                    <li>Отличная цветопередача и фотореалистичность изображения</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Ограничение в возможности печати пантонами, золотом или серебром</li>
+                    <li>Низкая производительность при больших тиражах</li>
+                    <li>Строгие требования к выбору материала под нанесение</li>
+                    <li>Почти невозможно получить черную или темно-синюю плашку</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">бумага</span>
+            <span class="badge badge-primary">пленка</span>
+            <span class="badge badge-primary">текстиль</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня создание оттиска изображения</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">2-5 дня нанесение изображения</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 3-7 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-7">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-sun"></i>
+        </div>
+        <h2 class="service-title">УФ-печать</h2>
+        <p class="service-subtitle">Стойкое полноцветное нанесение на различные поверхности</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Ультрафиолетовая печать, она же УФ печать, — способ прямого нанесения полноцветного изображения на поверхность с использованием чернил, отверждающихся под воздействием ультрафиолетового излучения и плотно прилегающих к основе без впитывания.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Прямая уф печать подходит для всех популярных материалов: бумаги, металла, дерева, пластика, стекла, керамики, кожзаменителя. И если раньше ультрафиолетовая печать могла применяться только на плоские поверхности, то сейчас существует круговая УФ печать для цилиндрических поверхностей.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ejednevniki' %}">Ежедневники</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ruchki' %}">Ручки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='s-butylka-dlya-vody' %}">Бутылки для воды</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='nagrady' %}">Награды</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='brelki-s-logotipom' %}">Брелоки</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Стойкость</div>
+                <div>до 3-х лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Скорость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Площадь нанесения</div>
+                <div>Большая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Экологичность</div>
+                <div>Высокая</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Стойкость и долговечность нанесения на изделии — до 3-х лет</li>
+                    <li>Высокая скорость нанесение при небольших тиражах</li>
+                    <li>Большая площадь нанесения</li>
+                    <li>Высокое качество цветопередачи и изображения</li>
+                    <li>Можно наносить на разные материалы</li>
+                    <li>Экологичность — краски нетоксичны</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Печать только по цветовой модели CMYK</li>
+                    <li>Нанесение возможно только на плоские поверхности и цилиндрические тела правильной формы</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">бумага</span>
+            <span class="badge badge-primary">металл</span>
+            <span class="badge badge-primary">дерево</span>
+            <span class="badge badge-primary">пластик</span>
+            <span class="badge badge-primary">стекло</span>
+            <span class="badge badge-primary">баннеры</span>
+            <span class="badge badge-primary">керамика</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня изготовление макета</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">1-3 дня нанесение изображения</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 2-5 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-8">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-sticky-note"></i>
+        </div>
+        <h2 class="service-title">Смоляная наклейка</h2>
+        <p class="service-subtitle">Объёмный и оригинальный способ брендирования</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Объёмные наклейки смолой — оригинальный способ брендирования корпоративных сувениров: зонтов, гаджетов, брелоков, флешек, сумок, рюкзаков — и не только. Они отлично смотрятся на застежках и шильдиках ежедневников и на ручках зонтов.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Изготовление объёмных наклеек происходит в несколько этапов. Сначала на самоклеящуюся плёнку наносится рисунок, который затем вырубается по контуру плоттером. Затем будущие объёмные наклейки заливаются полимерной смолой. За счёт эффекта линзы изображение кажется объёмнее и ярче и притягивает взгляд.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='fleshki' %}">Флешки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ejednevniki' %}">Ежедневники</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='zonty' %}">Зонты</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='ofis-nastolnye-aksessuary' %}">Офисные сувениры</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='brelki-s-logotipom' %}">Брелоки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda' %}">Корпоративная посуда</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Печать</div>
+                <div>Полноцветная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Эффект</div>
+                <div>Объёмный</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Внешний вид</div>
+                <div>Презентабельный</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Универсальность</div>
+                <div>Высокая</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Полноцветная печать</li>
+                    <li>Объёмное нанесение</li>
+                    <li>Презентабельный внешний вид нанесения</li>
+                    <li>Возможность нанесения на сложные для брендирования изделия</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Сложность заливки острых углов</li>
+                    <li>Возможность нанесения только на плоские поверхности</li>
+                    <li>Возможно визуальное искажение цвета печати</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Продукция для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">зонты</span>
+            <span class="badge badge-primary">гаджеты</span>
+            <span class="badge badge-primary">брелоки</span>
+            <span class="badge badge-primary">флешки</span>
+            <span class="badge badge-primary">сумки</span>
+            <span class="badge badge-primary">рюкзаки</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня нанесение изображения на пленку</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">1-2 дня вырезка по контуру</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">1-2 дня нанесение полимерного покрытия</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">4</div>
+                <div class="timeline-text">2-3 дня термическая обработка</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">5</div>
+                <div class="timeline-text">1-2 дня нанесение на изделие</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 3-7 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-9">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-fire"></i>
+        </div>
+        <h2 class="service-title">Сублимация</h2>
+        <p class="service-subtitle">Долговечное и качественное нанесение изображений</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Сублимационная печать — технология переноса изображения на поверхность с помощью специальных чернил, которые под воздействием высокой температуры превращаются в газ и проникают в структуру материала.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Этот метод идеально подходит для нанесения полноцветных изображений, фотографий и сложных градиентов. Сублимация обеспечивает высокую стойкость изображения к истиранию и воздействию окружающей среды.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='posuda-krujki' %}">Кружки и чашки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='zonty' %}">Зонты</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='sumki-ryukzaki' %}">Рюкзаки и сумки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='nagrady' %}">Награды и стелы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kepki' %}">Головные уборы</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>3-5 лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Качество</div>
+                <div>Высокое</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Детализация</div>
+                <div>Отличная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Экологичность</div>
+                <div>Высокая</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Долговечность изображения (3-5 лет)</li>
+                    <li>Высокое качество нанесения изображения</li>
+                    <li>Реалистичность изображения с возможностью нанесения фотографий</li>
+                    <li>Экологичность - краски на водной основе</li>
+                    <li>Возможность эффекта хамелеона</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Нанесение только на специализированную продукцию</li>
+                    <li>Только светлые изделия с полимерным слоем</li>
+                    <li>Для текстиля требуется минимум 70% синтетики</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Сравнение стоимости печати (100 шт.)</h4>
+        <div class="comparison-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Технология</th>
+                        <th>Стоимость</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Сублимация</td>
+                        <td>от 75 ₽</td>
+                    </tr>
+                    <tr>
+                        <td>Деколь</td>
+                        <td>от 80.85 ₽</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">керамика</span>
+            <span class="badge badge-primary">фарфор</span>
+            <span class="badge badge-primary">винил</span>
+            <span class="badge badge-primary">фаянс</span>
+            <span class="badge badge-primary">стекло</span>
+            <span class="badge badge-primary">металл</span>
+            <span class="badge badge-primary">текстиль</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-2 дня печать на специализированной бумаге</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">2-5 дня нанесение на изделие</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 3-7 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-10">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-patch"></i>
+        </div>
+        <h2 class="service-title">Шеврон</h2>
+        <p class="service-subtitle">Универсальный способ брендирования текстиля</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Шевроны — это текстильные нашивки с вышитым или напечатанным логотипом, которые можно пришить или приклеить к различным изделиям. Это идеальное решение для брендирования униформы, корпоративной одежды и промо-продукции.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Шевроны позволяют разместить логотип на труднодоступных для прямой вышивки участках одежды и аксессуаров. Они изготавливаются методом машинной вышивки на специальной ткани с последующей обработкой краев.</p>
+
+        <h4>Примеры продукции</h4>
+        <div class="products-grid">
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='futbolki' %}">Футболки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-tolstovki' %}">Толстовки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kurtki' %}">Куртки и ветровки</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='dom-pledy' %}">Пледы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='odejda-kepki' %}">Головные уборы</a></div>
+            <div class="product-item"><a href="{% url 'main:category_detail' slug='polo-s-logotipom' %}">Футболки поло</a></div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>5-15 лет</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Универсальность</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Устойчивость</div>
+                <div>Высокая</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Крепление</div>
+                <div>Разнообразное</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Долговечность (5-15 лет)</li>
+                    <li>Возможность объемной трехмерной вышивки</li>
+                    <li>Высокая устойчивость окрасок ниток</li>
+                    <li>Высокие эксплуатационные характеристики</li>
+                    <li>Применимость практически на всех текстильных материалах</li>
+                    <li>Возможность разместить на труднодоступные области</li>
+                    <li>Разные виды креплений</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Недостатки</h5>
+                <ul>
+                    <li>Нежелательность использования контрастных цветов</li>
+                    <li>Желательно избегать сложных форм с резкими закруглениями</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для нанесения</h4>
+        <div>
+            <span class="badge badge-primary">промо-одежда</span>
+            <span class="badge badge-primary">валенки и тапочки</span>
+            <span class="badge badge-primary">бейсболки</span>
+            <span class="badge badge-primary">сумки и рюкзаки</span>
+            <span class="badge badge-primary">пледы</span>
+            <span class="badge badge-primary">халаты</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">1-3 дня перевод макета в стежковый формат</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">1-2 дня нанесение вышивки на шеврон</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">1-2 дня обрезка и обработка</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">=</div>
+                <div class="timeline-text">от 3-7 дней итого</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-11">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-address-card"></i>
+        </div>
+        <h2 class="service-title">Печать визиток шелкографией</h2>
+        <p class="service-subtitle">Эксклюзивные визитки с высококачественным нанесением</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Визитки с шелкографией — это эксклюзивный продукт, который выделит вас среди конкурентов. Технология шелкографии позволяет создавать визитки с насыщенными цветами, объемными элементами и специальными эффектами.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Мы предлагаем полный цикл изготовления визиток: от разработки дизайн-макета до отгрузки готового заказа. Шелкография идеально подходит для переноса изображений на пластик, дерево, дизайнерский текстурированный картон.</p>
+
+        <h4>Особенности печати шелкографией на визитках</h4>
+        <ul>
+            <li>Подходит для переноса изображений на различные материалы</li>
+            <li>Легко создавать объемные рисунки</li>
+            <li>Высокая укрывистость красок</li>
+            <li>Цвета не искажаются даже на темном фоне</li>
+            <li>Меньше времени на допечатную подготовку по сравнению с офсетной печатью</li>
+        </ul>
+
+        <h4>Спецэффекты</h4>
+        <div class="products-grid">
+            <div class="product-item">Флуоресцентные краски</div>
+            <div class="product-item">Термохромный эффект</div>
+            <div class="product-item">Металлизированные краски</div>
+            <div class="product-item">УФ-лакировка</div>
+            <div class="product-item">Ламинация</div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Цвета</div>
+                <div>Насыщенные</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Стойкость</div>
+                <div>Исключительная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Эффекты</div>
+                <div>Богатый выбор</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Объем</div>
+                <div>Термоподъем</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Насыщенные цвета</li>
+                    <li>Исключительная стойкость к истиранию</li>
+                    <li>Богатство спецэффектов</li>
+                    <li>Печать с термоподъемом</li>
+                    <li>Помогает в формировании имиджа</li>
+                    <li>Повышает узнаваемость бренда</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Особенности</h5>
+                <ul>
+                    <li>Требуется профессиональное оборудование</li>
+                    <li>Выше стоимость по сравнению с цифровой печатью</li>
+                    <li>Дольше сроки изготовления при сложных эффектах</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Материалы для печати</h4>
+        <div>
+            <span class="badge badge-primary">пластик</span>
+            <span class="badge badge-primary">дерево</span>
+            <span class="badge badge-primary">дизайнерский картон</span>
+            <span class="badge badge-primary">текстурированная бумага</span>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-12">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-id-card"></i>
+        </div>
+        <h2 class="service-title">Бейджи с печатью</h2>
+        <p class="service-subtitle">Профессиональные идентификационные карты для мероприятий</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Одно из направлений нашей деятельности — печать бейджей для мероприятий разного формата: конференций, форумов, тренингов, презентаций, выставок и ярмарок. Можем предложить любые варианты материалов: бумагу, картон, пластик, возможна любая печать: с переменными данными, именные, универсальные.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Отсутствует макет? Самостоятельно разработаем макет бейджа с учетом корпоративного стиля вашей компании. Наш отдел дизайна на основе ваших комментариев и пожеланий создаст необходимое вам оформление бейджа, которое далее мы воплотим в жизнь.</p>
+
+        <h4>Разновидности бейджей</h4>
+        <div class="products-grid">
+            <div class="product-item">Пластиковые</div>
+            <div class="product-item">Акриловые</div>
+            <div class="product-item">Двуслойные</div>
+            <div class="product-item">Картонные</div>
+            <div class="product-item">Фигурные</div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Срок изготовления</div>
+                <div>от 1 дня</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Качество печати</div>
+                <div>Высокое</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Долговечность</div>
+                <div>Зависит от материала</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Защита</div>
+                <div>Ламинация</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Материалы</h5>
+                <ul>
+                    <li><strong>Пластиковые</strong> — не размокают, не рвутся, презентабельный вид</li>
+                    <li><strong>Акриловые</strong> — добротные, толщина от 3 мм, насыщенные цвета</li>
+                    <li><strong>Двуслойные пластиковые</strong> — элитный вариант, двухцветные</li>
+                    <li><strong>Картонные</strong> — для вставки в пластиковый чехол</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Технологии печати</h5>
+                <ul>
+                    <li>Сублимация</li>
+                    <li>Цифровая печать</li>
+                    <li>Лазерная гравировка</li>
+                    <li>Шелкография</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Стандартные размеры</h4>
+        <div>
+            <span class="badge badge-primary">8.6×5.4 см (стандарт)</span>
+            <span class="badge badge-primary">9×6 см</span>
+            <span class="badge badge-primary">10×7 см</span>
+            <span class="badge badge-primary">Фигурные</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">Разработка дизайн-макета</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">Выбор материала и технологии</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">Печать/гравировка</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">4</div>
+                <div class="timeline-text">Ламинация (при необходимости)</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">5</div>
+                <div class="timeline-text">Комплектация аксессуарами</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-13">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-id-card-alt"></i>
+        </div>
+        <h2 class="service-title">Карманы для бейджей</h2>
+        <p class="service-subtitle">Защита и удобство для идентификационных карт</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Карманы для бейджей – стандартный вариант для удобного использования и хранения электронных карт или пропусков. Обычно их применяют для прикрепления к одежде карточек с контактными данными на выставках или корпоративных мероприятиях.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Их основная функция – защита бумажного или пластикового носителя от воздействий окружающей среды. В комплекте с лентами для шейного ношения, карманы для бейджей являются неотъемлемой частью официальных мероприятий с пропускной системой.</p>
+
+        <h4>Варианты карманов</h4>
+        <div class="products-grid">
+            <div class="product-item">Вертикальные</div>
+            <div class="product-item">Горизонтальные</div>
+            <div class="product-item">С прозрачным окном</div>
+            <div class="product-item">С магнитным креплением</div>
+            <div class="product-item">С булавкой</div>
+            <div class="product-item">С клипсой</div>
+        </div>
+
+        <h4>Ключевые характеристики</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Горизонтальные</div>
+                <div>90×60 мм - 120×85 мм</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Вертикальные</div>
+                <div>60×90 мм - 110×130 мм</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Толщина</div>
+                <div>0.2-0.5 мм</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Материал</div>
+                <div>ПВХ, пластик</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества</h5>
+                <ul>
+                    <li>Защита бейджа от влаги и повреждений</li>
+                    <li>Прозрачность — информация всегда видна</li>
+                    <li>Различные варианты крепления</li>
+                    <li>Удобство использования</li>
+                    <li>Долговечность</li>
+                    <li>Доступная цена</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Области применения</h5>
+                <ul>
+                    <li>Выставки и конференции</li>
+                    <li>Корпоративные мероприятия</li>
+                    <li>Офисные сотрудники</li>
+                    <li>Образовательные учреждения</li>
+                    <li>Медицинские учреждения</li>
+                    <li>Промышленные предприятия</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Типы креплений</h4>
+        <div>
+            <span class="badge badge-primary">Булавка</span>
+            <span class="badge badge-primary">Клипса</span>
+            <span class="badge badge-primary">Магнит</span>
+            <span class="badge badge-primary">Липучка</span>
+            <span class="badge badge-primary">Прищепка</span>
+        </div>
+
+        <h4>Процесс заказа</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">Выбор типа и размера кармана</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">Выбор способа крепления</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">Определение количества</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">4</div>
+                <div class="timeline-text">Изготовление (1-3 дня)</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">5</div>
+                <div class="timeline-text">Доставка</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="service-detail" id="service-14">
+    <div class="service-header">
+        <div class="service-icon">
+            <i class="fas fa-necklace"></i>
+        </div>
+        <h2 class="service-title">Ленты для бейджей</h2>
+        <p class="service-subtitle">Сублимационная печать на шейных лентах</p>
+    </div>
+
+    <div class="service-content">
+        <div class="key-point">
+            <p>Лента с логотипом – это дополнительный элемент привлечения внимания к компании, поэтому печать на ленте для бейджей должна быть износостойкой и качественной. Оригинальный дизайн, дополненный полноцветным рисунком, станет настоящим украшением любого общественного мероприятия.</p>
+        </div>
+
+        <p><strong>Технология:</strong> Мы предлагаем высококачественную и яркую печать на ленте для бейджей методом сублимации. Изображения, нанесенные с помощью данной технологии, отличаются четкостью, насыщенностью цвета и долговечностью рисунка.</p>
+
+        <h4>Преимущества сублимации на лентах</h4>
+        <div class="service-features">
+            <div class="feature-card">
+                <div class="feature-title">Качество печати</div>
+                <div>Высокое</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Износостойкость</div>
+                <div>Отличная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Цветопередача</div>
+                <div>Точная</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Срок службы</div>
+                <div>Долгий</div>
+            </div>
+        </div>
+
+        <div class="pros-cons-container">
+            <div class="pros-box">
+                <h5>Преимущества наших лент</h5>
+                <ul>
+                    <li>Яркие насыщенные цвета</li>
+                    <li>Стойкость к истиранию</li>
+                    <li>Не выцветают со временем</li>
+                    <li>Мягкие и приятные на ощупь</li>
+                    <li>Гипоаллергенные материалы</li>
+                    <li>Различная ширина и длина</li>
+                </ul>
+            </div>
+            <div class="cons-box">
+                <h5>Технические характеристики</h5>
+                <ul>
+                    <li><strong>Ширина:</strong> 20мм, 25мм, 30мм</li>
+                    <li><strong>Длина:</strong> стандартная 90см</li>
+                    <li><strong>Материал:</strong> сатен, нейлон</li>
+                    <li><strong>Температура стирки:</strong> до 60°C</li>
+                    <li><strong>Способ печати:</strong> сублимация</li>
+                    <li><strong>Минимальный заказ:</strong> от 10 шт.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4>Варианты креплений</h4>
+        <div class="products-grid">
+            <div class="product-item">Карабин</div>
+            <div class="product-item">Прищепка</div>
+            <div class="product-item">Магнит</div>
+            <div class="product-item">Липучка</div>
+            <div class="product-item">Булавка</div>
+        </div>
+
+        <h4>Цвета лент</h4>
+        <div>
+            <span class="badge badge-primary">Белый</span>
+            <span class="badge badge-primary">Черный</span>
+            <span class="badge badge-primary">Синий</span>
+            <span class="badge badge-primary">Красный</span>
+            <span class="badge badge-primary">Зеленый</span>
+            <span class="badge badge-primary">Желтый</span>
+            <span class="badge badge-primary">Оранжевый</span>
+            <span class="badge badge-primary">Фиолетовый</span>
+        </div>
+
+        <h4>Процесс производства</h4>
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="timeline-dot">1</div>
+                <div class="timeline-text">Подготовка макета</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">2</div>
+                <div class="timeline-text">Печать на трансферной бумаге</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">3</div>
+                <div class="timeline-text">Термоперенос на ленту</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">4</div>
+                <div class="timeline-text">Контроль качества</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-dot">5</div>
+                <div class="timeline-text">Упаковка</div>
+            </div>
+        </div>
+
+        <div class="key-point">
+            <h5>Сравнение с шелкографией</h5>
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Сублимация</th>
+                            <th>Шелкография</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Детализация</td>
+                            <td>Высокая</td>
+                            <td>Средняя</td>
+                        </tr>
+                        <tr>
+                            <td>Количество цветов</td>
+                            <td>Неограниченно</td>
+                            <td>Ограничено</td>
+                        </tr>
+                        <tr>
+                            <td>Стойкость</td>
+                            <td>Очень высокая</td>
+                            <td>Высокая</td>
+                        </tr>
+                        <tr>
+                            <td>Стоимость малых тиражей</td>
+                            <td>Выше</td>
+                            <td>Ниже</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Сетка с карточками -->
+            <div class="row g-4" id="services-grid">
+                {% for item in services %}
+                <div class="col-6 col-md-4 col-lg-2" data-aos="zoom-in">
+                    <div class="service-card h-100 text-center" data-service="{{ forloop.counter0 }}">
+                        <div class="ratio ratio-1x1 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-image fa-3x text-secondary"></i>
+                        </div>
+                        <div class="py-2">
+                            <p class="mb-0">{{ item }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Группировка видов нанесения по методам
-    const methodGroups = {
-        'silk': ['B1', 'B2', 'B3', 'B4', 'D1', 'D2', 'D3', 'D4', 'SH1', 'SH2', 'SH3', 'SHR'],
-        'flex': ['F1', 'F2'],
-        'embroidery': ['I'],
-        'tampo': ['A0', 'A1', 'A2', 'A3', 'A4', 'AR1', 'AR2'],
-        'uv': ['UV1', 'UV2', 'UV3', 'UVR', 'UVRL'],
-        'decal': ['H1', 'H2', 'H3', 'HC1', 'HC2'],
-        'laser': ['LB1', 'LB2', 'LB3', 'LC1', 'LC2', 'LC3', 'LM1', 'LM2', 'LM3', 'LRC', 'LRM', 'LRUV', 'LSC', 'LSM', 'LSP', 'LUV1', 'LUV2', 'LUV3'],
-        'embossing': ['T1', 'T2'],
-        'sublimation': ['SB1', 'SB21', 'SB22'],
-        'stickers': ['SL1', 'PS1'],
-        'digital': ['M1', 'M2', 'MW1', 'MW2'],
-        'direct-textile': ['DTG1', 'DTG2', 'DTG3'],
-        'dtf': ['DTF1', 'DTF2', 'DTF3', 'DTF4'],
-        'uv-dtf': ['UV-DTF1', 'UV-DTF2']
-    };
+    document.addEventListener('DOMContentLoaded', function() {
+        // Скрываем все детали услуг при первой загрузке
+        document.querySelectorAll('.service-detail').forEach(detail => {
+            detail.classList.remove('active');
+        });
 
-    // Описания для каждого вида нанесения
-    const methodDescriptions = {
-        'A0': 'A0: Тампопечать (ручки)',
-        'A1': 'A1: Тампопечать (брелки, флешки)',
-        'A2': 'A2: Тампопечать (аксессуары)',
-        'A3': 'A3: Тампопечать (термосы, бутылки)',
-        'A4': 'A4: Тампопечать (сложные предметы)',
-        'AR1': 'AR1: Тампопечать на белые шары',
-        'AR2': 'AR2: Тампопечать на цветные шары',
-        'B1': 'B1: Шелкография (базовые футболки)',
-        'B2': 'B2: Шелкография (цветные футболки)',
-        'B3': 'B3: Шелкография (толстовки, поло)',
-        'B4': 'B4: Шелкография (куртки, зонты)',
-        'D1': 'D1: Шелкография с трансфером (футболки)',
-        'D2': 'D2: Шелкография с трансфером (поло, рюкзаки)',
-        'D3': 'D3: Шелкография с трансфером (толстовки, сумки)',
-        'D4': 'D4: Шелкография с трансфером (куртки, жилеты)',
-        'DTG1': 'DTG1: Полноцвет водными чернилами (футболки)',
-        'DTG2': 'DTG2: Полноцвет водными чернилами (цветные футболки)',
-        'DTG3': 'DTG3: Полноцвет водными чернилами (толстовки)',
-        'DTF1': 'DTF1: Полноцвет с трансфером (шоперы, рюкзаки)',
-        'DTF2': 'DTF2: Полноцвет с трансфером (футболки, поло)',
-        'DTF3': 'DTF3: Полноцвет с трансфером (премиум текстиль)',
-        'DTF4': 'DTF4: Полноцвет с трансфером (куртки, зонты)',
-        'F1': 'F1: Флекс (тонкая пленка)',
-        'F2': 'F2: Флекс (плотная/специальная пленка)',
-        'H1': 'H1: Деколь (промокружки)',
-        'H2': 'H2: Деколь (кружки, бокалы)',
-        'H3': 'H3: Деколь (сложные предметы)',
-        'HC1': 'HC1: Холодная деколь (промокружки)',
-        'HC2': 'HC2: Холодная деколь (кружки, бокалы)',
-        'I': 'I: Вышивка',
-        'LB1': 'LB1: Гравировка с чернением (ручки, брелки)',
-        'LB2': 'LB2: Гравировка с чернением (термопосуда)',
-        'LB3': 'LB3: Гравировка с чернением (сумки, аксессуары)',
-        'LC1': 'LC1: Лазерная гравировка (ручки, ежедневники)',
-        'LC2': 'LC2: Лазерная гравировка (термопосуда)',
-        'LC3': 'LC3: Лазерная гравировка (ежедневники А5)',
-        'LM1': 'LM1: Лазерная гравировка (ручки, флешки)',
-        'LM2': 'LM2: Лазерная гравировка (термопосуда)',
-        'LM3': 'LM3: Лазерная гравировка (сумки, аксессуары)',
-        'LRC': 'LRC: Круговая гравировка',
-        'LRM': 'LRM: Круговая гравировка',
-        'LRUV': 'LRUV: Круговая гравировка',
-        'LSC': 'LSC: Шильд металлический с гравировкой',
-        'LSM': 'LSM: Шильд латунный с гравировкой',
-        'LSP': 'LSP: Шильд Spectrum с гравировкой',
-        'LUV1': 'LUV1: UV лазерная гравировка (ручки, брелки)',
-        'LUV2': 'LUV2: UV лазерная гравировка (термопосуда)',
-        'LUV3': 'LUV3: UV лазерная гравировка (сумки, приборы)',
-        'M1': 'M1: Цифровая печать на вставке',
-        'M2': 'M2: Цифровая печать на вставке',
-        'MW1': 'MW1: Цифровая печать на вставке',
-        'MW2': 'MW2: Цифровая печать на вставке',
-        'PS1': 'PS1: Наклейка под смолой',
-        'SB1': 'SB1: Сублимация (посуда)',
-        'SB21': 'SB21: Сублимация (банданы, кепки)',
-        'SB22': 'SB22: Сублимация (жилеты)',
-        'SH1': 'SH1: Шелкография (1 цвет, малые изделия)',
-        'SH2': 'SH2: Шелкография (1 цвет, средние изделия)',
-        'SH3': 'SH3: Шелкография (1 цвет, крупные изделия)',
-        'SHR': 'SHR: Круговая шелкография',
-        'SL1': 'SL1: Наклейка бумажная',
-        'T1': 'T1: Тиснение бесцветное',
-        'T2': 'T2: Тиснение фольгой',
-        'UV1': 'UV1: УФ-печать (ручки, флешки)',
-        'UV2': 'UV2: УФ-печать (аксессуары)',
-        'UV3': 'UV3: УФ-печать (ежедневники, бутылки)',
-        'UVR': 'UVR: Круговая УФ печать',
-        'UVRL': 'UVRL: Круговая УФ печать с лаком',
-        'UV-DTF1': 'UV-DTF1: УФ-DTF печать',
-        'UV-DTF2': 'UV-DTF2: УФ-DTF печать'
-    };
+        // Показываем только сетку карточек
+        document.getElementById('services-grid').style.display = 'flex';
 
-    const methodCategorySelect = document.getElementById('method-category');
-    const printingMethodContainer = document.getElementById('printing-method-container');
-    const printingMethodSelect = document.getElementById('printing-method');
-    const methodSelect = document.getElementById('printing-method');
-    const quantityInput = document.getElementById('quantity');
-    const sizeField = document.getElementById('size-field');
-    const colorsField = document.getElementById('colors-field');
-    const extraOptions = document.getElementById('extra-options');
-    const setupCost = document.getElementById('setup-cost');
-    const unitPrice = document.getElementById('unit-price');
-    const totalCost = document.getElementById('total-cost');
-    const pricingTable = document.getElementById('pricing-table');
-    const calculateBtn = document.getElementById('calculate-btn');
-
-    // Функция для форматирования чисел
-    function formatNumber(num) {
-        return num.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
-
-    // Обработчик изменения категории метода
-    methodCategorySelect.addEventListener('change', function() {
-        if (this.value) {
-            // Очищаем и заполняем select с видами нанесения
-            printingMethodSelect.innerHTML = '';
-            methodGroups[this.value].forEach(method => {
-                const option = document.createElement('option');
-                option.value = method;
-                option.textContent = methodDescriptions[method];
-                printingMethodSelect.appendChild(option);
+        // Обработчики для меню
+        const serviceLinks = document.querySelectorAll('.service-link');
+        serviceLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const serviceIndex = this.getAttribute('data-service');
+                showService(serviceIndex);
             });
-
-            // Показываем контейнер с видами нанесения
-            printingMethodContainer.style.display = 'block';
-
-            // Обновляем калькулятор
-            updateFieldsVisibility();
-            updatePricing();
-        } else {
-            // Скрываем контейнер с видами нанесения, если метод не выбран
-            printingMethodContainer.style.display = 'none';
-        }
-    });
-
-    // Показываем/скрываем дополнительные поля
-    methodSelect.addEventListener('change', function() {
-        console.log('Method changed to:', methodSelect.value);
-        updateFieldsVisibility();
-        updatePricing();
-    });
-
-    function updateFieldsVisibility() {
-        const method = methodSelect.value;
-        console.log('Updating fields visibility for method:', method);
-
-        // Показываем поле площади для методов, где это важно
-        if (method === 'I' || method === 'PS1' || method === 'SL1' || method.startsWith('DTG') ||
-            method.startsWith('T') || method.startsWith('F') || method.startsWith('LSC') ||
-            method.startsWith('LSM') || method.startsWith('LSP')) {
-            sizeField.style.display = 'block';
-        } else {
-            sizeField.style.display = 'none';
-        }
-
-        // Показываем поле количества цветов для вышивки и шелкографии
-        if (method === 'I' || method.startsWith('B') || method.startsWith('D') ||
-            method.startsWith('SH') || method === 'SHR') {
-            colorsField.style.display = 'block';
-        } else {
-            colorsField.style.display = 'none';
-        }
-
-        // Показываем дополнительные опции для вышивки
-        if (method === 'I' || method.startsWith('B') || method.startsWith('D')) {
-            extraOptions.style.display = 'block';
-        } else {
-            extraOptions.style.display = 'none';
-        }
-    }
-
-    // Обновляем цены при изменении параметров
-    quantityInput.addEventListener('input', updatePricing);
-    if (document.getElementById('print-size')) {
-        document.getElementById('print-size').addEventListener('input', updatePricing);
-    }
-    if (document.getElementById('colors')) {
-        document.getElementById('colors').addEventListener('input', updatePricing);
-    }
-    if (document.getElementById('metallic')) {
-        document.getElementById('metallic').addEventListener('change', updatePricing);
-    }
-    if (document.getElementById('complex')) {
-        document.getElementById('complex').addEventListener('change', updatePricing);
-    }
-    if (document.getElementById('3d')) {
-        document.getElementById('3d').addEventListener('change', updatePricing);
-    }
-
-    // Обработчик для кнопки
-    calculateBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('Calculate button clicked');
-        updatePricing();
-    });
-
-    function updatePricing() {
-        const method = methodSelect.value;
-        const quantity = parseInt(quantityInput.value) || 1;
-        const size = parseInt(document.getElementById('print-size')?.value) || 10;
-        const colors = parseInt(document.getElementById('colors')?.value) || 1;
-        const isMetallic = document.getElementById('metallic')?.checked || false;
-        const isComplex = document.getElementById('complex')?.checked || false;
-        const is3D = document.getElementById('3d')?.checked || false;
-
-        console.log('Updating pricing with:', {
-            method,
-            quantity,
-            size,
-            colors,
-            isMetallic,
-            isComplex,
-            is3D
         });
 
-        let setup = 2000;
-        let pricePerUnit = 25;
-        let pricingRanges = [];
-        // Реализация для всех методов
-        switch(method) {
-            // Вышивка
-            case 'I':
-                setup = 1500;
-                if (size <= 10) {
-                    if (quantity >= 500) pricePerUnit = 150;
-                    else if (quantity >= 300) pricePerUnit = 164;
-                    else if (quantity >= 100) pricePerUnit = 191;
-                    else if (quantity >= 50) pricePerUnit = 246;
-                    else if (quantity >= 30) pricePerUnit = 310;
-                    else pricePerUnit = 380;
-                } else {
-                    const basePrice = (quantity >= 500) ? 150 :
-                                    (quantity >= 300) ? 164 :
-                                    (quantity >= 100) ? 191 :
-                                    (quantity >= 50) ? 246 :
-                                    (quantity >= 30) ? 310 : 380;
-                    pricePerUnit = basePrice + (size - 10) * 4;
-                }
-
-                if (colors > 6) pricePerUnit *= 1.4;
-                if (isMetallic) pricePerUnit *= 1.4;
-                if (isComplex) pricePerUnit *= 1.25;
-                if (is3D) pricePerUnit *= 1.4;
-
-                pricingRanges = [
-                    {min: 10, price: 380 + (size > 10 ? (size-10)*4 : 0)},
-                    {min: 30, price: 310 + (size > 10 ? (size-10)*4 : 0)},
-                    {min: 50, price: 246 + (size > 10 ? (size-10)*4 : 0)},
-                    {min: 100, price: 191 + (size > 10 ? (size-10)*4 : 0)},
-                    {min: 300, price: 164 + (size > 10 ? (size-10)*4 : 0)},
-                    {min: 500, price: 150 + (size > 10 ? (size-10)*4 : 0)}
-                ];
-                break;
-
-            // Тампопечать A0
-            case 'A0':
-                setup = 2000;
-                if (quantity >= 3000) pricePerUnit = 8;
-                else if (quantity >= 1000) pricePerUnit = 10;
-                else if (quantity >= 300) pricePerUnit = 15;
-                else pricePerUnit = 25;
-
-                pricingRanges = [
-                    {min: 100, price: 25},
-                    {min: 300, price: 15},
-                    {min: 1000, price: 10},
-                    {min: 3000, price: 8}
-                ];
-                break;
-
-            // Шелкография B1
-            case 'B1':
-                setup = 4000;
-                if (quantity >= 1000) pricePerUnit = 100;
-                else if (quantity >= 300) pricePerUnit = 115;
-                else if (quantity >= 100) pricePerUnit = 130;
-                else pricePerUnit = 150;
-
-                if (isMetallic) pricePerUnit *= 1.5;
-
-                pricingRanges = [
-                    {min: 30, price: 150},
-                    {min: 100, price: 130},
-                    {min: 300, price: 115},
-                    {min: 1000, price: 100}
-                ];
-                break;
-
-            // Тампопечать A1
-            case 'A1':
-                setup = 2000;
-                if (quantity >= 3000) pricePerUnit = 18;
-                else if (quantity >= 1000) pricePerUnit = 20;
-                else if (quantity >= 300) pricePerUnit = 25;
-                else pricePerUnit = 35;
-
-                pricingRanges = [
-                    {min: 100, price: 35},
-                    {min: 300, price: 25},
-                    {min: 1000, price: 20},
-                    {min: 3000, price: 18}
-                ];
-                break;
-
-            // DTG печать
-            case 'DTG1':
-                setup = 0;
-                if (size <= 100) {
-                    if (quantity >= 200) pricePerUnit = 420;
-                    else if (quantity >= 100) pricePerUnit = 440;
-                    else if (quantity >= 50) pricePerUnit = 460;
-                    else if (quantity >= 30) pricePerUnit = 480;
-                    else if (quantity >= 10) pricePerUnit = 500;
-                    else if (quantity >= 2) pricePerUnit = 720;
-                    else pricePerUnit = 840;
-                } else if (size <= 300) {
-                    if (quantity >= 200) pricePerUnit = 470;
-                    else if (quantity >= 100) pricePerUnit = 500;
-                    else if (quantity >= 50) pricePerUnit = 520;
-                    else if (quantity >= 30) pricePerUnit = 560;
-                    else if (quantity >= 10) pricePerUnit = 600;
-                    else if (quantity >= 2) pricePerUnit = 850;
-                    else pricePerUnit = 960;
-                } else if (size <= 600) {
-                    if (quantity >= 200) pricePerUnit = 520;
-                    else if (quantity >= 100) pricePerUnit = 560;
-                    else if (quantity >= 50) pricePerUnit = 580;
-                    else if (quantity >= 30) pricePerUnit = 640;
-                    else if (quantity >= 10) pricePerUnit = 700;
-                    else if (quantity >= 2) pricePerUnit = 1000;
-                    else pricePerUnit = 1200;
-                } else {
-                    if (quantity >= 200) pricePerUnit = 600;
-                    else if (quantity >= 100) pricePerUnit = 650;
-                    else if (quantity >= 50) pricePerUnit = 700;
-                    else if (quantity >= 30) pricePerUnit = 800;
-                    else if (quantity >= 10) pricePerUnit = 900;
-                    else if (quantity >= 2) pricePerUnit = 1200;
-                    else pricePerUnit = 1400;
-                }
-                pricingRanges = [
-                    {min: 1, price: size <= 100 ? 840 : size <= 300 ? 960 : size <= 600 ? 1200 : 1400},
-                    {min: 2, price: size <= 100 ? 720 : size <= 300 ? 850 : size <= 600 ? 1000 : 1200},
-                    {min: 10, price: size <= 100 ? 500 : size <= 300 ? 600 : size <= 600 ? 700 : 900},
-                    {min: 30, price: size <= 100 ? 480 : size <= 300 ? 560 : size <= 600 ? 640 : 800},
-                    {min: 50, price: size <= 100 ? 460 : size <= 300 ? 520 : size <= 600 ? 580 : 700},
-                    {min: 100, price: size <= 100 ? 440 : size <= 300 ? 500 : size <= 600 ? 560 : 650},
-                    {min: 200, price: size <= 100 ? 420 : size <= 300 ? 470 : size <= 600 ? 520 : 600}
-                ];
-                break;
-
-            // Деколь H1
-            case 'H1':
-                setup = 3000;
-                if (quantity >= 1000) pricePerUnit = 180;
-                else if (quantity >= 200) pricePerUnit = 200;
-                else if (quantity >= 100) pricePerUnit = 230;
-                else pricePerUnit = 250;
-
-                pricingRanges = [
-                    {min: 36, price: 250},
-                    {min: 100, price: 230},
-                    {min: 200, price: 200},
-                    {min: 1000, price: 180}
-                ];
-                break;
-
-            // Лазерная гравировка LB1
-            case 'LB1':
-                setup = 2000;
-                if (quantity >= 500) pricePerUnit = 60;
-                else if (quantity >= 300) pricePerUnit = 70;
-                else if (quantity >= 100) pricePerUnit = 80;
-                else if (quantity >= 50) pricePerUnit = 110;
-                else if (quantity >= 20) pricePerUnit = 130;
-                else pricePerUnit = 150;
-
-                pricingRanges = [
-                    {min: 10, price: 150},
-                    {min: 20, price: 130},
-                    {min: 50, price: 110},
-                    {min: 100, price: 80},
-                    {min: 300, price: 70},
-                    {min: 500, price: 60}
-                ];
-                break;
-
-            // Наклейка под смолой PS1
-            case 'PS1':
-                setup = 0;
-                if (size <= 5) {
-                    if (quantity >= 1000) pricePerUnit = 25;
-                    else if (quantity >= 500) pricePerUnit = 28;
-                    else if (quantity >= 300) pricePerUnit = 50;
-                    else if (quantity >= 200) pricePerUnit = 72;
-                    else if (quantity >= 100) pricePerUnit = 110;
-                    else pricePerUnit = 154;
-                } else {
-                    if (quantity >= 1000) pricePerUnit = 44;
-                    else if (quantity >= 500) pricePerUnit = 48;
-                    else if (quantity >= 300) pricePerUnit = 68;
-                    else if (quantity >= 200) pricePerUnit = 82;
-                    else if (quantity >= 100) pricePerUnit = 122;
-                    else pricePerUnit = 172;
-                }
-                pricingRanges = [
-                    {min: 50, price: size <= 5 ? 154 : 172},
-                    {min: 100, price: size <= 5 ? 110 : 122},
-                    {min: 200, price: size <= 5 ? 72 : 82},
-                    {min: 300, price: size <= 5 ? 50 : 68},
-                    {min: 500, price: size <= 5 ? 28 : 48},
-                    {min: 1000, price: size <= 5 ? 25 : 44}
-                ];
-                break;
-
-            // Сублимация SB1
-            case 'SB1':
-                setup = 1500;
-                if (quantity >= 1008) pricePerUnit = 100;
-                else if (quantity >= 504) pricePerUnit = 120;
-                else if (quantity >= 252) pricePerUnit = 140;
-                else if (quantity >= 108) pricePerUnit = 160;
-                else if (quantity >= 36) pricePerUnit = 200;
-                else pricePerUnit = 240;
-
-                pricingRanges = [
-                    {min: 5, price: 240},
-                    {min: 36, price: 200},
-                    {min: 108, price: 160},
-                    {min: 252, price: 140},
-                    {min: 504, price: 120},
-                    {min: 1008, price: 100}
-                ];
-                break;
-
-            // Тиснение T1
-            case 'T1':
-                setup = 2500;
-                let basePrice;
-                if (quantity >= 500) basePrice = 61;
-                else if (quantity >= 200) basePrice = 68;
-                else if (quantity >= 100) basePrice = 76;
-                else if (quantity >= 50) basePrice = 84;
-                else if (quantity >= 30) basePrice = 105;
-                else basePrice = 168;
-
-                pricePerUnit = basePrice;
-                if (size > 100) {
-                    const extraCm = size - 100;
-                    if (quantity >= 500) pricePerUnit += extraCm * 0.05;
-                    else if (quantity >= 200) pricePerUnit += extraCm * 0.13;
-                    else if (quantity >= 100) pricePerUnit += extraCm * 0.25;
-                    else if (quantity >= 50) pricePerUnit += extraCm * 0.5;
-                    else if (quantity >= 30) pricePerUnit += extraCm * 0.83;
-                    else pricePerUnit += extraCm * 2.5;
-                }
-
-                pricingRanges = [
-                    {min: 10, price: 168 + (size > 100 ? (size-100)*2.5 : 0)},
-                    {min: 30, price: 105 + (size > 100 ? (size-100)*0.83 : 0)},
-                    {min: 50, price: 84 + (size > 100 ? (size-100)*0.5 : 0)},
-                    {min: 100, price: 76 + (size > 100 ? (size-100)*0.25 : 0)},
-                    {min: 200, price: 68 + (size > 100 ? (size-100)*0.13 : 0)},
-                    {min: 500, price: 61 + (size > 100 ? (size-100)*0.05 : 0)}
-                ];
-                break;
-
-            // УФ-печать UV1
-            case 'UV1':
-                setup = 2000;
-                if (quantity >= 500) pricePerUnit = 35;
-                else if (quantity >= 300) pricePerUnit = 45;
-                else if (quantity >= 100) pricePerUnit = 55;
-                else if (quantity >= 50) pricePerUnit = 75;
-                else pricePerUnit = 75;
-
-                pricingRanges = [
-                    {min: 10, price: 75},
-                    {min: 50, price: 75},
-                    {min: 100, price: 55},
-                    {min: 300, price: 45},
-                    {min: 500, price: 35}
-                ];
-                break;
-
-            // Флекс F1
-            case 'F1':
-                setup = 1000;
-                pricePerUnit = size * 3 + 45;
-                pricingRanges = [
-                    {min: 1, price: size * 3 + 45}
-                ];
-                break;
-
-            // Цифровая печать M1
-            case 'M1':
-                setup = 0;
-                if (quantity >= 5000) pricePerUnit = 10;
-                else if (quantity >= 1000) pricePerUnit = 11;
-                else if (quantity >= 500) pricePerUnit = 12;
-                else pricePerUnit = 14;
-
-                pricingRanges = [
-                    {min: 100, price: 14},
-                    {min: 500, price: 12},
-                    {min: 1000, price: 11},
-                    {min: 5000, price: 10}
-                ];
-                break;
-            case 'A2':
-    setup = 2500;
-    if (quantity >= 3000) pricePerUnit = 22;
-    else if (quantity >= 1000) pricePerUnit = 25;
-    else if (quantity >= 300) pricePerUnit = 30;
-    else pricePerUnit = 40;
-
-    pricingRanges = [
-        {min: 100, price: 40},
-        {min: 300, price: 30},
-        {min: 1000, price: 25},
-        {min: 3000, price: 22}
-    ];
-    break;
-
-case 'A3':
-    setup = 3000;
-    if (quantity >= 3000) pricePerUnit = 28;
-    else if (quantity >= 1000) pricePerUnit = 32;
-    else if (quantity >= 300) pricePerUnit = 38;
-    else pricePerUnit = 48;
-
-    pricingRanges = [
-        {min: 100, price: 48},
-        {min: 300, price: 38},
-        {min: 1000, price: 32},
-        {min: 3000, price: 28}
-    ];
-    break;
-
-case 'A4':
-    setup = 3500;
-    if (quantity >= 3000) pricePerUnit = 35;
-    else if (quantity >= 1000) pricePerUnit = 40;
-    else if (quantity >= 300) pricePerUnit = 45;
-    else pricePerUnit = 55;
-
-    pricingRanges = [
-        {min: 100, price: 55},
-        {min: 300, price: 45},
-        {min: 1000, price: 40},
-        {min: 3000, price: 35}
-    ];
-    break;
-
-case 'AR1':
-    setup = 2000;
-    if (quantity >= 1000) pricePerUnit = 25;
-    else if (quantity >= 500) pricePerUnit = 30;
-    else if (quantity >= 100) pricePerUnit = 35;
-    else pricePerUnit = 45;
-
-    pricingRanges = [
-        {min: 50, price: 45},
-        {min: 100, price: 35},
-        {min: 500, price: 30},
-        {min: 1000, price: 25}
-    ];
-    break;
-
-case 'AR2':
-    setup = 2500;
-    if (quantity >= 1000) pricePerUnit = 30;
-    else if (quantity >= 500) pricePerUnit = 35;
-    else if (quantity >= 100) pricePerUnit = 40;
-    else pricePerUnit = 50;
-
-    pricingRanges = [
-        {min: 50, price: 50},
-        {min: 100, price: 40},
-        {min: 500, price: 35},
-        {min: 1000, price: 30}
-    ];
-    break;
-
-case 'B2':
-    setup = 4500;
-    if (quantity >= 1000) pricePerUnit = 120;
-    else if (quantity >= 300) pricePerUnit = 135;
-    else if (quantity >= 100) pricePerUnit = 150;
-    else pricePerUnit = 170;
-
-    if (isMetallic) pricePerUnit *= 1.5;
-
-    pricingRanges = [
-        {min: 30, price: 170},
-        {min: 100, price: 150},
-        {min: 300, price: 135},
-        {min: 1000, price: 120}
-    ];
-    break;
-
-case 'B3':
-    setup = 5000;
-    if (quantity >= 1000) pricePerUnit = 140;
-    else if (quantity >= 300) pricePerUnit = 155;
-    else if (quantity >= 100) pricePerUnit = 170;
-    else pricePerUnit = 190;
-
-    if (isMetallic) pricePerUnit *= 1.5;
-
-    pricingRanges = [
-        {min: 30, price: 190},
-        {min: 100, price: 170},
-        {min: 300, price: 155},
-        {min: 1000, price: 140}
-    ];
-    break;
-
-case 'B4':
-    setup = 5500;
-    if (quantity >= 1000) pricePerUnit = 160;
-    else if (quantity >= 300) pricePerUnit = 175;
-    else if (quantity >= 100) pricePerUnit = 190;
-    else pricePerUnit = 210;
-
-    if (isMetallic) pricePerUnit *= 1.5;
-
-    pricingRanges = [
-        {min: 30, price: 210},
-        {min: 100, price: 190},
-        {min: 300, price: 175},
-        {min: 1000, price: 160}
-    ];
-    break;
-
-case 'D1':
-    setup = 3500;
-    if (quantity >= 1000) pricePerUnit = 110;
-    else if (quantity >= 300) pricePerUnit = 125;
-    else if (quantity >= 100) pricePerUnit = 140;
-    else pricePerUnit = 160;
-
-    if (isMetallic) pricePerUnit *= 1.4;
-
-    pricingRanges = [
-        {min: 30, price: 160},
-        {min: 100, price: 140},
-        {min: 300, price: 125},
-        {min: 1000, price: 110}
-    ];
-    break;
-
-case 'D2':
-    setup = 4000;
-    if (quantity >= 1000) pricePerUnit = 130;
-    else if (quantity >= 300) pricePerUnit = 145;
-    else if (quantity >= 100) pricePerUnit = 160;
-    else pricePerUnit = 180;
-
-    if (isMetallic) pricePerUnit *= 1.4;
-
-    pricingRanges = [
-        {min: 30, price: 180},
-        {min: 100, price: 160},
-        {min: 300, price: 145},
-        {min: 1000, price: 130}
-    ];
-    break;
-
-case 'D3':
-    setup = 4500;
-    if (quantity >= 1000) pricePerUnit = 150;
-    else if (quantity >= 300) pricePerUnit = 165;
-    else if (quantity >= 100) pricePerUnit = 180;
-    else pricePerUnit = 200;
-
-    if (isMetallic) pricePerUnit *= 1.4;
-
-    pricingRanges = [
-        {min: 30, price: 200},
-        {min: 100, price: 180},
-        {min: 300, price: 165},
-        {min: 1000, price: 150}
-    ];
-    break;
-
-case 'D4':
-    setup = 5000;
-    if (quantity >= 1000) pricePerUnit = 170;
-    else if (quantity >= 300) pricePerUnit = 185;
-    else if (quantity >= 100) pricePerUnit = 200;
-    else pricePerUnit = 220;
-
-    if (isMetallic) pricePerUnit *= 1.4;
-
-    pricingRanges = [
-        {min: 30, price: 220},
-        {min: 100, price: 200},
-        {min: 300, price: 185},
-        {min: 1000, price: 170}
-    ];
-    break;
-
-case 'DTG2':
-    setup = 0;
-    if (size <= 100) {
-        if (quantity >= 200) pricePerUnit = 450;
-        else if (quantity >= 100) pricePerUnit = 470;
-        else if (quantity >= 50) pricePerUnit = 490;
-        else if (quantity >= 30) pricePerUnit = 510;
-        else if (quantity >= 10) pricePerUnit = 550;
-        else if (quantity >= 2) pricePerUnit = 780;
-        else pricePerUnit = 900;
-    } else if (size <= 300) {
-        if (quantity >= 200) pricePerUnit = 500;
-        else if (quantity >= 100) pricePerUnit = 530;
-        else if (quantity >= 50) pricePerUnit = 550;
-        else if (quantity >= 30) pricePerUnit = 590;
-        else if (quantity >= 10) pricePerUnit = 650;
-        else if (quantity >= 2) pricePerUnit = 900;
-        else pricePerUnit = 1050;
-    } else if (size <= 600) {
-        if (quantity >= 200) pricePerUnit = 550;
-        else if (quantity >= 100) pricePerUnit = 590;
-        else if (quantity >= 50) pricePerUnit = 610;
-        else if (quantity >= 30) pricePerUnit = 670;
-        else if (quantity >= 10) pricePerUnit = 750;
-        else if (quantity >= 2) pricePerUnit = 1100;
-        else pricePerUnit = 1300;
-    } else {
-        if (quantity >= 200) pricePerUnit = 650;
-        else if (quantity >= 100) pricePerUnit = 700;
-        else if (quantity >= 50) pricePerUnit = 750;
-        else if (quantity >= 30) pricePerUnit = 850;
-        else if (quantity >= 10) pricePerUnit = 950;
-        else if (quantity >= 2) pricePerUnit = 1300;
-        else pricePerUnit = 1500;
-    }
-    pricingRanges = [
-        {min: 1, price: size <= 100 ? 900 : size <= 300 ? 1050 : size <= 600 ? 1300 : 1500},
-        {min: 2, price: size <= 100 ? 780 : size <= 300 ? 900 : size <= 600 ? 1100 : 1300},
-        {min: 10, price: size <= 100 ? 550 : size <= 300 ? 650 : size <= 600 ? 750 : 950},
-        {min: 30, price: size <= 100 ? 510 : size <= 300 ? 590 : size <= 600 ? 670 : 850},
-        {min: 50, price: size <= 100 ? 490 : size <= 300 ? 550 : size <= 600 ? 610 : 750},
-        {min: 100, price: size <= 100 ? 470 : size <= 300 ? 530 : size <= 600 ? 590 : 700},
-        {min: 200, price: size <= 100 ? 450 : size <= 300 ? 500 : size <= 600 ? 550 : 650}
-    ];
-    break;
-
-case 'DTG3':
-    setup = 0;
-    if (size <= 100) {
-        if (quantity >= 200) pricePerUnit = 480;
-        else if (quantity >= 100) pricePerUnit = 500;
-        else if (quantity >= 50) pricePerUnit = 520;
-        else if (quantity >= 30) pricePerUnit = 540;
-        else if (quantity >= 10) pricePerUnit = 580;
-        else if (quantity >= 2) pricePerUnit = 820;
-        else pricePerUnit = 950;
-    } else if (size <= 300) {
-        if (quantity >= 200) pricePerUnit = 530;
-        else if (quantity >= 100) pricePerUnit = 560;
-        else if (quantity >= 50) pricePerUnit = 580;
-        else if (quantity >= 30) pricePerUnit = 620;
-        else if (quantity >= 10) pricePerUnit = 680;
-        else if (quantity >= 2) pricePerUnit = 950;
-        else pricePerUnit = 1100;
-    } else if (size <= 600) {
-        if (quantity >= 200) pricePerUnit = 580;
-        else if (quantity >= 100) pricePerUnit = 620;
-        else if (quantity >= 50) pricePerUnit = 640;
-        else if (quantity >= 30) pricePerUnit = 700;
-        else if (quantity >= 10) pricePerUnit = 780;
-        else if (quantity >= 2) pricePerUnit = 1150;
-        else pricePerUnit = 1350;
-    } else {
-        if (quantity >= 200) pricePerUnit = 680;
-        else if (quantity >= 100) pricePerUnit = 730;
-        else if (quantity >= 50) pricePerUnit = 780;
-        else if (quantity >= 30) pricePerUnit = 880;
-        else if (quantity >= 10) pricePerUnit = 980;
-        else if (quantity >= 2) pricePerUnit = 1350;
-        else pricePerUnit = 1550;
-    }
-    pricingRanges = [
-        {min: 1, price: size <= 100 ? 950 : size <= 300 ? 1100 : size <= 600 ? 1350 : 1550},
-        {min: 2, price: size <= 100 ? 820 : size <= 300 ? 950 : size <= 600 ? 1150 : 1350},
-        {min: 10, price: size <= 100 ? 580 : size <= 300 ? 680 : size <= 600 ? 780 : 980},
-        {min: 30, price: size <= 100 ? 540 : size <= 300 ? 620 : size <= 600 ? 700 : 880},
-        {min: 50, price: size <= 100 ? 520 : size <= 300 ? 580 : size <= 600 ? 640 : 780},
-        {min: 100, price: size <= 100 ? 500 : size <= 300 ? 560 : size <= 600 ? 620 : 730},
-        {min: 200, price: size <= 100 ? 480 : size <= 300 ? 530 : size <= 600 ? 580 : 680}
-    ];
-    break;
-
-case 'DTF1':
-    setup = 2000;
-    if (quantity >= 500) pricePerUnit = 120;
-    else if (quantity >= 300) pricePerUnit = 140;
-    else if (quantity >= 100) pricePerUnit = 160;
-    else pricePerUnit = 180;
-
-    pricingRanges = [
-        {min: 50, price: 180},
-        {min: 100, price: 160},
-        {min: 300, price: 140},
-        {min: 500, price: 120}
-    ];
-    break;
-
-case 'DTF2':
-    setup = 2500;
-    if (quantity >= 500) pricePerUnit = 140;
-    else if (quantity >= 300) pricePerUnit = 160;
-    else if (quantity >= 100) pricePerUnit = 180;
-    else pricePerUnit = 200;
-
-    pricingRanges = [
-        {min: 50, price: 200},
-        {min: 100, price: 180},
-        {min: 300, price: 160},
-        {min: 500, price: 140}
-    ];
-    break;
-
-case 'DTF3':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 160;
-    else if (quantity >= 300) pricePerUnit = 180;
-    else if (quantity >= 100) pricePerUnit = 200;
-    else pricePerUnit = 220;
-
-    pricingRanges = [
-        {min: 50, price: 220},
-        {min: 100, price: 200},
-        {min: 300, price: 180},
-        {min: 500, price: 160}
-    ];
-    break;
-
-case 'DTF4':
-    setup = 3500;
-    if (quantity >= 500) pricePerUnit = 180;
-    else if (quantity >= 300) pricePerUnit = 200;
-    else if (quantity >= 100) pricePerUnit = 220;
-    else pricePerUnit = 240;
-
-    pricingRanges = [
-        {min: 50, price: 240},
-        {min: 100, price: 220},
-        {min: 300, price: 200},
-        {min: 500, price: 180}
-    ];
-    break;
-
-case 'H2':
-    setup = 3500;
-    if (quantity >= 1000) pricePerUnit = 200;
-    else if (quantity >= 200) pricePerUnit = 220;
-    else if (quantity >= 100) pricePerUnit = 250;
-    else pricePerUnit = 270;
-
-    pricingRanges = [
-        {min: 36, price: 270},
-        {min: 100, price: 250},
-        {min: 200, price: 220},
-        {min: 1000, price: 200}
-    ];
-    break;
-
-case 'H3':
-    setup = 4000;
-    if (quantity >= 1000) pricePerUnit = 220;
-    else if (quantity >= 200) pricePerUnit = 240;
-    else if (quantity >= 100) pricePerUnit = 270;
-    else pricePerUnit = 290;
-
-    pricingRanges = [
-        {min: 36, price: 290},
-        {min: 100, price: 270},
-        {min: 200, price: 240},
-        {min: 1000, price: 220}
-    ];
-    break;
-
-case 'HC1':
-    setup = 2500;
-    if (quantity >= 1000) pricePerUnit = 150;
-    else if (quantity >= 200) pricePerUnit = 170;
-    else if (quantity >= 100) pricePerUnit = 200;
-    else pricePerUnit = 220;
-
-    pricingRanges = [
-        {min: 36, price: 220},
-        {min: 100, price: 200},
-        {min: 200, price: 170},
-        {min: 1000, price: 150}
-    ];
-    break;
-
-case 'HC2':
-    setup = 3000;
-    if (quantity >= 1000) pricePerUnit = 170;
-    else if (quantity >= 200) pricePerUnit = 190;
-    else if (quantity >= 100) pricePerUnit = 220;
-    else pricePerUnit = 240;
-
-    pricingRanges = [
-        {min: 36, price: 240},
-        {min: 100, price: 220},
-        {min: 200, price: 190},
-        {min: 1000, price: 170}
-    ];
-    break;
-
-case 'LB2':
-    setup = 2500;
-    if (quantity >= 500) pricePerUnit = 70;
-    else if (quantity >= 300) pricePerUnit = 80;
-    else if (quantity >= 100) pricePerUnit = 90;
-    else if (quantity >= 50) pricePerUnit = 120;
-    else if (quantity >= 20) pricePerUnit = 140;
-    else pricePerUnit = 160;
-
-    pricingRanges = [
-        {min: 10, price: 160},
-        {min: 20, price: 140},
-        {min: 50, price: 120},
-        {min: 100, price: 90},
-        {min: 300, price: 80},
-        {min: 500, price: 70}
-    ];
-    break;
-
-case 'LB3':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 80;
-    else if (quantity >= 300) pricePerUnit = 90;
-    else if (quantity >= 100) pricePerUnit = 100;
-    else if (quantity >= 50) pricePerUnit = 130;
-    else if (quantity >= 20) pricePerUnit = 150;
-    else pricePerUnit = 170;
-
-    pricingRanges = [
-        {min: 10, price: 170},
-        {min: 20, price: 150},
-        {min: 50, price: 130},
-        {min: 100, price: 100},
-        {min: 300, price: 90},
-        {min: 500, price: 80}
-    ];
-    break;
-
-case 'LC1':
-    setup = 2000;
-    if (quantity >= 500) pricePerUnit = 50;
-    else if (quantity >= 300) pricePerUnit = 60;
-    else if (quantity >= 100) pricePerUnit = 70;
-    else if (quantity >= 50) pricePerUnit = 100;
-    else if (quantity >= 20) pricePerUnit = 120;
-    else pricePerUnit = 140;
-
-    pricingRanges = [
-        {min: 10, price: 140},
-        {min: 20, price: 120},
-        {min: 50, price: 100},
-        {min: 100, price: 70},
-        {min: 300, price: 60},
-        {min: 500, price: 50}
-    ];
-    break;
-
-case 'LC2':
-    setup = 2500;
-    if (quantity >= 500) pricePerUnit = 60;
-    else if (quantity >= 300) pricePerUnit = 70;
-    else if (quantity >= 100) pricePerUnit = 80;
-    else if (quantity >= 50) pricePerUnit = 110;
-    else if (quantity >= 20) pricePerUnit = 130;
-    else pricePerUnit = 150;
-
-    pricingRanges = [
-        {min: 10, price: 150},
-        {min: 20, price: 130},
-        {min: 50, price: 110},
-        {min: 100, price: 80},
-        {min: 300, price: 70},
-        {min: 500, price: 60}
-    ];
-    break;
-
-case 'LC3':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 70;
-    else if (quantity >= 300) pricePerUnit = 80;
-    else if (quantity >= 100) pricePerUnit = 90;
-    else if (quantity >= 50) pricePerUnit = 120;
-    else if (quantity >= 20) pricePerUnit = 140;
-    else pricePerUnit = 160;
-
-    pricingRanges = [
-        {min: 10, price: 160},
-        {min: 20, price: 140},
-        {min: 50, price: 120},
-        {min: 100, price: 90},
-        {min: 300, price: 80},
-        {min: 500, price: 70}
-    ];
-    break;
-
-case 'LM1':
-    setup = 2000;
-    if (quantity >= 500) pricePerUnit = 55;
-    else if (quantity >= 300) pricePerUnit = 65;
-    else if (quantity >= 100) pricePerUnit = 75;
-    else if (quantity >= 50) pricePerUnit = 105;
-    else if (quantity >= 20) pricePerUnit = 125;
-    else pricePerUnit = 145;
-
-    pricingRanges = [
-        {min: 10, price: 145},
-        {min: 20, price: 125},
-        {min: 50, price: 105},
-        {min: 100, price: 75},
-        {min: 300, price: 65},
-        {min: 500, price: 55}
-    ];
-    break;
-
-case 'LM2':
-    setup = 2500;
-    if (quantity >= 500) pricePerUnit = 65;
-    else if (quantity >= 300) pricePerUnit = 75;
-    else if (quantity >= 100) pricePerUnit = 85;
-    else if (quantity >= 50) pricePerUnit = 115;
-    else if (quantity >= 20) pricePerUnit = 135;
-    else pricePerUnit = 155;
-
-    pricingRanges = [
-        {min: 10, price: 155},
-        {min: 20, price: 135},
-        {min: 50, price: 115},
-        {min: 100, price: 85},
-        {min: 300, price: 75},
-        {min: 500, price: 65}
-    ];
-    break;
-
-case 'LM3':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 75;
-    else if (quantity >= 300) pricePerUnit = 85;
-    else if (quantity >= 100) pricePerUnit = 95;
-    else if (quantity >= 50) pricePerUnit = 125;
-    else if (quantity >= 20) pricePerUnit = 145;
-    else pricePerUnit = 165;
-
-    pricingRanges = [
-        {min: 10, price: 165},
-        {min: 20, price: 145},
-        {min: 50, price: 125},
-        {min: 100, price: 95},
-        {min: 300, price: 85},
-        {min: 500, price: 75}
-    ];
-    break;
-
-case 'LRC':
-case 'LRM':
-case 'LRUV':
-    setup = 3500;
-    if (quantity >= 500) pricePerUnit = 100;
-    else if (quantity >= 300) pricePerUnit = 120;
-    else if (quantity >= 100) pricePerUnit = 140;
-    else pricePerUnit = 160;
-
-    pricingRanges = [
-        {min: 50, price: 160},
-        {min: 100, price: 140},
-        {min: 300, price: 120},
-        {min: 500, price: 100}
-    ];
-    break;
-
-case 'LSC':
-case 'LSM':
-case 'LSP':
-    setup = 4000;
-    if (quantity >= 500) pricePerUnit = 120;
-    else if (quantity >= 300) pricePerUnit = 140;
-    else if (quantity >= 100) pricePerUnit = 160;
-    else pricePerUnit = 180;
-
-    pricingRanges = [
-        {min: 50, price: 180},
-        {min: 100, price: 160},
-        {min: 300, price: 140},
-        {min: 500, price: 120}
-    ];
-    break;
-
-case 'LUV1':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 80;
-    else if (quantity >= 300) pricePerUnit = 90;
-    else if (quantity >= 100) pricePerUnit = 100;
-    else if (quantity >= 50) pricePerUnit = 130;
-    else if (quantity >= 20) pricePerUnit = 150;
-    else pricePerUnit = 170;
-
-    pricingRanges = [
-        {min: 10, price: 170},
-        {min: 20, price: 150},
-        {min: 50, price: 130},
-        {min: 100, price: 100},
-        {min: 300, price: 90},
-        {min: 500, price: 80}
-    ];
-    break;
-
-case 'LUV2':
-    setup = 3500;
-    if (quantity >= 500) pricePerUnit = 90;
-    else if (quantity >= 300) pricePerUnit = 100;
-    else if (quantity >= 100) pricePerUnit = 110;
-    else if (quantity >= 50) pricePerUnit = 140;
-    else if (quantity >= 20) pricePerUnit = 160;
-    else pricePerUnit = 180;
-
-    pricingRanges = [
-        {min: 10, price: 180},
-        {min: 20, price: 160},
-        {min: 50, price: 140},
-        {min: 100, price: 110},
-        {min: 300, price: 100},
-        {min: 500, price: 90}
-    ];
-    break;
-
-case 'LUV3':
-    setup = 4000;
-    if (quantity >= 500) pricePerUnit = 100;
-    else if (quantity >= 300) pricePerUnit = 110;
-    else if (quantity >= 100) pricePerUnit = 120;
-    else if (quantity >= 50) pricePerUnit = 150;
-    else if (quantity >= 20) pricePerUnit = 170;
-    else pricePerUnit = 190;
-
-    pricingRanges = [
-        {min: 10, price: 190},
-        {min: 20, price: 170},
-        {min: 50, price: 150},
-        {min: 100, price: 120},
-        {min: 300, price: 110},
-        {min: 500, price: 100}
-    ];
-    break;
-
-case 'SB21':
-    setup = 2000;
-    if (quantity >= 1008) pricePerUnit = 120;
-    else if (quantity >= 504) pricePerUnit = 140;
-    else if (quantity >= 252) pricePerUnit = 160;
-    else if (quantity >= 108) pricePerUnit = 180;
-    else if (quantity >= 36) pricePerUnit = 220;
-    else pricePerUnit = 260;
-
-    pricingRanges = [
-        {min: 5, price: 260},
-        {min: 36, price: 220},
-        {min: 108, price: 180},
-        {min: 252, price: 160},
-        {min: 504, price: 140},
-        {min: 1008, price: 120}
-    ];
-    break;
-
-case 'SB22':
-    setup = 2500;
-    if (quantity >= 1008) pricePerUnit = 140;
-    else if (quantity >= 504) pricePerUnit = 160;
-    else if (quantity >= 252) pricePerUnit = 180;
-    else if (quantity >= 108) pricePerUnit = 200;
-    else if (quantity >= 36) pricePerUnit = 240;
-    else pricePerUnit = 280;
-
-    pricingRanges = [
-        {min: 5, price: 280},
-        {min: 36, price: 240},
-        {min: 108, price: 200},
-        {min: 252, price: 180},
-        {min: 504, price: 160},
-        {min: 1008, price: 140}
-    ];
-    break;
-
-case 'SH1':
-    setup = 3000;
-    if (quantity >= 1000) pricePerUnit = 80;
-    else if (quantity >= 500) pricePerUnit = 90;
-    else if (quantity >= 300) pricePerUnit = 100;
-    else if (quantity >= 100) pricePerUnit = 120;
-    else pricePerUnit = 140;
-
-    pricingRanges = [
-        {min: 50, price: 140},
-        {min: 100, price: 120},
-        {min: 300, price: 100},
-        {min: 500, price: 90},
-        {min: 1000, price: 80}
-    ];
-    break;
-
-case 'SH2':
-    setup = 3500;
-    if (quantity >= 1000) pricePerUnit = 90;
-    else if (quantity >= 500) pricePerUnit = 100;
-    else if (quantity >= 300) pricePerUnit = 110;
-    else if (quantity >= 100) pricePerUnit = 130;
-    else pricePerUnit = 150;
-
-    pricingRanges = [
-        {min: 50, price: 150},
-        {min: 100, price: 130},
-        {min: 300, price: 110},
-        {min: 500, price: 100},
-        {min: 1000, price: 90}
-    ];
-    break;
-
-case 'SH3':
-    setup = 4000;
-    if (quantity >= 1000) pricePerUnit = 100;
-    else if (quantity >= 500) pricePerUnit = 110;
-    else if (quantity >= 300) pricePerUnit = 120;
-    else if (quantity >= 100) pricePerUnit = 140;
-    else pricePerUnit = 160;
-
-    pricingRanges = [
-        {min: 50, price: 160},
-        {min: 100, price: 140},
-        {min: 300, price: 120},
-        {min: 500, price: 110},
-        {min: 1000, price: 100}
-    ];
-    break;
-
-case 'SHR':
-    setup = 4500;
-    if (quantity >= 1000) pricePerUnit = 110;
-    else if (quantity >= 500) pricePerUnit = 120;
-    else if (quantity >= 300) pricePerUnit = 130;
-    else if (quantity >= 100) pricePerUnit = 150;
-    else pricePerUnit = 170;
-
-    pricingRanges = [
-        {min: 50, price: 170},
-        {min: 100, price: 150},
-        {min: 300, price: 130},
-        {min: 500, price: 120},
-        {min: 1000, price: 110}
-    ];
-    break;
-
-case 'SL1':
-    setup = 1000;
-    if (quantity >= 1000) pricePerUnit = 15;
-    else if (quantity >= 500) pricePerUnit = 18;
-    else if (quantity >= 300) pricePerUnit = 20;
-    else if (quantity >= 100) pricePerUnit = 25;
-    else pricePerUnit = 30;
-
-    pricingRanges = [
-        {min: 50, price: 30},
-        {min: 100, price: 25},
-        {min: 300, price: 20},
-        {min: 500, price: 18},
-        {min: 1000, price: 15}
-    ];
-    break;
-
-case 'T2':
-    setup = 3000;
-    let basePriceT2;
-    if (quantity >= 500) basePriceT2 = 71;
-    else if (quantity >= 200) basePriceT2 = 78;
-    else if (quantity >= 100) basePriceT2 = 86;
-    else if (quantity >= 50) basePriceT2 = 94;
-    else if (quantity >= 30) basePriceT2 = 115;
-    else basePriceT2 = 178;
-
-    pricePerUnit = basePriceT2;
-    if (size > 100) {
-        const extraCm = size - 100;
-        if (quantity >= 500) pricePerUnit += extraCm * 0.15;
-        else if (quantity >= 200) pricePerUnit += extraCm * 0.23;
-        else if (quantity >= 100) pricePerUnit += extraCm * 0.35;
-        else if (quantity >= 50) pricePerUnit += extraCm * 0.6;
-        else if (quantity >= 30) pricePerUnit += extraCm * 0.93;
-        else pricePerUnit += extraCm * 2.8;
-    }
-
-    pricingRanges = [
-        {min: 10, price: 178 + (size > 100 ? (size-100)*2.8 : 0)},
-        {min: 30, price: 115 + (size > 100 ? (size-100)*0.93 : 0)},
-        {min: 50, price: 94 + (size > 100 ? (size-100)*0.6 : 0)},
-        {min: 100, price: 86 + (size > 100 ? (size-100)*0.35 : 0)},
-        {min: 200, price: 78 + (size > 100 ? (size-100)*0.23 : 0)},
-        {min: 500, price: 71 + (size > 100 ? (size-100)*0.15 : 0)}
-    ];
-    break;
-    case 'UV2':
-    setup = 2500;
-    if (quantity >= 500) pricePerUnit = 45;
-    else if (quantity >= 300) pricePerUnit = 55;
-    else if (quantity >= 100) pricePerUnit = 65;
-    else if (quantity >= 50) pricePerUnit = 85;
-    else pricePerUnit = 85;
-
-    pricingRanges = [
-        {min: 10, price: 85},
-        {min: 50, price: 85},
-        {min: 100, price: 65},
-        {min: 300, price: 55},
-        {min: 500, price: 45}
-    ];
-    break;
-
-case 'UV3':
-    setup = 3000;
-    if (quantity >= 500) pricePerUnit = 55;
-    else if (quantity >= 300) pricePerUnit = 65;
-    else if (quantity >= 100) pricePerUnit = 75;
-    else if (quantity >= 50) pricePerUnit = 95;
-    else pricePerUnit = 95;
-
-    pricingRanges = [
-        {min: 10, price: 95},
-        {min: 50, price: 95},
-        {min: 100, price: 75},
-        {min: 300, price: 65},
-        {min: 500, price: 55}
-    ];
-    break;
-
-case 'UVR':
-    setup = 3500;
-    if (quantity >= 500) pricePerUnit = 65;
-    else if (quantity >= 300) pricePerUnit = 75;
-    else if (quantity >= 100) pricePerUnit = 85;
-    else if (quantity >= 50) pricePerUnit = 105;
-    else pricePerUnit = 105;
-
-    pricingRanges = [
-        {min: 10, price: 105},
-        {min: 50, price: 105},
-        {min: 100, price: 85},
-        {min: 300, price: 75},
-        {min: 500, price: 65}
-    ];
-    break;
-
-case 'UVRL':
-    setup = 4000;
-    if (quantity >= 500) pricePerUnit = 75;
-    else if (quantity >= 300) pricePerUnit = 85;
-    else if (quantity >= 100) pricePerUnit = 95;
-    else if (quantity >= 50) pricePerUnit = 115;
-    else pricePerUnit = 115;
-
-    pricingRanges = [
-        {min: 10, price: 115},
-        {min: 50, price: 115},
-        {min: 100, price: 95},
-        {min: 300, price: 85},
-        {min: 500, price: 75}
-    ];
-    break;
-
-case 'UV-DTF1':
-    setup = 3500;
-    if (quantity >= 500) pricePerUnit = 85;
-    else if (quantity >= 300) pricePerUnit = 95;
-    else if (quantity >= 100) pricePerUnit = 105;
-    else if (quantity >= 50) pricePerUnit = 125;
-    else pricePerUnit = 125;
-
-    pricingRanges = [
-        {min: 10, price: 125},
-        {min: 50, price: 125},
-        {min: 100, price: 105},
-        {min: 300, price: 95},
-        {min: 500, price: 85}
-    ];
-    break;
-
-case 'UV-DTF2':
-    setup = 4000;
-    if (quantity >= 500) pricePerUnit = 95;
-    else if (quantity >= 300) pricePerUnit = 105;
-    else if (quantity >= 100) pricePerUnit = 115;
-    else if (quantity >= 50) pricePerUnit = 135;
-    else pricePerUnit = 135;
-
-    pricingRanges = [
-        {min: 10, price: 135},
-        {min: 50, price: 135},
-        {min: 100, price: 115},
-        {min: 300, price: 105},
-        {min: 500, price: 95}
-    ];
-    break;
-
-case 'F2':
-    setup = 1500;
-    pricePerUnit = size * 4 + 55;
-    pricingRanges = [
-        {min: 1, price: size * 4 + 55}
-    ];
-    break;
-
-case 'M2':
-    setup = 1000;
-    if (quantity >= 5000) pricePerUnit = 12;
-    else if (quantity >= 1000) pricePerUnit = 13;
-    else if (quantity >= 500) pricePerUnit = 14;
-    else pricePerUnit = 16;
-
-    pricingRanges = [
-        {min: 100, price: 16},
-        {min: 500, price: 14},
-        {min: 1000, price: 13},
-        {min: 5000, price: 12}
-    ];
-    break;
-
-case 'MW1':
-    setup = 1500;
-    if (quantity >= 5000) pricePerUnit = 15;
-    else if (quantity >= 1000) pricePerUnit = 16;
-    else if (quantity >= 500) pricePerUnit = 17;
-    else pricePerUnit = 19;
-
-    pricingRanges = [
-        {min: 100, price: 19},
-        {min: 500, price: 17},
-        {min: 1000, price: 16},
-        {min: 5000, price: 15}
-    ];
-    break;
-
-case 'MW2':
-    setup = 2000;
-    if (quantity >= 5000) pricePerUnit = 17;
-    else if (quantity >= 1000) pricePerUnit = 18;
-    else if (quantity >= 500) pricePerUnit = 19;
-    else pricePerUnit = 21;
-
-    pricingRanges = [
-        {min: 100, price: 21},
-        {min: 500, price: 19},
-        {min: 1000, price: 18},
-        {min: 5000, price: 17}
-    ];
-    break;
-
-            // Добавьте остальные методы по аналогии...
-
-            default:
-                // Значения по умолчанию
-                setup = 2000;
-                pricePerUnit = 25;
-                pricingRanges = [
-                    {min: 100, price: 25},
-                    {min: 300, price: 15},
-                    {min: 1000, price: 10},
-                    {min: 3000, price: 8}
-                ];
-        }
-
-        // Обновляем отображаемые цены
-     // Обновляем отображаемые цены
-        setupCost.textContent = formatNumber(setup) + ' ₽';
-        unitPrice.textContent = formatNumber(pricePerUnit) + ' ₽';
-        totalCost.textContent = formatNumber(setup + quantity * pricePerUnit) + ' ₽';
-
-        // Обновляем таблицу цен
-        pricingTable.innerHTML = '';
-        pricingRanges.forEach(range => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${range.min === 1 ? '1' : 'от ' + range.min}</td>
-                <td>${formatNumber(range.price)} ₽</td>
-            `;
-            pricingTable.appendChild(row);
-        });
-
-        console.log('Pricing updated:', {
-            setup,
-            pricePerUnit,
-            total: setup + quantity * pricePerUnit
-        });
-    }
-
-    // Инициализация
-    updateFieldsVisibility();
-    updatePricing();
-});
-    // Плавная прокрутка для якорных ссылок
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-
-            if (targetElement) {
-                const headerHeight = document.querySelector('header').offsetHeight || 0;
-                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
-
-                window.scrollTo({
-                    top: targetPosition,
+        // Обработчики для карточек
+        const serviceCards = document.querySelectorAll('.service-card');
+        serviceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const serviceIndex = this.getAttribute('data-service');
+                showService(serviceIndex);
+
+                // Прокрутка к деталям услуги
+                document.getElementById('service-' + serviceIndex).scrollIntoView({
                     behavior: 'smooth'
                 });
-
-                // Закрываем выпадающее меню, если оно открыто
-                const dropdown = document.querySelector('.dropdown-menu.show');
-                if (dropdown) {
-                    bootstrap.Dropdown.getInstance(dropdown.closest('.dropdown')).hide();
-                }
-            }
+            });
         });
-});
+
+        function showService(index) {
+            // Скрываем сетку карточек
+            document.getElementById('services-grid').style.display = 'none';
+
+            // Скрываем все детали услуг
+            document.querySelectorAll('.service-detail').forEach(detail => {
+                detail.classList.remove('active');
+            });
+
+            // Убираем активный класс со всех ссылок
+            document.querySelectorAll('.service-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Показываем выбранную услугу
+            document.getElementById('service-' + index).classList.add('active');
+
+            // Активируем соответствующую ссылку в меню
+            document.querySelector(`.service-link[data-service="${index}"]`).classList.add('active');
+        }
+
+        // Добавляем кнопку "Назад к списку услуг"
+        const backButton = document.createElement('button');
+        backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Назад к списку услуг';
+        backButton.className = 'btn btn-outline-primary mb-4';
+        backButton.style.display = 'none';
+        backButton.id = 'back-to-services';
+        backButton.addEventListener('click', function() {
+            // Скрываем все детали услуг
+            document.querySelectorAll('.service-detail').forEach(detail => {
+                detail.classList.remove('active');
+            });
+
+            // Показываем сетку карточек
+            document.getElementById('services-grid').style.display = 'flex';
+
+            // Убираем активный класс со всех ссылок
+            document.querySelectorAll('.service-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Скрываем кнопку "Назад"
+            this.style.display = 'none';
+
+            // Прокрутка к верху
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+
+        // Вставляем кнопку перед сеткой услуг
+        document.getElementById('services-grid').parentNode.insertBefore(backButton, document.getElementById('services-grid'));
+
+        // Обновляем функцию showService для отображения кнопки "Назад"
+        const originalShowService = showService;
+        showService = function(index) {
+            originalShowService(index);
+            document.getElementById('back-to-services').style.display = 'block';
+        };
+    });
 </script>
 {% endblock %}
