@@ -71,13 +71,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gifts_project.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'OPTIONS': {
-            'timeout': 30,  # Увеличиваем таймаут
-        }
-    }
+    'default' : {
+        'ENGINE' : 'django.db.backends.postgresql',
+        'NAME' : 'gifts_db',
+        'USER' : 'gifts_user',
+        'PASSWORD' : 'vladnext232',
+        'HOST' : 'localhost',
+        'PORT' : '',
+     }
 }
 
 # Оптимизация для медиа-файлов
@@ -174,8 +175,11 @@ REST_FRAMEWORK = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://shop-production-033f.up.railway.app/',
-
+    'http://winwindeal.ru',
+    'https://winwindeal.ru',
+    'http://www.winwindeal.ru',
+    'https://www.winwindeal.ru',
+    'http://51.250.70.194'
 ]
 
 #CSRF_COOKIE_SECURE = True
@@ -205,7 +209,8 @@ COMPANY_BANK_NAME = "ПАО 'Сбербанк'"  # Название банка
 COMPANY_ACCOUNT = "40702810123456789012"  # Расчетный счет
 COMPANY_COR_ACCOUNT = "30101810400000000225"  # Корр. счет
 COMPANY_BANK_BIK = "044525225"  # БИК банка
+
 try:
-    from .local import *  # Для локальных переопределений
+    from .settings_local import *
 except ImportError:
     pass
